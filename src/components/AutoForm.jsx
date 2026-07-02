@@ -53,12 +53,14 @@ function SeccionTramite({ titulo, prefix, form, setForm }) {
             ))}
           </select>
         </Field>
-        <Field label="Vence">
+        <Field label="Vence (mes)">
           <input
-            type="date"
+            type="month"
             className={inputClass}
-            value={form[`${prefix}_vence`] || ""}
-            onChange={(e) => setForm({ ...form, [`${prefix}_vence`]: e.target.value })}
+            value={(form[`${prefix}_vence`] || "").slice(0, 7)}
+            onChange={(e) =>
+              setForm({ ...form, [`${prefix}_vence`]: e.target.value ? `${e.target.value}-01` : "" })
+            }
           />
         </Field>
       </div>

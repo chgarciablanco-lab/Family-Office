@@ -26,11 +26,11 @@ function formatCLP(valor) {
   return "$" + Number(valor).toLocaleString("es-CL");
 }
 
-function formatFecha(fecha) {
+function formatMes(fecha) {
   if (!fecha) return "-";
   const d = new Date(fecha + "T00:00:00");
-  const texto = d.toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" });
-  return texto.replace(".", "");
+  const texto = d.toLocaleDateString("es-CL", { month: "long", year: "numeric" });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 function AutoStatItem({ icon: Icon, label, estado, vence, valor }) {
@@ -43,7 +43,7 @@ function AutoStatItem({ icon: Icon, label, estado, vence, valor }) {
           <p className="font-bold text-slate-900 text-base leading-tight">{label}</p>
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${p.bg} ${p.text}`}>{estado}</span>
         </div>
-        <p className="text-sm text-slate-500 mt-1">Vence: {formatFecha(vence)}</p>
+        <p className="text-sm text-slate-500 mt-1">Vence: {formatMes(vence)}</p>
       </div>
       <p className="text-sm font-bold text-slate-900 shrink-0">{formatCLP(valor)}</p>
     </div>

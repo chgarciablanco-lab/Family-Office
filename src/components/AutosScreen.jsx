@@ -33,8 +33,16 @@ function formatMes(fecha) {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
-function AutoStatItem({ icon: Icon, label, estado, vence, valor }) {
+function formatFecha(fecha) {
+  if (!fecha) return "-";
+  const d = new Date(fecha + "T00:00:00");
+  const texto = d.toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" });
+  return texto.replace(".", "");
+}
+
+function AutoStatItem({ icon: Icon, label, estado, vence, valor, tipoFecha = "month" }) {
   const p = estadoPillClasses(estado);
+  const fechaTexto = tipoFecha === "date" ? formatFecha(vence) : formatMes(vence);
   return (
     <div className="flex items-center gap-3">
       <Icon className="w-5 h-5 text-slate-300 shrink-0" strokeWidth={1.8} />
@@ -43,7 +51,7 @@ function AutoStatItem({ icon: Icon, label, estado, vence, valor }) {
           <p className="font-bold text-slate-900 text-base leading-tight">{label}</p>
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${p.bg} ${p.text}`}>{estado}</span>
         </div>
-        <p className="text-sm text-slate-500 mt-1">Vence: {formatMes(vence)}</p>
+        <p className="text-sm text-slate-500 mt-1">Vence: {fechaTexto}</p>
       </div>
       <p className="text-sm font-bold text-slate-900 shrink-0">{formatCLP(valor)}</p>
     </div>
@@ -69,7 +77,7 @@ function AutoRow({ auto, onEdit }) {
         <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
       </div>
       <div className="flex flex-col gap-3.5 border-t border-slate-100 pt-3.5">
-        <AutoStatItem icon={ShieldCheck} label="Seguro" estado={auto.seguro_estado} vence={auto.seguro_vence} valor={auto.seguro_valor} />
+        <AutoStatItem icon={ShieldCheck} label="Seguro" estado={auto.seguro_estado} vence={auto.seguro_vence} valor={auto.seguro_valor} tipoFecha="date" />
         <AutoStatItem icon={ClipboardCheck} label="Revisión técnica" estado={auto.revision_estado} vence={auto.revision_vence} valor={auto.revision_valor} />
         <AutoStatItem icon={FileText} label="Patente" estado={auto.permiso_estado} vence={auto.permiso_vence} valor={auto.permiso_valor} />
       </div>

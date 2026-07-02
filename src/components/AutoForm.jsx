@@ -37,7 +37,7 @@ function Field({ label, children }) {
 const inputClass =
   "w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-violet-400";
 
-function SeccionTramite({ titulo, prefix, form, setForm }) {
+function SeccionTramite({ titulo, prefix, form, setForm, tipoFecha = "month" }) {
   return (
     <div className="border border-slate-100 rounded-xl p-3 flex flex-col gap-2.5">
       <p className="text-sm font-bold text-slate-900">{titulo}</p>
@@ -53,16 +53,27 @@ function SeccionTramite({ titulo, prefix, form, setForm }) {
             ))}
           </select>
         </Field>
-        <Field label="Vence (mes)">
-          <input
-            type="month"
-            className={inputClass}
-            value={(form[`${prefix}_vence`] || "").slice(0, 7)}
-            onChange={(e) =>
-              setForm({ ...form, [`${prefix}_vence`]: e.target.value ? `${e.target.value}-01` : "" })
-            }
-          />
-        </Field>
+        {tipoFecha === "date" ? (
+          <Field label="Vence">
+            <input
+              type="date"
+              className={inputClass}
+              value={form[`${prefix}_vence`] || ""}
+              onChange={(e) => setForm({ ...form, [`${prefix}_vence`]: e.target.value })}
+            />
+          </Field>
+        ) : (
+          <Field label="Vence (mes)">
+            <input
+              type="month"
+              className={inputClass}
+              value={(form[`${prefix}_vence`] || "").slice(0, 7)}
+              onChange={(e) =>
+                setForm({ ...form, [`${prefix}_vence`]: e.target.value ? `${e.target.value}-01` : "" })
+              }
+            />
+          </Field>
+        )}
       </div>
       <Field label="Valor ($)">
         <input
@@ -202,7 +213,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
             </Field>
           </div>
 
-          <SeccionTramite titulo="Seguro" prefix="seguro" form={form} setForm={setForm} />
+          <SeccionTramite titulo="Seguro" prefix="seguro" form={form} setForm={setForm} tipoFecha="date" />
           <SeccionTramite titulo="Revisión técnica" prefix="revision" form={form} setForm={setForm} />
           <SeccionTramite titulo="Patente / Permiso de circulación" prefix="permiso" form={form} setForm={setForm} />
 

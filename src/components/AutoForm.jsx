@@ -14,7 +14,7 @@ function emptyForm(auto) {
     anio: auto?.anio || "",
     color_tag: auto?.color_tag || "violet",
     seguro_estado: auto?.seguro_estado || "Al día",
-    seguro_vence: auto?.seguro_vence || "",
+    seguro_dia_vencimiento: auto?.seguro_dia_vencimiento || "",
     seguro_valor: auto?.seguro_valor || "",
     revision_estado: auto?.revision_estado || "Al día",
     revision_vence: auto?.revision_vence || "",
@@ -53,13 +53,16 @@ function SeccionTramite({ titulo, prefix, form, setForm, tipoFecha = "month" }) 
             ))}
           </select>
         </Field>
-        {tipoFecha === "date" ? (
-          <Field label="Vence">
+        {tipoFecha === "dia" ? (
+          <Field label="Vence (día del mes)">
             <input
-              type="date"
+              type="number"
+              min={1}
+              max={31}
               className={inputClass}
-              value={form[`${prefix}_vence`] || ""}
-              onChange={(e) => setForm({ ...form, [`${prefix}_vence`]: e.target.value })}
+              value={form[`${prefix}_dia_vencimiento`] || ""}
+              onChange={(e) => setForm({ ...form, [`${prefix}_dia_vencimiento`]: e.target.value })}
+              placeholder="Ej. 5"
             />
           </Field>
         ) : (
@@ -105,7 +108,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
       seguro_valor: form.seguro_valor ? parseFloat(form.seguro_valor) : null,
       revision_valor: form.revision_valor ? parseFloat(form.revision_valor) : null,
       permiso_valor: form.permiso_valor ? parseFloat(form.permiso_valor) : null,
-      seguro_vence: form.seguro_vence || null,
+      seguro_dia_vencimiento: form.seguro_dia_vencimiento ? parseInt(form.seguro_dia_vencimiento, 10) : null,
       revision_vence: form.revision_vence || null,
       permiso_vence: form.permiso_vence || null,
       updated_at: new Date().toISOString(),
@@ -213,7 +216,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
             </Field>
           </div>
 
-          <SeccionTramite titulo="Seguro" prefix="seguro" form={form} setForm={setForm} tipoFecha="date" />
+          <SeccionTramite titulo="Seguro" prefix="seguro" form={form} setForm={setForm} tipoFecha="dia" />
           <SeccionTramite titulo="Revisión técnica" prefix="revision" form={form} setForm={setForm} />
           <SeccionTramite titulo="Patente / Permiso de circulación" prefix="permiso" form={form} setForm={setForm} />
 

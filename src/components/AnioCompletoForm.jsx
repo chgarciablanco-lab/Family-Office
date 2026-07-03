@@ -12,9 +12,15 @@ const etiquetas = {
   Seguros: { compania: "Compañía aseguradora", numero: "N° de póliza", placeholder: "Consorcio, HDI..." },
 };
 
-function generarFilas(anio, propiedadId, sociedadId, tipoServicio, compania, numeroCliente) {
+function ultimoDiaMes(anio, mes) {
+  return new Date(anio, mes, 0).getDate();
+}
+
+function generarFilas(anio, propiedadId, sociedadId, tipoServicio, compania, numeroCliente, diaVencimiento) {
   return Array.from({ length: 12 }, (_, i) => {
-    const mes = String(i + 1).padStart(2, "0");
+    const mesNum = i + 1;
+    const mes = String(mesNum).padStart(2, "0");
+    const dia = String(Math.min(diaVencimiento, ultimoDiaMes(anio, mesNum))).padStart(2, "0");
     return {
       propiedad_id: propiedadId,
       sociedad_id: sociedadId,
@@ -22,7 +28,7 @@ function generarFilas(anio, propiedadId, sociedadId, tipoServicio, compania, num
       compania: compania || null,
       numero_cliente: numeroCliente || null,
       periodo: `${anio}-${mes}-01`,
-      vencimiento: `${anio}-${mes}-05`,
+      vencimiento: `${anio}-${mes}-${dia}`,
       estado: "Pendiente",
     };
   });
@@ -33,6 +39,7 @@ export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, 
   const [compania, setCompania] = useState("");
   const [companiaOtra, setCompaniaOtra] = useState(false);
   const [numeroCliente, setNumeroCliente] = useState("");
+  const [diaVencimiento, setDiaVencimiento] = useState("5");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,7 +48,8 @@ export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, 
     setSaving(true);
     setError("");
     const anio = new Date().getFullYear();
-    const filas = generarFilas(anio, propiedad.id, sociedadId, tipoServicio, compania, numeroCliente);
+    const dia = Math.min(31, Math.max(1, parseInt(diaVencimiento, 10) || 5));
+    const filas = generarFilas(anio, propiedad.id, sociedadId, tipoServicio, compania, numeroCliente, dia);
     const { error } = await supabase.from("servicios").insert(filas);
     setSaving(false);
     if (error) {
@@ -124,6 +132,23 @@ export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, 
               value={numeroCliente}
               onChange={(e) => setNumeroCliente(e.target.value)}
             />
+          </Field>
+
+          <Field label="Día de vencimiento (1-31)">
+            <input
+              autoComplete="off"
+              required
+              type="number"
+              min={1}
+              max={31}
+              className={inputClass}
+              value={diaVencimiento}
+              onChange={(e) => setDiaVencimiento(e.target.value)}
+              placeholder="Ej. 10"
+            />
+            <p className="text-xs text-slate-400 mt-1">
+              Se usará este día en los 12 meses (se ajusta automáticamente en meses más cortos).
+            </p>
           </Field>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

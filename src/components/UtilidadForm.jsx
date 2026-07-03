@@ -6,7 +6,6 @@ import ConfirmDialog from "./ConfirmDialog";
 import { companiasLuz } from "../lib/companiasChile";
 
 const estados = ["Pendiente", "Al día", "Por vencer", "Pagado"];
-const tiposConVencimientoFijo = ["Luz", "Gas", "Agua"];
 
 function emptyForm(registro) {
   return {
@@ -173,9 +172,6 @@ export default function UtilidadForm({ registro, propiedad, sociedadId, tipoServ
                 value={form.vencimiento}
                 onChange={(e) => setForm({ ...form, vencimiento: e.target.value })}
               />
-              {tiposConVencimientoFijo.includes(tipoServicio) && (
-                <p className="text-xs text-slate-400 mt-1">Vence habitualmente el día 5 de cada mes</p>
-              )}
             </Field>
           </div>
 

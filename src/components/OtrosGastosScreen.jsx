@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  ArrowLeft, Search, Plus, Receipt, ChevronRight,
+  ArrowLeft, Search, Plus, Receipt, ChevronRight, Info,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import OtrosGastoForm from "./OtrosGastoForm";
 import BottomNav from "./BottomNav";
-import { colorClasses, formatCLP, formatFechaCorta } from "../lib/format";
+import { formatCLP, formatFechaCorta } from "../lib/format";
 
 const tabs = ["Todos", "Hoy", "Esta semana", "Este mes"];
 
@@ -26,16 +26,35 @@ function dentroDeTab(fechaStr, tab) {
   return true;
 }
 
-export default function OtrosGastosScreen({
-  sociedadId, entidadNombre, entidadSub, entidadColor = "amber", backTo, onNavigate,
-}) {
+function GastoRow({ g, onEdit }) {
+  return (
+    <button
+      onClick={() => onEdit(g)}
+      className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+    >
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-100">
+        <Receipt className="w-6 h-6 text-amber-500" strokeWidth={1.8} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-slate-900 text-base leading-tight">{g.titulo}</p>
+        {g.descripcion && <p className="text-sm text-slate-500 mt-0.5">{g.descripcion}</p>}
+        <p className="text-xs text-slate-400 mt-0.5">{formatFechaCorta(g.fecha)} · {g.metodo_pago}</p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <p className="text-sm font-bold text-slate-900">{formatCLP(g.monto)}</p>
+        <ChevronRight className="w-5 h-5 text-slate-300" />
+      </div>
+    </button>
+  );
+}
+
+export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, onNavigate }) {
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("Todos");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const c = colorClasses[entidadColor] || colorClasses.violet;
 
   const fetchGastos = async () => {
     setLoading(true);
@@ -58,10 +77,6 @@ export default function OtrosGastosScreen({
       return g.titulo.toLowerCase().includes(q) || (g.descripcion || "").toLowerCase().includes(q);
     });
   }, [gastos, search, activeTab]);
-
-  const total = filtrados.reduce((sum, g) => sum + Number(g.monto), 0);
-  const promedio = filtrados.length ? total / filtrados.length : 0;
-  const mayor = filtrados.reduce((max, g) => Math.max(max, Number(g.monto)), 0);
 
   const handleSaved = () => {
     setShowForm(false);
@@ -86,35 +101,6 @@ export default function OtrosGastosScreen({
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
-        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${c.bg}`}>
-            <Receipt className={`w-7 h-7 ${c.fg}`} strokeWidth={1.8} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-900 text-lg leading-tight">{entidadNombre}</p>
-            <p className="text-sm text-slate-500 mt-0.5">{entidadSub}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl px-4 py-3.5 bg-emerald-50">
-            <p className="text-xs text-slate-500">Total {activeTab.toLowerCase()}</p>
-            <p className="text-xl font-bold mt-0.5 text-emerald-700">{formatCLP(total)}</p>
-          </div>
-          <div className="rounded-2xl px-4 py-3.5 bg-blue-50">
-            <p className="text-xs text-slate-500">Gasto promedio</p>
-            <p className="text-xl font-bold mt-0.5 text-blue-700">{formatCLP(Math.round(promedio))}</p>
-          </div>
-          <div className="rounded-2xl px-4 py-3.5 bg-slate-100">
-            <p className="text-xs text-slate-500">Transacciones</p>
-            <p className="text-xl font-bold mt-0.5 text-slate-800">{filtrados.length}</p>
-          </div>
-          <div className="rounded-2xl px-4 py-3.5 bg-orange-50">
-            <p className="text-xs text-slate-500">Mayor gasto</p>
-            <p className="text-xl font-bold mt-0.5 text-orange-600">{formatCLP(mayor)}</p>
-          </div>
-        </div>
-
         <div className="flex items-center gap-2">
           <div className="flex-1 bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-400" strokeWidth={2} />
@@ -142,37 +128,29 @@ export default function OtrosGastosScreen({
           ))}
         </div>
 
+        <div className="flex items-center justify-between mt-1">
+          <p className="font-bold text-slate-900 text-base">Gastos de {entidadNombre}</p>
+          <p className="text-sm text-slate-500">{filtrados.length} gastos</p>
+        </div>
+
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
         {!loading && filtrados.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
-            <p className="text-sm text-slate-500">No hay gastos registrados en este período.</p>
+            <p className="text-sm text-slate-500">No hay gastos que coincidan con tu búsqueda.</p>
           </div>
         )}
 
-        <div className="flex flex-col">
-          {filtrados.map((g, i) => (
-            <button
-              key={g.id}
-              onClick={() => { setEditing(g); setShowForm(true); }}
-              className={`w-full py-3.5 flex items-center gap-3 text-left ${
-                i !== filtrados.length - 1 ? "border-b border-slate-100" : ""
-              }`}
-            >
-              <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 bg-orange-100">
-                <Receipt className="w-5 h-5 text-orange-500" strokeWidth={1.8} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-slate-900 text-sm leading-tight">{g.titulo}</p>
-                {g.descripcion && <p className="text-xs text-slate-500 mt-0.5">{g.descripcion}</p>}
-                <p className="text-xs text-slate-400 mt-0.5">{formatFechaCorta(g.fecha)} · {g.metodo_pago}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <p className="text-sm font-bold text-orange-500">{formatCLP(g.monto)}</p>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </div>
-            </button>
-          ))}
+        {filtrados.map((g) => (
+          <GastoRow key={g.id} g={g} onEdit={(gasto) => { setEditing(gasto); setShowForm(true); }} />
+        ))}
+
+        <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
+          <div>
+            <p className="font-bold text-slate-900 text-sm">Registra tus gastos al día</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca un gasto para editarlo, o usa el botón + para agregar uno nuevo.</p>
+          </div>
         </div>
       </div>
 

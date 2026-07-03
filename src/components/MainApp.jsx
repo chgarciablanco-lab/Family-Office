@@ -69,7 +69,6 @@ export default function MainApp({ session }) {
         <TrabajadoresScreen
           sociedadId={selectedSociedad.id}
           entidadNombre={selectedSociedad.nombre}
-          entidadSub={`Rut: ${selectedSociedad.rut}`}
           entidadColor={selectedSociedad.color_tag}
           backTo="sociedad-detail"
           onNavigate={setScreen}
@@ -79,7 +78,6 @@ export default function MainApp({ session }) {
         <OtrosGastosScreen
           sociedadId={selectedSociedad.id}
           entidadNombre={selectedSociedad.nombre}
-          entidadSub={`Rut: ${selectedSociedad.rut}`}
           entidadColor={selectedSociedad.color_tag}
           backTo="sociedad-detail"
           onNavigate={setScreen}
@@ -90,7 +88,6 @@ export default function MainApp({ session }) {
         <TrabajadoresScreen
           sociedadId={null}
           entidadNombre="Gestión personal"
-          entidadSub={session.user.email}
           entidadColor="violet"
           backTo="persona"
           onNavigate={setScreen}
@@ -100,7 +97,6 @@ export default function MainApp({ session }) {
         <OtrosGastosScreen
           sociedadId={null}
           entidadNombre="Gestión personal"
-          entidadSub={session.user.email}
           entidadColor="amber"
           backTo="persona"
           onNavigate={setScreen}

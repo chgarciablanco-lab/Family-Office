@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { ArrowLeft, Plus, Home as HomeIcon, Pencil, ChevronRight, Info } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  ArrowLeft, Plus, Home as HomeIcon, Pencil, ChevronRight, Info,
+  Search, SlidersHorizontal, ChevronDown,
+} from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import PropiedadForm from "./PropiedadForm";
 import BottomNav from "./BottomNav";
@@ -8,6 +11,7 @@ import { colorClasses } from "../lib/format";
 export default function SociedadPropiedadesScreen({ sociedad, backTo, onNavigate, onSelect }) {
   const [propiedades, setPropiedades] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -25,6 +29,14 @@ export default function SociedadPropiedadesScreen({ sociedad, backTo, onNavigate
   useEffect(() => {
     fetchPropiedades();
   }, [sociedad.id]);
+
+  const filtradas = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return propiedades;
+    return propiedades.filter(
+      (p) => p.nombre.toLowerCase().includes(q) || p.comuna.toLowerCase().includes(q)
+    );
+  }, [propiedades, search]);
 
   const handleSaved = () => {
     setShowForm(false);
@@ -49,19 +61,38 @@ export default function SociedadPropiedadesScreen({ sociedad, backTo, onNavigate
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-2">
+            <Search className="w-4 h-4 text-slate-400" strokeWidth={2} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nombre, comuna..."
+              className="bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none flex-1"
+            />
+          </div>
+          <button className="bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-1.5 shrink-0">
+            <SlidersHorizontal className="w-4 h-4 text-slate-500" strokeWidth={2} />
+            <span className="text-sm font-semibold text-slate-600">Filtrar</span>
+            <ChevronDown className="w-4 h-4 text-slate-400" strokeWidth={2} />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between mt-1">
+          <p className="font-bold text-slate-900 text-base">Propiedades de {sociedad.nombre}</p>
+          <p className="text-sm text-slate-500">{filtradas.length} propiedades</p>
+        </div>
+
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-        {!loading && propiedades.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 flex flex-col items-center text-center gap-3">
-            <HomeIcon className="w-8 h-8 text-slate-300" strokeWidth={1.6} />
-            <div>
-              <p className="text-sm font-semibold text-slate-700">Aún no hay propiedades</p>
-              <p className="text-sm text-slate-500 mt-0.5">Toca + para agregar la primera de {sociedad.nombre}.</p>
-            </div>
+        {!loading && filtradas.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
+            <p className="text-sm text-slate-500">No hay propiedades que coincidan con tu búsqueda.</p>
           </div>
         )}
 
-        {propiedades.map((p) => {
+        {filtradas.map((p) => {
           const c = colorClasses[p.color_tag] || colorClasses.violet;
           return (
             <div

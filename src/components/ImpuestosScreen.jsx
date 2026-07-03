@@ -115,7 +115,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
         {actual && (
           <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
                 <Banknote className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">
@@ -125,7 +125,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
               </div>
             </div>
             <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
-              <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
                 <TrendingUp className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">
@@ -147,7 +147,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
                   onClick={() => { setEditing(r); setShowForm(true); }}
                   className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left"
                 >
-                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
                     <FileText className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
                   </div>
                   <div className="flex-1 min-w-0">

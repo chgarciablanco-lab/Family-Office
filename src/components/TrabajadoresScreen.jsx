@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  ArrowLeft, MoreHorizontal, User, UserPlus, Users, Banknote,
-  ShieldCheck, Calendar, Search, SlidersHorizontal, ChevronDown,
+  ArrowLeft, User, Plus, Search, SlidersHorizontal, ChevronDown,
   ChevronRight, Info,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
@@ -9,14 +8,15 @@ import TrabajadorForm from "./TrabajadorForm";
 import BottomNav from "./BottomNav";
 import { colorClasses, formatCLP, formatFechaCorta } from "../lib/format";
 
-function TrabajadorRow({ t, onEdit }) {
+function TrabajadorRow({ t, color, onEdit }) {
+  const c = colorClasses[color] || colorClasses.violet;
   return (
     <button
       onClick={() => onEdit(t)}
       className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
     >
-      <div className="w-11 h-11 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
-        <User className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
+        <User className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-slate-900 text-base leading-tight">{t.nombre}</p>
@@ -46,15 +46,13 @@ function TrabajadorRow({ t, onEdit }) {
 }
 
 export default function TrabajadoresScreen({
-  sociedadId, entidadNombre, entidadSub, entidadColor = "violet",
-  backTo, onNavigate,
+  sociedadId, entidadNombre, entidadColor = "violet", backTo, onNavigate,
 }) {
   const [trabajadores, setTrabajadores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const c = colorClasses[entidadColor] || colorClasses.violet;
 
   const fetchTrabajadores = async () => {
     setLoading(true);
@@ -75,9 +73,6 @@ export default function TrabajadoresScreen({
     return trabajadores.filter((t) => t.nombre.toLowerCase().includes(q) || t.cargo.toLowerCase().includes(q));
   }, [trabajadores, search]);
 
-  const totalLiquidaciones = trabajadores.reduce((sum, t) => sum + (Number(t.liquidacion) || 0), 0);
-  const totalPrevired = trabajadores.reduce((sum, t) => sum + (Number(t.previred) || 0), 0);
-
   const handleSaved = () => {
     setShowForm(false);
     setEditing(null);
@@ -91,62 +86,16 @@ export default function TrabajadoresScreen({
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Trabajadores</h1>
-        <button aria-label="Más opciones">
-          <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
+        <button
+          onClick={() => { setEditing(null); setShowForm(true); }}
+          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+          aria-label="Agregar trabajador"
+        >
+          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
         </button>
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
-        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex flex-col gap-3">
-          <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${c.bg}`}>
-              <User className={`w-7 h-7 ${c.fg}`} strokeWidth={1.8} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-slate-900 text-lg leading-tight">{entidadNombre}</p>
-              <p className="text-sm text-slate-500 mt-0.5">{entidadSub}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => { setEditing(null); setShowForm(true); }}
-            className="w-full flex items-center justify-center gap-2 border-2 border-violet-500 text-violet-600 font-semibold text-sm rounded-xl py-2.5"
-          >
-            <UserPlus className="w-4 h-4" strokeWidth={2} />
-            Nuevo trabajador
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
-            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center mb-2">
-              <Users className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-            </div>
-            <p className="text-xl font-bold text-slate-900">{trabajadores.length}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Trabajadores activos</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
-            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center mb-2">
-              <Banknote className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-            </div>
-            <p className="text-xl font-bold text-slate-900">{formatCLP(totalLiquidaciones)}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Total liquidaciones estimadas</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
-            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center mb-2">
-              <ShieldCheck className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-            </div>
-            <p className="text-xl font-bold text-slate-900">{formatCLP(totalPrevired)}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Total a pagar Previred</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
-            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center mb-2">
-              <Calendar className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-            </div>
-            <p className="text-base font-bold text-slate-900">{filtrados.length} en lista</p>
-            <p className="text-xs text-slate-500 mt-0.5">Filtro actual</p>
-          </div>
-        </div>
-
         <div className="flex items-center gap-2">
           <div className="flex-1 bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-400" strokeWidth={2} />
@@ -158,34 +107,40 @@ export default function TrabajadoresScreen({
               className="bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none flex-1"
             />
           </div>
-          <button className="bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-1.5">
+          <button className="bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-1.5 shrink-0">
             <SlidersHorizontal className="w-4 h-4 text-slate-500" strokeWidth={2} />
             <span className="text-sm font-semibold text-slate-600">Filtrar</span>
             <ChevronDown className="w-4 h-4 text-slate-400" strokeWidth={2} />
           </button>
         </div>
 
+        <div className="flex items-center justify-between mt-1">
+          <p className="font-bold text-slate-900 text-base">Trabajadores de {entidadNombre}</p>
+          <p className="text-sm text-slate-500">{filtrados.length} trabajadores</p>
+        </div>
+
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
         {!loading && filtrados.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
-            <p className="text-sm text-slate-500">No hay trabajadores registrados todavía.</p>
+            <p className="text-sm text-slate-500">No hay trabajadores que coincidan con tu búsqueda.</p>
           </div>
         )}
 
         {filtrados.map((t) => (
-          <TrabajadorRow key={t.id} t={t} onEdit={(tr) => { setEditing(tr); setShowForm(true); }} />
+          <TrabajadorRow
+            key={t.id}
+            t={t}
+            color={entidadColor}
+            onEdit={(tr) => { setEditing(tr); setShowForm(true); }}
+          />
         ))}
 
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
-          <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
-            <Info className="w-4.5 h-4.5 text-violet-600" strokeWidth={1.8} />
-          </div>
+          <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
-            <p className="font-bold text-slate-900 text-sm">Información importante</p>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Los valores de liquidación son estimados y pueden variar según las últimas remuneraciones y días trabajados.
-            </p>
+            <p className="font-bold text-slate-900 text-sm">Mantén tus trabajadores al día</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca un trabajador para editar sus datos, o usa el botón + para agregar uno nuevo.</p>
           </div>
         </div>
       </div>

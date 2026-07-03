@@ -63,12 +63,10 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate }) {
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
-        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
-          <p className="font-bold text-slate-900 text-lg leading-tight">{propiedad.nombre}</p>
-          <p className="text-sm text-slate-500 mt-0.5">{propiedad.tipo} · {propiedad.comuna}</p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="font-bold text-slate-900 text-base">Servicios de {propiedad.nombre}</p>
+          <p className="text-sm text-slate-500">{servicios.length} servicios</p>
         </div>
-
-        <p className="font-bold text-slate-900 text-base mt-1">Servicios</p>
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
@@ -87,7 +85,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate }) {
               onClick={() => { setEditing(s); setShowForm(true); }}
               className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${iconInfo.bg}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${iconInfo.bg}`}>
                 <iconInfo.icon className={`w-6 h-6 ${iconInfo.fg}`} strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">
@@ -122,7 +120,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate }) {
                 const iconInfo = iconosServicio[s.tipo_servicio] || iconosServicio.Luz;
                 return (
                   <div key={s.id} className="bg-white rounded-xl px-3 py-3 flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconInfo.bg}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconInfo.bg}`}>
                       <iconInfo.icon className={`w-5 h-5 ${iconInfo.fg}`} strokeWidth={1.8} />
                     </div>
                     <div className="flex-1 min-w-0">

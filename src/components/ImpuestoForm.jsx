@@ -1,0 +1,178 @@
+import React, { useState } from "react";
+import { X } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
+import { Field, inputClass } from "./TramiteSection";
+
+const estadosImpuesto = ["Pendiente", "Pagado"];
+
+function emptyForm(registro) {
+  return {
+    periodo: registro?.periodo || "",
+    total_iva: registro?.total_iva || "",
+    vencimiento: registro?.vencimiento || "",
+    estado: registro?.estado || "Pendiente",
+    ultimo_pago: registro?.ultimo_pago || "",
+    ultimo_pago_fecha: registro?.ultimo_pago_fecha || "",
+    credito_fiscal: registro?.credito_fiscal || "",
+  };
+}
+
+export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved }) {
+  const [form, setForm] = useState(emptyForm(registro));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const isEditing = Boolean(registro);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    const payload = {
+      ...form,
+      sociedad_id: sociedadId,
+      total_iva: form.total_iva ? parseFloat(form.total_iva) : null,
+      vencimiento: form.vencimiento || null,
+      ultimo_pago: form.ultimo_pago ? parseFloat(form.ultimo_pago) : null,
+      ultimo_pago_fecha: form.ultimo_pago_fecha || null,
+      credito_fiscal: form.credito_fiscal ? parseFloat(form.credito_fiscal) : null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const query = isEditing
+      ? supabase.from("impuestos").update(payload).eq("id", registro.id)
+      : supabase.from("impuestos").insert(payload);
+
+    const { error } = await query;
+    setSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    onSaved();
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("¿Eliminar este registro de impuestos? Esta acción no se puede deshacer.")) return;
+    setSaving(true);
+    const { error } = await supabase.from("impuestos").delete().eq("id", registro.id);
+    setSaving(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    onSaved();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
+      <div className="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
+          <h2 className="text-lg font-bold text-slate-900">
+            {isEditing ? "Editar F29" : "Nuevo F29"}
+          </h2>
+          <button onClick={onClose} aria-label="Cerrar">
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+          <Field label="Período (mes)">
+            <input
+              required
+              type="month"
+              className={inputClass}
+              value={(form.periodo || "").slice(0, 7)}
+              onChange={(e) => setForm({ ...form, periodo: e.target.value ? `${e.target.value}-01` : "" })}
+            />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <Field label="Total IVA a pagar ($)">
+              <input
+                type="number"
+                className={inputClass}
+                value={form.total_iva}
+                onChange={(e) => setForm({ ...form, total_iva: e.target.value })}
+                placeholder="0"
+              />
+            </Field>
+            <Field label="Vencimiento">
+              <input
+                type="date"
+                className={inputClass}
+                value={form.vencimiento}
+                onChange={(e) => setForm({ ...form, vencimiento: e.target.value })}
+              />
+            </Field>
+          </div>
+
+          <Field label="Estado">
+            <select
+              className={inputClass}
+              value={form.estado}
+              onChange={(e) => setForm({ ...form, estado: e.target.value })}
+            >
+              {estadosImpuesto.map((e) => (
+                <option key={e} value={e}>{e}</option>
+              ))}
+            </select>
+          </Field>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <Field label="Último pago ($)">
+              <input
+                type="number"
+                className={inputClass}
+                value={form.ultimo_pago}
+                onChange={(e) => setForm({ ...form, ultimo_pago: e.target.value })}
+                placeholder="Opcional"
+              />
+            </Field>
+            <Field label="Fecha último pago">
+              <input
+                type="date"
+                className={inputClass}
+                value={form.ultimo_pago_fecha}
+                onChange={(e) => setForm({ ...form, ultimo_pago_fecha: e.target.value })}
+              />
+            </Field>
+          </div>
+
+          <Field label="Crédito fiscal acumulado ($)">
+            <input
+              type="number"
+              className={inputClass}
+              value={form.credito_fiscal}
+              onChange={(e) => setForm({ ...form, credito_fiscal: e.target.value })}
+              placeholder="Opcional"
+            />
+          </Field>
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
+          <div className="flex flex-col gap-2 mt-1">
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full bg-violet-600 text-white font-semibold text-sm rounded-xl py-3 disabled:opacity-60"
+            >
+              {saving ? "Guardando..." : isEditing ? "Guardar cambios" : "Agregar F29"}
+            </button>
+            {isEditing && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={saving}
+                className="w-full text-red-500 font-semibold text-sm rounded-xl py-2.5 border border-red-200"
+              >
+                Eliminar registro
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

@@ -8,11 +8,11 @@ import BottomNav from "./BottomNav";
 import { colorClasses, estadoSociedadPillClasses, formatFechaCorta } from "../lib/format";
 
 const secciones = [
-  { key: "gastos", title: "Gastos básicos", subtitle: "Administra servicios y gastos\nesenciales de la sociedad.", icon: Banknote, bg: "bg-blue-100", fg: "text-blue-600" },
-  { key: "trabajadores", title: "Trabajadores", subtitle: "Gestiona la información y contratos\nde los trabajadores.", icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600" },
-  { key: "impuestos", title: "Impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
-  { key: "arriendos", title: "Arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: HomeIcon, bg: "bg-orange-100", fg: "text-orange-500" },
-  { key: "otros-gastos", title: "Otros gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
+  { key: "gastos-basicos", title: "Gastos básicos", subtitle: "Administra servicios y gastos\nesenciales de la sociedad.", icon: Banknote, bg: "bg-blue-100", fg: "text-blue-600" },
+  { key: "trabajadores-sociedad", title: "Trabajadores", subtitle: "Gestiona la información y contratos\nde los trabajadores.", icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600" },
+  { key: "impuestos-sociedad", title: "Impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
+  { key: "arriendos-sociedad", title: "Arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: HomeIcon, bg: "bg-orange-100", fg: "text-orange-500" },
+  { key: "otros-gastos-sociedad", title: "Otros gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
 ];
 
 export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated }) {
@@ -76,18 +76,20 @@ export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated }
         </button>
 
         {secciones.map((sec) => (
-          <div
+          <button
             key={sec.key}
-            className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 opacity-60"
+            onClick={() => onNavigate(sec.key)}
+            className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
           >
             <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${sec.bg}`}>
               <sec.icon className={`w-7 h-7 ${sec.fg}`} strokeWidth={1.8} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-slate-900 text-base leading-tight">{sec.title}</p>
-              <p className="text-sm text-slate-500 mt-0.5">Próximamente</p>
+              <p className="text-sm text-slate-500 leading-snug whitespace-pre-line mt-0.5">{sec.subtitle}</p>
             </div>
-          </div>
+            <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
+          </button>
         ))}
 
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3 mb-2">

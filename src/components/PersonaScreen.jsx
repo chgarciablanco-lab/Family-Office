@@ -12,9 +12,9 @@ const secciones = [
     icon: HomeIcon, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
   },
   {
-    key: "trabajadores", title: "Trabajadores",
+    key: "trabajadores-persona", title: "Trabajadores",
     subtitle: "Gestiona tu equipo\ny documentación.",
-    icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600", disponible: false,
+    icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600", disponible: true,
   },
   {
     key: "autos", title: "Autos",
@@ -29,7 +29,7 @@ const secciones = [
   {
     key: "otros-gastos-persona", title: "Otros gastos",
     subtitle: "Registra y controla tus\ngastos diarios.",
-    icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500", disponible: false,
+    icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500", disponible: true,
   },
 ];
 

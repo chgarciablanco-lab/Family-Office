@@ -81,10 +81,11 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Compañía aseguradora">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.compania}
@@ -94,6 +95,7 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
             </Field>
             <Field label="N° de póliza">
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.numero_cliente}
                 onChange={(e) => setForm({ ...form, numero_cliente: e.target.value })}
@@ -104,6 +106,7 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Valor prima ($)">
               <input
+              autoComplete="off"
                 required
                 type="number"
                 className={inputClass}
@@ -114,6 +117,7 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
             </Field>
             <Field label="Vigencia hasta">
               <input
+              autoComplete="off"
                 type="date"
                 className={inputClass}
                 value={form.vencimiento}

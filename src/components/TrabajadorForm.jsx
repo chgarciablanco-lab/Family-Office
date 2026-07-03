@@ -72,9 +72,10 @@ export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSave
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Nombre">
             <input
+              autoComplete="off"
               required
               className={inputClass}
               value={form.nombre}
@@ -85,6 +86,7 @@ export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSave
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Cargo">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.cargo}
@@ -94,6 +96,7 @@ export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSave
             </Field>
             <Field label="Rut">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.rut}
@@ -105,6 +108,7 @@ export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSave
 
           <Field label="Fecha de contrato">
             <input
+              autoComplete="off"
               type="date"
               className={inputClass}
               value={form.fecha_contrato}
@@ -115,6 +119,7 @@ export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSave
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Liquidación ($)">
               <input
+              autoComplete="off"
                 type="number"
                 className={inputClass}
                 value={form.liquidacion}
@@ -124,6 +129,7 @@ export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSave
             </Field>
             <Field label="Previred a pagar ($)">
               <input
+              autoComplete="off"
                 type="number"
                 className={inputClass}
                 value={form.previred}

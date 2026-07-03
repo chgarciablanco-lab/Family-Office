@@ -73,9 +73,10 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Nombre">
             <input
+              autoComplete="off"
               required
               className={inputClass}
               value={form.nombre}
@@ -86,6 +87,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
 
           <Field label="Rut">
             <input
+              autoComplete="off"
               required
               className={inputClass}
               value={form.rut}
@@ -97,6 +99,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Tipo">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.tipo}
@@ -106,6 +109,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
             </Field>
             <Field label="Régimen tributario">
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.regimen}
                 onChange={(e) => setForm({ ...form, regimen: e.target.value })}
@@ -117,6 +121,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Fecha de inicio">
               <input
+              autoComplete="off"
                 type="date"
                 className={inputClass}
                 value={form.fecha_inicio}

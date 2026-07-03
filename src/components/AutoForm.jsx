@@ -86,10 +86,11 @@ export default function AutoForm({ auto, onClose, onSaved }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Patente">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.patente}
@@ -99,6 +100,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
             </Field>
             <Field label="Tipo">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.tipo}
@@ -111,6 +113,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Marca">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.marca}
@@ -119,6 +122,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
             </Field>
             <Field label="Modelo">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.modelo}
@@ -130,6 +134,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Año">
               <input
+              autoComplete="off"
                 required
                 type="number"
                 className={inputClass}

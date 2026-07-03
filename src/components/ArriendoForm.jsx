@@ -82,7 +82,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Relación">
             <select
               className={inputClass}
@@ -97,6 +97,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
 
           <Field label="Nombre de la propiedad">
             <input
+              autoComplete="off"
               required
               className={inputClass}
               value={form.nombre}
@@ -108,6 +109,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Tipo">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.tipo}
@@ -117,6 +119,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
             </Field>
             <Field label="Ubicación">
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.ubicacion}
                 onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
@@ -128,6 +131,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
           <div className="grid grid-cols-2 gap-2.5">
             <Field label={contraparteLabel}>
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.contraparte_nombre}
                 onChange={(e) => setForm({ ...form, contraparte_nombre: e.target.value })}
@@ -135,6 +139,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
             </Field>
             <Field label="Rut">
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.contraparte_rut}
                 onChange={(e) => setForm({ ...form, contraparte_rut: e.target.value })}
@@ -145,6 +150,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Monto ($)">
               <input
+              autoComplete="off"
                 type="number"
                 className={inputClass}
                 value={form.monto}
@@ -154,6 +160,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
             </Field>
             <Field label="Vencimiento">
               <input
+              autoComplete="off"
                 type="date"
                 className={inputClass}
                 value={form.vencimiento}

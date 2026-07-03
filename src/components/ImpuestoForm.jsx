@@ -77,9 +77,10 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Período (mes)">
             <input
+              autoComplete="off"
               required
               type="month"
               className={inputClass}
@@ -91,6 +92,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Total IVA a pagar ($)">
               <input
+              autoComplete="off"
                 type="number"
                 className={inputClass}
                 value={form.total_iva}
@@ -100,6 +102,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
             </Field>
             <Field label="Vencimiento">
               <input
+              autoComplete="off"
                 type="date"
                 className={inputClass}
                 value={form.vencimiento}
@@ -123,6 +126,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Último pago ($)">
               <input
+              autoComplete="off"
                 type="number"
                 className={inputClass}
                 value={form.ultimo_pago}
@@ -132,6 +136,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
             </Field>
             <Field label="Fecha último pago">
               <input
+              autoComplete="off"
                 type="date"
                 className={inputClass}
                 value={form.ultimo_pago_fecha}
@@ -142,6 +147,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
 
           <Field label="Crédito fiscal acumulado ($)">
             <input
+              autoComplete="off"
               type="number"
               className={inputClass}
               value={form.credito_fiscal}

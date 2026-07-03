@@ -83,10 +83,11 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Administración / edificio">
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.compania}
                 onChange={(e) => setForm({ ...form, compania: e.target.value })}
@@ -95,6 +96,7 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
             </Field>
             <Field label="N° de unidad">
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.numero_cliente}
                 onChange={(e) => setForm({ ...form, numero_cliente: e.target.value })}
@@ -104,6 +106,7 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
 
           <Field label="Período (mes)">
             <input
+              autoComplete="off"
               type="month"
               className={inputClass}
               value={(form.periodo || "").slice(0, 7)}
@@ -114,6 +117,7 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Valor ($)">
               <input
+              autoComplete="off"
                 required
                 type="number"
                 className={inputClass}
@@ -124,6 +128,7 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
             </Field>
             <Field label="Vencimiento">
               <input
+              autoComplete="off"
                 type="date"
                 className={inputClass}
                 value={form.vencimiento}

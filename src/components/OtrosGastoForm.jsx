@@ -71,9 +71,10 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Título">
             <input
+              autoComplete="off"
               required
               className={inputClass}
               value={form.titulo}
@@ -84,6 +85,7 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
 
           <Field label="Descripción">
             <input
+              autoComplete="off"
               className={inputClass}
               value={form.descripcion}
               onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
@@ -94,6 +96,7 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Monto ($)">
               <input
+              autoComplete="off"
                 required
                 type="number"
                 className={inputClass}
@@ -117,6 +120,7 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
 
           <Field label="Fecha">
             <input
+              autoComplete="off"
               required
               type="date"
               className={inputClass}

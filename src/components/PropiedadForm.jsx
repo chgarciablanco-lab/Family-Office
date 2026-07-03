@@ -73,9 +73,10 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Nombre">
             <input
+              autoComplete="off"
               required
               className={inputClass}
               value={form.nombre}
@@ -87,6 +88,7 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Tipo">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.tipo}
@@ -96,6 +98,7 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
             </Field>
             <Field label="Comuna">
               <input
+              autoComplete="off"
                 required
                 className={inputClass}
                 value={form.comuna}
@@ -106,6 +109,7 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
 
           <Field label="Dirección">
             <input
+              autoComplete="off"
               required
               className={inputClass}
               value={form.direccion}
@@ -116,6 +120,7 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Rol de avalúo (SII)">
               <input
+              autoComplete="off"
                 className={inputClass}
                 value={form.rol_avaluo}
                 onChange={(e) => setForm({ ...form, rol_avaluo: e.target.value })}
@@ -124,6 +129,7 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
             </Field>
             <Field label="Superficie (m²)">
               <input
+              autoComplete="off"
                 type="number"
                 className={inputClass}
                 value={form.superficie}

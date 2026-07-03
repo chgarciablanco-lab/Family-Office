@@ -64,7 +64,23 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
       <div className="px-5 flex flex-col gap-3">
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-        {!loading && filtradas.length === 0 && (
+        {!loading && sociedades.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 flex flex-col items-center text-center gap-3">
+            <Building2 className="w-8 h-8 text-slate-300" strokeWidth={1.6} />
+            <div>
+              <p className="text-sm font-semibold text-slate-700">Aún no tienes sociedades</p>
+              <p className="text-sm text-slate-500 mt-0.5">Toca el botón + arriba para agregar la primera.</p>
+            </div>
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-1 bg-violet-600 text-white font-semibold text-sm rounded-xl px-4 py-2.5"
+            >
+              Agregar sociedad
+            </button>
+          </div>
+        )}
+
+        {!loading && sociedades.length > 0 && filtradas.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
             <p className="text-sm text-slate-500">No hay sociedades que coincidan con tu búsqueda.</p>
           </div>

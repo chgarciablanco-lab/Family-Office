@@ -7,7 +7,6 @@ import AutosScreen from "./AutosScreen";
 import PropiedadesScreen from "./PropiedadesScreen";
 import SociedadesListScreen from "./SociedadesListScreen";
 import SociedadDetailScreen from "./SociedadDetailScreen";
-import SociedadPropiedadesScreen from "./SociedadPropiedadesScreen";
 import TrabajadoresScreen from "./TrabajadoresScreen";
 import OtrosGastosScreen from "./OtrosGastosScreen";
 import ImpuestosScreen from "./ImpuestosScreen";
@@ -18,14 +17,16 @@ export default function MainApp({ session }) {
   const [screen, setScreen] = useState("home");
   const [selectedSociedad, setSelectedSociedad] = useState(null);
   const [selectedPropiedad, setSelectedPropiedad] = useState(null);
+  const [propiedadBackTo, setPropiedadBackTo] = useState("propiedades");
 
   const handleSelectSociedad = (s) => {
     setSelectedSociedad(s);
     setScreen("sociedad-detail");
   };
 
-  const handleSelectPropiedad = (p) => {
+  const handleSelectPropiedad = (backTo) => (p) => {
     setSelectedPropiedad(p);
+    setPropiedadBackTo(backTo);
     setScreen("gastos-basicos");
   };
 
@@ -35,7 +36,16 @@ export default function MainApp({ session }) {
       {screen === "persona" && <PersonaScreen onNavigate={setScreen} />}
       {screen === "perfil" && <PerfilScreen session={session} onNavigate={setScreen} />}
       {screen === "autos" && <AutosScreen onNavigate={setScreen} />}
-      {screen === "propiedades" && <PropiedadesScreen onNavigate={setScreen} />}
+
+      {screen === "propiedades" && (
+        <PropiedadesScreen
+          sociedadId={null}
+          entidadNombre="Gestión personal"
+          backTo="persona"
+          onNavigate={setScreen}
+          onSelect={handleSelectPropiedad("propiedades")}
+        />
+      )}
 
       {screen === "sociedades-list" && (
         <SociedadesListScreen onNavigate={setScreen} onSelect={handleSelectSociedad} />
@@ -49,15 +59,16 @@ export default function MainApp({ session }) {
       )}
 
       {screen === "propiedades-sociedad" && selectedSociedad && (
-        <SociedadPropiedadesScreen
-          sociedad={selectedSociedad}
+        <PropiedadesScreen
+          sociedadId={selectedSociedad.id}
+          entidadNombre={selectedSociedad.nombre}
           backTo="sociedad-detail"
           onNavigate={setScreen}
-          onSelect={handleSelectPropiedad}
+          onSelect={handleSelectPropiedad("propiedades-sociedad")}
         />
       )}
       {screen === "gastos-basicos" && selectedPropiedad && (
-        <GastosBasicosScreen propiedad={selectedPropiedad} backTo="propiedades-sociedad" onNavigate={setScreen} />
+        <GastosBasicosScreen propiedad={selectedPropiedad} backTo={propiedadBackTo} onNavigate={setScreen} />
       )}
       {screen === "impuestos-sociedad" && selectedSociedad && (
         <ImpuestosScreen sociedad={selectedSociedad} backTo="sociedad-detail" onNavigate={setScreen} />

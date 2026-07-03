@@ -1,89 +1,58 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  Home, Search, SlidersHorizontal, ChevronDown, ChevronRight, Plus,
-  Landmark, ShieldCheck, Users, Info, ArrowLeft,
+  ArrowLeft, Plus, Home as HomeIcon, Pencil, ChevronRight, Info,
+  Search, SlidersHorizontal, ChevronDown,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import PropiedadForm from "./PropiedadForm";
-import StatItem from "./StatItem";
 import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
 
-function PropiedadRow({ propiedad, onEdit }) {
-  const c = colorClasses[propiedad.color_tag] || colorClasses.violet;
-  return (
-    <button
-      onClick={() => onEdit(propiedad)}
-      className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex flex-col gap-3 text-left active:scale-[0.98] transition-transform"
-    >
-      <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
-          <Home className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-slate-900 text-base leading-tight">{propiedad.nombre}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{propiedad.tipo} · {propiedad.comuna}</p>
-          <p className="text-xs text-slate-500">{propiedad.direccion}</p>
-        </div>
-        <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
-      </div>
-      <div className="flex flex-col gap-3.5 border-t border-slate-100 pt-3.5">
-        <StatItem icon={Landmark} label="Contribuciones" estado={propiedad.contribuciones_estado} vence={propiedad.contribuciones_vence} valor={propiedad.contribuciones_valor} />
-        <StatItem icon={ShieldCheck} label="Seguro" estado={propiedad.seguro_estado} vence={propiedad.seguro_dia_vencimiento} valor={propiedad.seguro_valor} tipoFecha="dia" />
-        <StatItem icon={Users} label="Gastos comunes" estado={propiedad.gastos_comunes_estado} vence={propiedad.gastos_comunes_dia_vencimiento} valor={propiedad.gastos_comunes_valor} tipoFecha="dia" />
-      </div>
-    </button>
-  );
-}
-
-export default function PropiedadesScreen({ onNavigate }) {
+export default function PropiedadesScreen({
+  sociedadId = null, entidadNombre = "tus propiedades", backTo = "persona", onNavigate, onSelect,
+}) {
   const [propiedades, setPropiedades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingPropiedad, setEditingPropiedad] = useState(null);
+  const [editing, setEditing] = useState(null);
 
   const fetchPropiedades = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("propiedades")
-      .select("*")
-      .is("sociedad_id", null)
-      .order("nombre");
+    let query = supabase.from("propiedades").select("*").order("nombre");
+    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    const { data, error } = await query;
     if (!error) setPropiedades(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchPropiedades();
-  }, []);
+  }, [sociedadId]);
 
-  const propiedadesFiltradas = useMemo(() => {
+  const filtradas = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return propiedades;
     return propiedades.filter(
-      (p) =>
-        p.nombre.toLowerCase().includes(q) ||
-        p.comuna.toLowerCase().includes(q) ||
-        p.direccion.toLowerCase().includes(q)
+      (p) => p.nombre.toLowerCase().includes(q) || p.comuna.toLowerCase().includes(q)
     );
   }, [propiedades, search]);
 
   const handleSaved = () => {
     setShowForm(false);
-    setEditingPropiedad(null);
+    setEditing(null);
     fetchPropiedades();
   };
 
   return (
     <>
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <button onClick={() => onNavigate("persona")} aria-label="Volver">
+        <button onClick={() => onNavigate(backTo)} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Propiedades</h1>
         <button
-          onClick={() => { setEditingPropiedad(null); setShowForm(true); }}
+          onClick={() => { setEditing(null); setShowForm(true); }}
           className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
           aria-label="Agregar propiedad"
         >
@@ -111,27 +80,55 @@ export default function PropiedadesScreen({ onNavigate }) {
         </div>
 
         <div className="flex items-center justify-between mt-1">
-          <p className="font-bold text-slate-900 text-base">Mis propiedades</p>
-          <p className="text-sm text-slate-500">{propiedadesFiltradas.length} propiedades</p>
+          <p className="font-bold text-slate-900 text-base">Propiedades de {entidadNombre}</p>
+          <p className="text-sm text-slate-500">{filtradas.length} propiedades</p>
         </div>
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-        {!loading && propiedadesFiltradas.length === 0 && (
+        {!loading && filtradas.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
             <p className="text-sm text-slate-500">No hay propiedades que coincidan con tu búsqueda.</p>
           </div>
         )}
 
-        {propiedadesFiltradas.map((propiedad) => (
-          <PropiedadRow key={propiedad.id} propiedad={propiedad} onEdit={(p) => { setEditingPropiedad(p); setShowForm(true); }} />
-        ))}
+        {filtradas.map((p) => {
+          const c = colorClasses[p.color_tag] || colorClasses.violet;
+          return (
+            <div
+              key={p.id}
+              className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4"
+            >
+              <button
+                onClick={() => onSelect(p)}
+                className="flex-1 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
+              >
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
+                  <HomeIcon className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-slate-900 text-base leading-tight">{p.nombre}</p>
+                  <p className="text-sm text-slate-500 mt-0.5">{p.tipo} · {p.comuna}</p>
+                  <p className="text-xs text-slate-400">{p.direccion}</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
+              </button>
+              <button
+                onClick={() => { setEditing(p); setShowForm(true); }}
+                aria-label="Editar propiedad"
+                className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
+              >
+                <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+              </button>
+            </div>
+          );
+        })}
 
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
           <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
-            <p className="font-bold text-slate-900 text-sm">Mantén tus propiedades al día</p>
-            <p className="text-sm text-slate-500 mt-0.5">Toca una propiedad para editar sus datos, o usa el botón + para agregar una nueva.</p>
+            <p className="font-bold text-slate-900 text-sm">Gastos básicos por propiedad</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca una propiedad para ver y administrar sus servicios (luz, agua, gas, contribuciones, etc.).</p>
           </div>
         </div>
       </div>
@@ -141,8 +138,9 @@ export default function PropiedadesScreen({ onNavigate }) {
 
       {showForm && (
         <PropiedadForm
-          propiedad={editingPropiedad}
-          onClose={() => { setShowForm(false); setEditingPropiedad(null); }}
+          propiedad={editing}
+          sociedadId={sociedadId}
+          onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />
       )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ArrowLeft, Plus, Lightbulb, Droplet, Flame, Wifi, Shield, ShieldCheck,
-  ChevronRight,
+  Landmark, ChevronRight,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import ServicioForm from "./ServicioForm";
@@ -15,6 +15,7 @@ const iconosServicio = {
   Internet: { icon: Wifi, bg: "bg-teal-100", fg: "text-teal-600" },
   "Gastos comunes": { icon: Shield, bg: "bg-emerald-100", fg: "text-emerald-600" },
   Seguros: { icon: ShieldCheck, bg: "bg-blue-100", fg: "text-blue-500" },
+  Contribuciones: { icon: Landmark, bg: "bg-violet-100", fg: "text-violet-600" },
 };
 
 export default function GastosBasicosScreen({ propiedad, backTo, onNavigate }) {

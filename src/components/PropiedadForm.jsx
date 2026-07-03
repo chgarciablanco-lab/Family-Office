@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass, SeccionTramite } from "./TramiteSection";
+import { Field, inputClass } from "./TramiteSection";
 
 const coloresDisponibles = ["violet", "blue", "orange", "teal", "pink", "emerald"];
 
@@ -14,15 +14,6 @@ function emptyForm(propiedad) {
     rol_avaluo: propiedad?.rol_avaluo || "",
     superficie: propiedad?.superficie || "",
     color_tag: propiedad?.color_tag || "violet",
-    contribuciones_estado: propiedad?.contribuciones_estado || "Al día",
-    contribuciones_vence: propiedad?.contribuciones_vence || "",
-    contribuciones_valor: propiedad?.contribuciones_valor || "",
-    seguro_estado: propiedad?.seguro_estado || "Al día",
-    seguro_dia_vencimiento: propiedad?.seguro_dia_vencimiento || "",
-    seguro_valor: propiedad?.seguro_valor || "",
-    gastos_comunes_estado: propiedad?.gastos_comunes_estado || "Al día",
-    gastos_comunes_dia_vencimiento: propiedad?.gastos_comunes_dia_vencimiento || "",
-    gastos_comunes_valor: propiedad?.gastos_comunes_valor || "",
   };
 }
 
@@ -41,14 +32,6 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
       ...form,
       sociedad_id: sociedadId || null,
       superficie: form.superficie ? parseFloat(form.superficie) : null,
-      contribuciones_valor: form.contribuciones_valor ? parseFloat(form.contribuciones_valor) : null,
-      seguro_valor: form.seguro_valor ? parseFloat(form.seguro_valor) : null,
-      gastos_comunes_valor: form.gastos_comunes_valor ? parseFloat(form.gastos_comunes_valor) : null,
-      contribuciones_vence: form.contribuciones_vence || null,
-      seguro_dia_vencimiento: form.seguro_dia_vencimiento ? parseInt(form.seguro_dia_vencimiento, 10) : null,
-      gastos_comunes_dia_vencimiento: form.gastos_comunes_dia_vencimiento
-        ? parseInt(form.gastos_comunes_dia_vencimiento, 10)
-        : null,
       updated_at: new Date().toISOString(),
     };
 
@@ -161,10 +144,6 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
               ))}
             </select>
           </Field>
-
-          <SeccionTramite titulo="Contribuciones" prefix="contribuciones" form={form} setForm={setForm} />
-          <SeccionTramite titulo="Seguro" prefix="seguro" form={form} setForm={setForm} tipoFecha="dia" />
-          <SeccionTramite titulo="Gastos comunes" prefix="gastos_comunes" form={form} setForm={setForm} tipoFecha="dia" />
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 

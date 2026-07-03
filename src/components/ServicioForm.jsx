@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass } from "./TramiteSection";
 
-const tiposServicio = ["Luz", "Agua", "Gas", "Internet", "Gastos comunes", "Seguros"];
+const tiposServicio = ["Luz", "Agua", "Gas", "Internet", "Gastos comunes", "Seguros", "Contribuciones"];
 const estadosServicio = ["Pendiente", "Al día", "Por vencer", "Pagado"];
 
 function emptyForm(servicio) {

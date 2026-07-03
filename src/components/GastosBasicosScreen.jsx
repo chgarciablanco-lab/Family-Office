@@ -6,7 +6,7 @@ import {
 import { supabase } from "../lib/supabaseClient";
 import ServicioForm from "./ServicioForm";
 import BottomNav from "./BottomNav";
-import { formatFechaCorta, estadoPillClasses } from "../lib/format";
+import { formatFechaCorta, formatCLP, estadoPillClasses } from "../lib/format";
 
 const iconosServicio = {
   Luz: { icon: Lightbulb, bg: "bg-amber-100", fg: "text-amber-500" },
@@ -89,14 +89,15 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate }) {
                 <iconInfo.icon className={`w-6 h-6 ${iconInfo.fg}`} strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-slate-900 text-base leading-tight">{s.tipo_servicio}</p>
-                {s.compania && <p className="text-sm text-slate-500 mt-0.5">{s.compania}</p>}
-                <div className="flex items-center gap-1.5 mt-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-slate-900 text-base leading-tight">{s.tipo_servicio}</p>
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{s.estado}</span>
                 </div>
+                {s.compania && <p className="text-sm text-slate-500 mt-0.5">{s.compania}</p>}
+                <p className="text-sm text-slate-500 mt-1">Vence: {formatFechaCorta(s.vencimiento)}</p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <p className="text-sm text-slate-500 whitespace-nowrap">Vence: {formatFechaCorta(s.vencimiento)}</p>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <p className="text-sm font-bold text-slate-900">{formatCLP(s.valor)}</p>
                 <ChevronRight className="w-5 h-5 text-slate-300" />
               </div>
             </button>
@@ -127,6 +128,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate }) {
                       <p className="font-bold text-slate-900 text-sm leading-tight">{s.tipo_servicio}</p>
                       <p className="text-xs text-red-500 font-medium mt-0.5">Vence: {formatFechaCorta(s.vencimiento)}</p>
                     </div>
+                    <p className="text-sm font-bold text-slate-900 shrink-0">{formatCLP(s.valor)}</p>
                   </div>
                 );
               })}

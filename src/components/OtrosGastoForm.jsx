@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass } from "./TramiteSection";
+import ConfirmDialog from "./ConfirmDialog";
 
 const metodosPago = ["Efectivo", "Tarjeta", "Transferencia"];
 
@@ -19,6 +20,7 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
   const [form, setForm] = useState(emptyForm(gasto));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const isEditing = Boolean(gasto);
 
   const handleSubmit = async (e) => {
@@ -48,7 +50,6 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
   };
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar el gasto "${gasto.titulo}"? Esta acción no se puede deshacer.`)) return;
     setSaving(true);
     const { error } = await supabase.from("otros_gastos").delete().eq("id", gasto.id);
     setSaving(false);
@@ -142,7 +143,7 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
             {isEditing && (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={saving}
                 className="w-full text-red-500 font-semibold text-sm rounded-xl py-2.5 border border-red-200"
               >
@@ -152,6 +153,15 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
           </div>
         </form>
       </div>
+      {confirmDelete && (
+        <ConfirmDialog
+          title={`¿Eliminar el gasto "${gasto.titulo}"?`}
+          message="Esta acción no se puede deshacer."
+          onConfirm={() => { setConfirmDelete(false); handleDelete(); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
+
     </div>
   );
 }

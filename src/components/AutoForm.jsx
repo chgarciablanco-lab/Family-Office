@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, SeccionTramite } from "./TramiteSection";
+import ConfirmDialog from "./ConfirmDialog";
 
 const coloresDisponibles = ["violet", "blue", "orange", "teal", "pink", "emerald"];
 
@@ -29,6 +30,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(auto));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const isEditing = Boolean(auto);
 
   const handleSubmit = async (e) => {
@@ -63,7 +65,6 @@ export default function AutoForm({ auto, onClose, onSaved }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar el auto ${auto.patente}? Esta acción no se puede deshacer.`)) return;
     setSaving(true);
     const { error } = await supabase.from("autos").delete().eq("id", auto.id);
     setSaving(false);
@@ -172,7 +173,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
             {isEditing && (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={saving}
                 className="w-full text-red-500 font-semibold text-sm rounded-xl py-2.5 border border-red-200"
               >
@@ -182,6 +183,15 @@ export default function AutoForm({ auto, onClose, onSaved }) {
           </div>
         </form>
       </div>
+      {confirmDelete && (
+        <ConfirmDialog
+          title={`¿Eliminar el auto ${auto.patente}?`}
+          message="Esta acción no se puede deshacer."
+          onConfirm={() => { setConfirmDelete(false); handleDelete(); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
+
     </div>
   );
 }

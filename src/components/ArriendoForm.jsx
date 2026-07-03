@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass } from "./TramiteSection";
+import ConfirmDialog from "./ConfirmDialog";
 
 const estadosArriendo = ["Pagado", "Pendiente", "Vencido"];
 const relaciones = [
@@ -27,6 +28,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
   const [form, setForm] = useState(emptyForm(arriendo));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const isEditing = Boolean(arriendo);
 
   const handleSubmit = async (e) => {
@@ -57,7 +59,6 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
   };
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar el arriendo "${arriendo.nombre}"? Esta acción no se puede deshacer.`)) return;
     setSaving(true);
     const { error } = await supabase.from("arriendos").delete().eq("id", arriendo.id);
     setSaving(false);
@@ -194,7 +195,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
             {isEditing && (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={saving}
                 className="w-full text-red-500 font-semibold text-sm rounded-xl py-2.5 border border-red-200"
               >
@@ -204,6 +205,15 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
           </div>
         </form>
       </div>
+      {confirmDelete && (
+        <ConfirmDialog
+          title={`¿Eliminar el arriendo "${arriendo.nombre}"?`}
+          message="Esta acción no se puede deshacer."
+          onConfirm={() => { setConfirmDelete(false); handleDelete(); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
+
     </div>
   );
 }

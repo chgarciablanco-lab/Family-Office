@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass } from "./TramiteSection";
+import ConfirmDialog from "./ConfirmDialog";
 
 const coloresDisponibles = ["violet", "blue", "orange", "teal", "pink", "emerald"];
 const estadosSociedad = ["Activa", "Suspendida", "Cerrada"];
@@ -22,6 +23,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(sociedad));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const isEditing = Boolean(sociedad);
 
   const handleSubmit = async (e) => {
@@ -50,7 +52,6 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar la sociedad ${sociedad.nombre}? Esta acción no se puede deshacer.`)) return;
     setSaving(true);
     const { error } = await supabase.from("sociedades").delete().eq("id", sociedad.id);
     setSaving(false);
@@ -166,7 +167,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
             {isEditing && (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={saving}
                 className="w-full text-red-500 font-semibold text-sm rounded-xl py-2.5 border border-red-200"
               >
@@ -176,6 +177,15 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
           </div>
         </form>
       </div>
+      {confirmDelete && (
+        <ConfirmDialog
+          title={`¿Eliminar la sociedad ${sociedad.nombre}?`}
+          message="Esta acción no se puede deshacer."
+          onConfirm={() => { setConfirmDelete(false); handleDelete(); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
+
     </div>
   );
 }

@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Car, Search, SlidersHorizontal, ChevronDown, ChevronRight, Plus,
-  ShieldCheck, ClipboardCheck, FileText, Info, LogOut, KeyRound,
+  ShieldCheck, ClipboardCheck, FileText, Info, LogOut,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import AutoForm from "./AutoForm";
-import ChangePasswordModal from "./ChangePasswordModal";
 
 const colorClasses = {
   violet: { bg: "bg-violet-100", fg: "text-violet-600" },
@@ -90,7 +89,6 @@ export default function AutosScreen({ session }) {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingAuto, setEditingAuto] = useState(null);
-  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const fetchAutos = async () => {
     setLoading(true);
@@ -135,13 +133,6 @@ export default function AutosScreen({ session }) {
               aria-label="Agregar auto"
             >
               <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-            </button>
-            <button
-              onClick={() => setShowChangePassword(true)}
-              className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center"
-              aria-label="Cambiar contraseña"
-            >
-              <KeyRound className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
             </button>
             <button
               onClick={() => supabase.auth.signOut()}
@@ -205,10 +196,6 @@ export default function AutosScreen({ session }) {
           onClose={() => { setShowForm(false); setEditingAuto(null); }}
           onSaved={handleSaved}
         />
-      )}
-
-      {showChangePassword && (
-        <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
       )}
     </div>
   );

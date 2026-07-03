@@ -8,14 +8,36 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setResetSent(false);
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setError("Usuario o contraseña incorrectos.");
+  };
+
+  const handleForgotPassword = async () => {
+    setError("");
+    setResetSent(false);
+    if (!email) {
+      setError('Escribe tu correo arriba y luego toca "¿Olvidaste tu contraseña?".');
+      return;
+    }
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    setResetLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setResetSent(true);
   };
 
   return (
@@ -72,6 +94,11 @@ export default function LoginScreen() {
           </div>
 
           {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {resetSent && (
+            <p className="text-sm text-emerald-600 text-center">
+              Te enviamos un correo para restablecer tu contraseña.
+            </p>
+          )}
 
           <button
             type="submit"
@@ -82,7 +109,14 @@ export default function LoginScreen() {
           </button>
         </form>
 
-        <p className="text-center text-gold-600 font-serif text-sm mt-5">¿Olvidaste tu contraseña?</p>
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          disabled={resetLoading}
+          className="block w-full text-center text-gold-600 font-serif text-sm mt-5 disabled:opacity-60"
+        >
+          {resetLoading ? "Enviando..." : "¿Olvidaste tu contraseña?"}
+        </button>
       </div>
     </div>
   );

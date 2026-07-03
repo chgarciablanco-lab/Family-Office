@@ -1,88 +1,76 @@
 import React from "react";
-import {
-  TreeDeciduous, Car, Home as HomeIcon, Building2, Users, Landmark,
-  Key, TrendingUp, Receipt, LogOut,
-} from "lucide-react";
-import { supabase } from "../lib/supabaseClient";
+import { Building2, User, ChevronRight, Bell } from "lucide-react";
+import BottomNav from "./BottomNav";
 
-const modulosDisponibles = [
-  { key: "autos", label: "Autos", icon: Car, color: "violet" },
-  { key: "propiedades", label: "Propiedades", icon: HomeIcon, color: "blue" },
+const menuItems = [
+  {
+    key: "sociedades-list",
+    title: "Sociedades",
+    subtitle: "Gestiona tus sociedades\ny obligaciones",
+    icon: Building2,
+    bg: "bg-blue-100",
+    fg: "text-blue-600",
+  },
+  {
+    key: "persona",
+    title: "Gestión personal",
+    subtitle: "Propiedades, autos, trabajadores\ne inversiones personales",
+    icon: User,
+    bg: "bg-violet-100",
+    fg: "text-violet-600",
+  },
 ];
-
-const modulosProximamente = [
-  { label: "Sociedades", icon: Building2 },
-  { label: "Trabajadores", icon: Users },
-  { label: "Impuestos", icon: Landmark },
-  { label: "Arriendos", icon: Key },
-  { label: "Inversiones", icon: TrendingUp },
-  { label: "Otros gastos", icon: Receipt },
-];
-
-const colorClasses = {
-  violet: { bg: "bg-violet-100", fg: "text-violet-600" },
-  blue: { bg: "bg-blue-100", fg: "text-blue-600" },
-};
 
 export default function HomeScreen({ session, onNavigate }) {
+  const fecha = new Date().toLocaleDateString("es-CL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const fechaCap = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center">
-      <div className="w-full max-w-sm bg-slate-50 min-h-screen flex flex-col">
-        <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full border border-gold-500 flex items-center justify-center shrink-0">
-              <TreeDeciduous className="w-5 h-5 text-gold-600" strokeWidth={1.5} />
-            </div>
-            <div>
-              <h1 className="font-serif text-lg text-navy-900 leading-tight">García Blanco</h1>
-              <p className="text-xs text-slate-400">{session.user.email}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0"
-            aria-label="Cerrar sesión"
-          >
-            <LogOut className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
-          </button>
+    <>
+      <div className="px-5 pt-6 pb-2 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">García Blanco Family Office</h1>
+          <p className="text-sm text-slate-500 mt-1">{fechaCap}</p>
         </div>
-
-        <div className="px-5 flex flex-col gap-3 pb-6">
-          <p className="font-bold text-slate-900 text-base">Módulos</p>
-          <div className="grid grid-cols-2 gap-3">
-            {modulosDisponibles.map(({ key, label, icon: Icon, color }) => {
-              const c = colorClasses[color];
-              return (
-                <button
-                  key={key}
-                  onClick={() => onNavigate(key)}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-5 flex flex-col items-start gap-3 text-left active:scale-[0.98] transition-transform"
-                >
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${c.bg}`}>
-                    <Icon className={`w-5 h-5 ${c.fg}`} strokeWidth={1.8} />
-                  </div>
-                  <p className="font-bold text-slate-900 text-sm">{label}</p>
-                </button>
-              );
-            })}
-          </div>
-
-          <p className="font-bold text-slate-900 text-base mt-3">Próximamente</p>
-          <div className="grid grid-cols-2 gap-3">
-            {modulosProximamente.map(({ label, icon: Icon }) => (
-              <div
-                key={label}
-                className="bg-white/60 rounded-2xl border border-slate-100 px-4 py-5 flex flex-col items-start gap-3 opacity-60"
-              >
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-slate-100">
-                  <Icon className="w-5 h-5 text-slate-400" strokeWidth={1.8} />
-                </div>
-                <p className="font-bold text-slate-500 text-sm">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <button className="relative mt-1 shrink-0" aria-label="Notificaciones">
+          <Bell className="w-6 h-6 text-slate-700" strokeWidth={1.8} />
+        </button>
       </div>
-    </div>
+
+      <div className="px-5 pt-4 pb-3">
+        <h2 className="text-lg font-bold text-slate-900">¿Qué quieres gestionar hoy?</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Selecciona una opción para comenzar</p>
+      </div>
+
+      <div className="px-5 flex flex-col gap-3 pb-4">
+        {menuItems.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => onNavigate(item.key)}
+            className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
+          >
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${item.bg}`}>
+              <item.icon className={`w-7 h-7 ${item.fg}`} strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-900 text-base leading-tight">{item.title}</p>
+              <p className="text-sm text-slate-500 leading-snug whitespace-pre-line mt-0.5">{item.subtitle}</p>
+              {item.key === "persona" && (
+                <p className="text-xs text-slate-400 mt-1">{session.user.email}</p>
+              )}
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1" />
+      <BottomNav variant="home" onNavigate={onNavigate} />
+    </>
   );
 }

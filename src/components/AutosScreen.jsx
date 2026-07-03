@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Car, Search, SlidersHorizontal, ChevronDown, ChevronRight, Plus,
-  ShieldCheck, ClipboardCheck, FileText, Info, LogOut, ArrowLeft,
+  ShieldCheck, ClipboardCheck, FileText, Info, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import AutoForm from "./AutoForm";
 import StatItem from "./StatItem";
+import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
 
 function AutoRow({ auto, onEdit }) {
@@ -35,7 +36,7 @@ function AutoRow({ auto, onEdit }) {
   );
 }
 
-export default function AutosScreen({ session, onBack }) {
+export default function AutosScreen({ onNavigate }) {
   const [autos, setAutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -71,41 +72,23 @@ export default function AutosScreen({ session, onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center">
-      <div className="w-full max-w-sm bg-slate-50 min-h-screen flex flex-col">
-        <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onBack}
-              className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0"
-              aria-label="Volver"
-            >
-              <ArrowLeft className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Autos</h1>
-              <p className="text-xs text-slate-400">{session.user.email}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => { setEditingAuto(null); setShowForm(true); }}
-              className="w-9 h-9 rounded-full bg-violet-600 flex items-center justify-center"
-              aria-label="Agregar auto"
-            >
-              <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-            </button>
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center"
-              aria-label="Cerrar sesión"
-            >
-              <LogOut className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
-            </button>
-          </div>
-        </div>
+    <>
+      <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+        <button onClick={() => onNavigate("persona")} aria-label="Volver">
+          <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
+        </button>
+        <h1 className="text-xl font-bold text-slate-900">Autos</h1>
+        <button
+          onClick={() => { setEditingAuto(null); setShowForm(true); }}
+          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+          aria-label="Agregar auto"
+        >
+          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+        </button>
+      </div>
 
-        <div className="px-5 flex items-center gap-2 pb-4">
+      <div className="px-5 flex flex-col gap-3 pb-4">
+        <div className="flex items-center gap-2">
           <div className="flex-1 bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-400" strokeWidth={2} />
             <input
@@ -123,33 +106,34 @@ export default function AutosScreen({ session, onBack }) {
           </button>
         </div>
 
-        <div className="px-5 flex flex-col gap-3 pb-6">
-          <div className="flex items-center justify-between">
-            <p className="font-bold text-slate-900 text-base">Mis autos</p>
-            <p className="text-sm text-slate-500">{autosFiltrados.length} autos</p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="font-bold text-slate-900 text-base">Mis autos</p>
+          <p className="text-sm text-slate-500">{autosFiltrados.length} autos</p>
+        </div>
+
+        {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
+
+        {!loading && autosFiltrados.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
+            <p className="text-sm text-slate-500">No hay autos que coincidan con tu búsqueda.</p>
           </div>
+        )}
 
-          {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
+        {autosFiltrados.map((auto) => (
+          <AutoRow key={auto.id} auto={auto} onEdit={(a) => { setEditingAuto(a); setShowForm(true); }} />
+        ))}
 
-          {!loading && autosFiltrados.length === 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
-              <p className="text-sm text-slate-500">No hay autos que coincidan con tu búsqueda.</p>
-            </div>
-          )}
-
-          {autosFiltrados.map((auto) => (
-            <AutoRow key={auto.id} auto={auto} onEdit={(a) => { setEditingAuto(a); setShowForm(true); }} />
-          ))}
-
-          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
-            <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
-            <div>
-              <p className="font-bold text-slate-900 text-sm">Mantén tus autos al día</p>
-              <p className="text-sm text-slate-500 mt-0.5">Toca un auto para editar sus datos, o usa el botón + para agregar uno nuevo.</p>
-            </div>
+        <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
+          <div>
+            <p className="font-bold text-slate-900 text-sm">Mantén tus autos al día</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca un auto para editar sus datos, o usa el botón + para agregar uno nuevo.</p>
           </div>
         </div>
       </div>
+
+      <div className="flex-1" />
+      <BottomNav variant="detail" onNavigate={onNavigate} />
 
       {showForm && (
         <AutoForm
@@ -158,6 +142,6 @@ export default function AutosScreen({ session, onBack }) {
           onSaved={handleSaved}
         />
       )}
-    </div>
+    </>
   );
 }

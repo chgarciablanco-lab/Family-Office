@@ -13,6 +13,19 @@ export function estadoPillClasses(estado) {
   return { bg: "bg-red-100", text: "text-red-700" };
 }
 
+export function estadoSociedadPillClasses(estado) {
+  if (estado === "Activa") return { bg: "bg-emerald-100", text: "text-emerald-700" };
+  if (estado === "Suspendida") return { bg: "bg-amber-100", text: "text-amber-700" };
+  return { bg: "bg-slate-100", text: "text-slate-600" };
+}
+
+export function formatFechaCorta(fecha) {
+  if (!fecha) return "-";
+  const d = new Date(fecha + "T00:00:00");
+  const texto = d.toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" });
+  return texto.replace(".", "");
+}
+
 export function formatCLP(valor) {
   if (valor === null || valor === undefined || valor === "") return "-";
   return "$" + Number(valor).toLocaleString("es-CL");

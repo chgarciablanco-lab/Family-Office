@@ -4,24 +4,9 @@ import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { servicioTipoInfo } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, formatMes, estadoPillClasses } from "../lib/format";
+import AnioCompletoForm from "./AnioCompletoForm";
 
 const tiposAnioCompleto = ["Luz", "Gas", "Agua", "Gastos comunes", "Seguros"];
-
-async function generarAnioCompleto(propiedadId, sociedadId, tipoServicio) {
-  const anio = new Date().getFullYear();
-  const filas = Array.from({ length: 12 }, (_, i) => {
-    const mes = String(i + 1).padStart(2, "0");
-    return {
-      propiedad_id: propiedadId,
-      sociedad_id: sociedadId,
-      tipo_servicio: tipoServicio,
-      periodo: `${anio}-${mes}-01`,
-      vencimiento: `${anio}-${mes}-05`,
-      estado: "Pendiente",
-    };
-  });
-  return supabase.from("servicios").insert(filas);
-}
 
 function subtituloRegistro(r) {
   const partes = [];
@@ -37,31 +22,26 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [showSetup, setShowSetup] = useState(false);
 
   const info = servicioTipoInfo(tipoServicio);
   const Icon = info.icon;
   const Form = info.Form;
+  const esAnioCompleto = tiposAnioCompleto.includes(tipoServicio);
 
   const fetchRegistros = async () => {
     setLoading(true);
-    let { data, error } = await supabase
+    const { data, error } = await supabase
       .from("servicios")
       .select("*")
       .eq("propiedad_id", propiedad.id)
       .eq("tipo_servicio", tipoServicio)
       .order("vencimiento", { ascending: false });
 
-    if (!error && (data || []).length === 0 && tiposAnioCompleto.includes(tipoServicio)) {
-      await generarAnioCompleto(propiedad.id, sociedadId, tipoServicio);
-      ({ data, error } = await supabase
-        .from("servicios")
-        .select("*")
-        .eq("propiedad_id", propiedad.id)
-        .eq("tipo_servicio", tipoServicio)
-        .order("vencimiento", { ascending: false }));
+    if (!error) {
+      setRegistros(data || []);
+      if ((data || []).length === 0 && esAnioCompleto) setShowSetup(true);
     }
-
-    if (!error) setRegistros(data || []);
     setLoading(false);
   };
 
@@ -72,6 +52,11 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
   const handleSaved = () => {
     setShowForm(false);
     setEditing(null);
+    fetchRegistros();
+  };
+
+  const handleGenerated = () => {
+    setShowSetup(false);
     fetchRegistros();
   };
 
@@ -107,9 +92,17 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-        {!loading && !actual && (
-          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
+        {!loading && !actual && !showSetup && (
+          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center flex flex-col items-center gap-3">
             <p className="text-sm text-slate-500">Aún no hay registros de {tipoServicio.toLowerCase()} para esta propiedad.</p>
+            {esAnioCompleto && (
+              <button
+                onClick={() => setShowSetup(true)}
+                className="text-sm font-semibold text-violet-600"
+              >
+                Configurar los 12 meses del año
+              </button>
+            )}
           </div>
         )}
 
@@ -173,6 +166,16 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
           tipoServicio={tipoServicio}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
+        />
+      )}
+
+      {showSetup && (
+        <AnioCompletoForm
+          propiedad={propiedad}
+          sociedadId={sociedadId}
+          tipoServicio={tipoServicio}
+          onClose={() => setShowSetup(false)}
+          onGenerated={handleGenerated}
         />
       )}
     </>

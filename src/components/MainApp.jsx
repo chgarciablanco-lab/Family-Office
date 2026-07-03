@@ -12,12 +12,14 @@ import OtrosGastosScreen from "./OtrosGastosScreen";
 import ImpuestosScreen from "./ImpuestosScreen";
 import ArriendosScreen from "./ArriendosScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
+import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
 export default function MainApp({ session }) {
   const [screen, setScreen] = useState("home");
   const [selectedSociedad, setSelectedSociedad] = useState(null);
   const [selectedPropiedad, setSelectedPropiedad] = useState(null);
   const [propiedadBackTo, setPropiedadBackTo] = useState("propiedades");
+  const [selectedTipoServicio, setSelectedTipoServicio] = useState(null);
 
   const handleSelectSociedad = (s) => {
     setSelectedSociedad(s);
@@ -28,6 +30,11 @@ export default function MainApp({ session }) {
     setSelectedPropiedad(p);
     setPropiedadBackTo(backTo);
     setScreen("gastos-basicos");
+  };
+
+  const handleSelectTipo = (tipo) => {
+    setSelectedTipoServicio(tipo);
+    setScreen("servicio-historial");
   };
 
   return (
@@ -68,7 +75,21 @@ export default function MainApp({ session }) {
         />
       )}
       {screen === "gastos-basicos" && selectedPropiedad && (
-        <GastosBasicosScreen propiedad={selectedPropiedad} backTo={propiedadBackTo} onNavigate={setScreen} />
+        <GastosBasicosScreen
+          propiedad={selectedPropiedad}
+          backTo={propiedadBackTo}
+          onNavigate={setScreen}
+          onSelectTipo={handleSelectTipo}
+        />
+      )}
+      {screen === "servicio-historial" && selectedPropiedad && selectedTipoServicio && (
+        <ServicioHistorialScreen
+          propiedad={selectedPropiedad}
+          sociedadId={selectedPropiedad.sociedad_id}
+          tipoServicio={selectedTipoServicio}
+          backTo="gastos-basicos"
+          onNavigate={setScreen}
+        />
       )}
       {screen === "impuestos-sociedad" && selectedSociedad && (
         <ImpuestosScreen sociedad={selectedSociedad} backTo="sociedad-detail" onNavigate={setScreen} />

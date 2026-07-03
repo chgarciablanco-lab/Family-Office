@@ -5,6 +5,24 @@ import BottomNav from "./BottomNav";
 import { servicioTipoInfo } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, formatMes, estadoPillClasses } from "../lib/format";
 
+const tiposAnioCompleto = ["Luz", "Gas", "Agua", "Gastos comunes", "Seguros"];
+
+async function generarAnioCompleto(propiedadId, sociedadId, tipoServicio) {
+  const anio = new Date().getFullYear();
+  const filas = Array.from({ length: 12 }, (_, i) => {
+    const mes = String(i + 1).padStart(2, "0");
+    return {
+      propiedad_id: propiedadId,
+      sociedad_id: sociedadId,
+      tipo_servicio: tipoServicio,
+      periodo: `${anio}-${mes}-01`,
+      vencimiento: `${anio}-${mes}-05`,
+      estado: "Pendiente",
+    };
+  });
+  return supabase.from("servicios").insert(filas);
+}
+
 function subtituloRegistro(r) {
   const partes = [];
   if (r.cuota) partes.push(r.cuota);
@@ -26,12 +44,23 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
 
   const fetchRegistros = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("servicios")
       .select("*")
       .eq("propiedad_id", propiedad.id)
       .eq("tipo_servicio", tipoServicio)
       .order("vencimiento", { ascending: false });
+
+    if (!error && (data || []).length === 0 && tiposAnioCompleto.includes(tipoServicio)) {
+      await generarAnioCompleto(propiedad.id, sociedadId, tipoServicio);
+      ({ data, error } = await supabase
+        .from("servicios")
+        .select("*")
+        .eq("propiedad_id", propiedad.id)
+        .eq("tipo_servicio", tipoServicio)
+        .order("vencimiento", { ascending: false }));
+    }
+
     if (!error) setRegistros(data || []);
     setLoading(false);
   };

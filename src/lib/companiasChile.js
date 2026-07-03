@@ -1,0 +1,17 @@
+export const companiasLuz = [
+  "Enel Distribución Chile",
+  "CGE Distribución",
+  "Chilquinta Energía",
+  "Saesa",
+  "Frontel",
+  "Luz Osorno",
+  "Edelaysén",
+  "Copelec",
+  "Coelcha",
+  "Codiner",
+  "Litoral",
+  "Socoepa",
+  "Emelat (Arica)",
+  "Elecda (Antofagasta)",
+  "Eliqsa (Iquique)",
+];

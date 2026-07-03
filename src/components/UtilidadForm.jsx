@@ -3,8 +3,10 @@ import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
+import { companiasLuz } from "../lib/companiasChile";
 
 const estados = ["Pendiente", "Al día", "Por vencer", "Pagado"];
+const tiposConVencimientoFijo = ["Luz", "Gas", "Agua"];
 
 function emptyForm(registro) {
   return {
@@ -22,6 +24,9 @@ export default function UtilidadForm({ registro, propiedad, sociedadId, tipoServ
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [companiaOtra, setCompaniaOtra] = useState(
+    tipoServicio === "Luz" && registro?.compania && !companiasLuz.includes(registro.compania)
+  );
   const isEditing = Boolean(registro);
 
   const handleSubmit = async (e) => {
@@ -87,13 +92,46 @@ export default function UtilidadForm({ registro, propiedad, sociedadId, tipoServ
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Compañía">
-              <input
-              autoComplete="off"
-                className={inputClass}
-                value={form.compania}
-                onChange={(e) => setForm({ ...form, compania: e.target.value })}
-                placeholder="Enel, Aguas Andinas..."
-              />
+              {tipoServicio === "Luz" ? (
+                <>
+                  <select
+                    className={inputClass}
+                    value={companiaOtra ? "Otra" : form.compania}
+                    onChange={(e) => {
+                      if (e.target.value === "Otra") {
+                        setCompaniaOtra(true);
+                        setForm({ ...form, compania: "" });
+                      } else {
+                        setCompaniaOtra(false);
+                        setForm({ ...form, compania: e.target.value });
+                      }
+                    }}
+                  >
+                    <option value="" disabled>Selecciona una compañía</option>
+                    {companiasLuz.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                    <option value="Otra">Otra</option>
+                  </select>
+                  {companiaOtra && (
+                    <input
+                      autoComplete="off"
+                      className={`${inputClass} mt-2`}
+                      value={form.compania}
+                      onChange={(e) => setForm({ ...form, compania: e.target.value })}
+                      placeholder="Nombre de la compañía"
+                    />
+                  )}
+                </>
+              ) : (
+                <input
+                  autoComplete="off"
+                  className={inputClass}
+                  value={form.compania}
+                  onChange={(e) => setForm({ ...form, compania: e.target.value })}
+                  placeholder="Enel, Aguas Andinas..."
+                />
+              )}
             </Field>
             <Field label="N° de cliente">
               <input
@@ -135,6 +173,9 @@ export default function UtilidadForm({ registro, propiedad, sociedadId, tipoServ
                 value={form.vencimiento}
                 onChange={(e) => setForm({ ...form, vencimiento: e.target.value })}
               />
+              {tiposConVencimientoFijo.includes(tipoServicio) && (
+                <p className="text-xs text-slate-400 mt-1">Vence habitualmente el día 5 de cada mes</p>
+              )}
             </Field>
           </div>
 

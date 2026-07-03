@@ -124,6 +124,7 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
                 value={form.vencimiento}
                 onChange={(e) => setForm({ ...form, vencimiento: e.target.value })}
               />
+              <p className="text-xs text-slate-400 mt-1">Vence habitualmente el día 5 de cada mes</p>
             </Field>
           </div>
 

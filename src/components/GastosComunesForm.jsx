@@ -135,6 +135,7 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
                 value={form.vencimiento}
                 onChange={(e) => setForm({ ...form, vencimiento: e.target.value })}
               />
+              <p className="text-xs text-slate-400 mt-1">Vence habitualmente el día 5 de cada mes</p>
             </Field>
           </div>
 

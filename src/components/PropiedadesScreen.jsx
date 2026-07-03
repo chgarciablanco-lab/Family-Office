@@ -1,73 +1,73 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  Car, Search, SlidersHorizontal, ChevronDown, ChevronRight, Plus,
-  ShieldCheck, ClipboardCheck, FileText, Info, LogOut,
+  Home, Search, SlidersHorizontal, ChevronDown, ChevronRight, Plus,
+  Landmark, ShieldCheck, Users, Info, LogOut,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import AutoForm from "./AutoForm";
+import PropiedadForm from "./PropiedadForm";
 import StatItem from "./StatItem";
 import { colorClasses } from "../lib/format";
 
-function AutoRow({ auto, onEdit }) {
-  const c = colorClasses[auto.color_tag] || colorClasses.violet;
+function PropiedadRow({ propiedad, onEdit }) {
+  const c = colorClasses[propiedad.color_tag] || colorClasses.violet;
   return (
     <button
-      onClick={() => onEdit(auto)}
+      onClick={() => onEdit(propiedad)}
       className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex flex-col gap-3 text-left active:scale-[0.98] transition-transform"
     >
       <div className="flex items-center gap-3">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
-          <Car className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
+          <Home className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-slate-900 text-base leading-tight">{auto.patente}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{auto.tipo}</p>
-          <p className="text-xs text-slate-500">{auto.marca} {auto.modelo} · Año {auto.anio}</p>
+          <p className="font-bold text-slate-900 text-base leading-tight">{propiedad.nombre}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{propiedad.tipo} · {propiedad.comuna}</p>
+          <p className="text-xs text-slate-500">{propiedad.direccion}</p>
         </div>
         <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
       </div>
       <div className="flex flex-col gap-3.5 border-t border-slate-100 pt-3.5">
-        <StatItem icon={ShieldCheck} label="Seguro" estado={auto.seguro_estado} vence={auto.seguro_dia_vencimiento} valor={auto.seguro_valor} tipoFecha="dia" />
-        <StatItem icon={ClipboardCheck} label="Revisión técnica" estado={auto.revision_estado} vence={auto.revision_vence} valor={auto.revision_valor} />
-        <StatItem icon={FileText} label="Patente" estado={auto.permiso_estado} vence={auto.permiso_vence} valor={auto.permiso_valor} />
+        <StatItem icon={Landmark} label="Contribuciones" estado={propiedad.contribuciones_estado} vence={propiedad.contribuciones_vence} valor={propiedad.contribuciones_valor} />
+        <StatItem icon={ShieldCheck} label="Seguro" estado={propiedad.seguro_estado} vence={propiedad.seguro_dia_vencimiento} valor={propiedad.seguro_valor} tipoFecha="dia" />
+        <StatItem icon={Users} label="Gastos comunes" estado={propiedad.gastos_comunes_estado} vence={propiedad.gastos_comunes_dia_vencimiento} valor={propiedad.gastos_comunes_valor} tipoFecha="dia" />
       </div>
     </button>
   );
 }
 
-export default function AutosScreen({ session }) {
-  const [autos, setAutos] = useState([]);
+export default function PropiedadesScreen({ session }) {
+  const [propiedades, setPropiedades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingAuto, setEditingAuto] = useState(null);
+  const [editingPropiedad, setEditingPropiedad] = useState(null);
 
-  const fetchAutos = async () => {
+  const fetchPropiedades = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("autos").select("*").order("patente");
-    if (!error) setAutos(data || []);
+    const { data, error } = await supabase.from("propiedades").select("*").order("nombre");
+    if (!error) setPropiedades(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchAutos();
+    fetchPropiedades();
   }, []);
 
-  const autosFiltrados = useMemo(() => {
+  const propiedadesFiltradas = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return autos;
-    return autos.filter(
-      (a) =>
-        a.patente.toLowerCase().includes(q) ||
-        a.marca.toLowerCase().includes(q) ||
-        a.modelo.toLowerCase().includes(q)
+    if (!q) return propiedades;
+    return propiedades.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(q) ||
+        p.comuna.toLowerCase().includes(q) ||
+        p.direccion.toLowerCase().includes(q)
     );
-  }, [autos, search]);
+  }, [propiedades, search]);
 
   const handleSaved = () => {
     setShowForm(false);
-    setEditingAuto(null);
-    fetchAutos();
+    setEditingPropiedad(null);
+    fetchPropiedades();
   };
 
   return (
@@ -75,14 +75,14 @@ export default function AutosScreen({ session }) {
       <div className="w-full max-w-sm bg-slate-50 min-h-screen flex flex-col">
         <div className="px-5 pt-6 pb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Autos</h1>
+            <h1 className="text-xl font-bold text-slate-900">Propiedades</h1>
             <p className="text-xs text-slate-400">{session.user.email}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => { setEditingAuto(null); setShowForm(true); }}
+              onClick={() => { setEditingPropiedad(null); setShowForm(true); }}
               className="w-9 h-9 rounded-full bg-violet-600 flex items-center justify-center"
-              aria-label="Agregar auto"
+              aria-label="Agregar propiedad"
             >
               <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
             </button>
@@ -103,7 +103,7 @@ export default function AutosScreen({ session }) {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar auto por patente, marca..."
+              placeholder="Buscar por nombre, comuna..."
               className="bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none flex-1"
             />
           </div>
@@ -116,36 +116,36 @@ export default function AutosScreen({ session }) {
 
         <div className="px-5 flex flex-col gap-3 pb-24">
           <div className="flex items-center justify-between">
-            <p className="font-bold text-slate-900 text-base">Mis autos</p>
-            <p className="text-sm text-slate-500">{autosFiltrados.length} autos</p>
+            <p className="font-bold text-slate-900 text-base">Mis propiedades</p>
+            <p className="text-sm text-slate-500">{propiedadesFiltradas.length} propiedades</p>
           </div>
 
           {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-          {!loading && autosFiltrados.length === 0 && (
+          {!loading && propiedadesFiltradas.length === 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
-              <p className="text-sm text-slate-500">No hay autos que coincidan con tu búsqueda.</p>
+              <p className="text-sm text-slate-500">No hay propiedades que coincidan con tu búsqueda.</p>
             </div>
           )}
 
-          {autosFiltrados.map((auto) => (
-            <AutoRow key={auto.id} auto={auto} onEdit={(a) => { setEditingAuto(a); setShowForm(true); }} />
+          {propiedadesFiltradas.map((propiedad) => (
+            <PropiedadRow key={propiedad.id} propiedad={propiedad} onEdit={(p) => { setEditingPropiedad(p); setShowForm(true); }} />
           ))}
 
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
             <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
             <div>
-              <p className="font-bold text-slate-900 text-sm">Mantén tus autos al día</p>
-              <p className="text-sm text-slate-500 mt-0.5">Toca un auto para editar sus datos, o usa el botón + para agregar uno nuevo.</p>
+              <p className="font-bold text-slate-900 text-sm">Mantén tus propiedades al día</p>
+              <p className="text-sm text-slate-500 mt-0.5">Toca una propiedad para editar sus datos, o usa el botón + para agregar una nueva.</p>
             </div>
           </div>
         </div>
       </div>
 
       {showForm && (
-        <AutoForm
-          auto={editingAuto}
-          onClose={() => { setShowForm(false); setEditingAuto(null); }}
+        <PropiedadForm
+          propiedad={editingPropiedad}
+          onClose={() => { setShowForm(false); setEditingPropiedad(null); }}
           onSaved={handleSaved}
         />
       )}

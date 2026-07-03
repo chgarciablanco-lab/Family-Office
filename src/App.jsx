@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 import LoginScreen from "./components/LoginScreen";
-import AutosScreen from "./components/AutosScreen";
+import MainApp from "./components/MainApp";
 import ResetPasswordScreen from "./components/ResetPasswordScreen";
 
 function isRecoveryLink() {
@@ -53,5 +53,5 @@ export default function App() {
 
   if (!session) return <LoginScreen />;
 
-  return <AutosScreen session={session} />;
+  return <MainApp session={session} />;
 }

@@ -8,7 +8,6 @@ const estadosServicio = ["Pendiente", "Al día", "Por vencer", "Pagado"];
 
 function emptyForm(servicio) {
   return {
-    propiedad: servicio?.propiedad || "",
     tipo_servicio: servicio?.tipo_servicio || tiposServicio[0],
     compania: servicio?.compania || "",
     numero_cliente: servicio?.numero_cliente || "",
@@ -18,7 +17,7 @@ function emptyForm(servicio) {
   };
 }
 
-export default function ServicioForm({ servicio, sociedadId, onClose, onSaved }) {
+export default function ServicioForm({ servicio, sociedadId, propiedadId, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(servicio));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -32,6 +31,7 @@ export default function ServicioForm({ servicio, sociedadId, onClose, onSaved })
     const payload = {
       ...form,
       sociedad_id: sociedadId,
+      propiedad_id: propiedadId,
       valor: form.valor ? parseFloat(form.valor) : null,
       vencimiento: form.vencimiento || null,
       updated_at: new Date().toISOString(),
@@ -76,16 +76,6 @@ export default function ServicioForm({ servicio, sociedadId, onClose, onSaved })
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
-          <Field label="Propiedad">
-            <input
-              required
-              className={inputClass}
-              value={form.propiedad}
-              onChange={(e) => setForm({ ...form, propiedad: e.target.value })}
-              placeholder="Casa Las Condes, Depto Providencia..."
-            />
-          </Field>
-
           <Field label="Tipo de servicio">
             <select
               className={inputClass}

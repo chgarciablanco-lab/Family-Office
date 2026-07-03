@@ -45,7 +45,11 @@ export default function PropiedadesScreen({ onNavigate }) {
 
   const fetchPropiedades = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("propiedades").select("*").order("nombre");
+    const { data, error } = await supabase
+      .from("propiedades")
+      .select("*")
+      .is("sociedad_id", null)
+      .order("nombre");
     if (!error) setPropiedades(data || []);
     setLoading(false);
   };

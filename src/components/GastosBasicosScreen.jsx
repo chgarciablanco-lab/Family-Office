@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft, Plus, Lightbulb, Droplet, Flame, Wifi, Shield, ShieldCheck,
-  ChevronRight, Home as HomeIcon,
+  ChevronRight,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import ServicioForm from "./ServicioForm";
@@ -17,10 +17,9 @@ const iconosServicio = {
   Seguros: { icon: ShieldCheck, bg: "bg-blue-100", fg: "text-blue-500" },
 };
 
-export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
+export default function GastosBasicosScreen({ propiedad, backTo, onNavigate }) {
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [propiedadFiltro, setPropiedadFiltro] = useState("todas");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -29,7 +28,7 @@ export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
     const { data, error } = await supabase
       .from("servicios")
       .select("*")
-      .eq("sociedad_id", sociedad.id)
+      .eq("propiedad_id", propiedad.id)
       .order("vencimiento");
     if (!error) setServicios(data || []);
     setLoading(false);
@@ -37,19 +36,9 @@ export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
 
   useEffect(() => {
     fetchServicios();
-  }, [sociedad.id]);
+  }, [propiedad.id]);
 
-  const propiedades = useMemo(() => {
-    const nombres = [...new Set(servicios.map((s) => s.propiedad))];
-    return nombres;
-  }, [servicios]);
-
-  const filtrados = useMemo(() => {
-    if (propiedadFiltro === "todas") return servicios;
-    return servicios.filter((s) => s.propiedad === propiedadFiltro);
-  }, [servicios, propiedadFiltro]);
-
-  const pendientes = filtrados.filter((s) => s.estado === "Pendiente" || s.estado === "Por vencer");
+  const pendientes = servicios.filter((s) => s.estado === "Pendiente" || s.estado === "Por vencer");
 
   const handleSaved = () => {
     setShowForm(false);
@@ -74,47 +63,22 @@ export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
-        {propiedades.length > 0 && (
-          <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm p-2 flex items-start gap-1 overflow-x-auto">
-            <button
-              onClick={() => setPropiedadFiltro("todas")}
-              className={`shrink-0 w-[74px] flex flex-col items-center text-center gap-1.5 rounded-xl px-1.5 py-2 border-2 ${
-                propiedadFiltro === "todas" ? "border-violet-500" : "border-transparent"
-              }`}
-            >
-              <div className="w-11 h-11 rounded-full flex items-center justify-center bg-violet-100">
-                <HomeIcon className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-              </div>
-              <p className="text-xs font-bold text-slate-900 leading-tight">Todas</p>
-            </button>
-            {propiedades.map((nombre) => (
-              <button
-                key={nombre}
-                onClick={() => setPropiedadFiltro(nombre)}
-                className={`shrink-0 w-[74px] flex flex-col items-center text-center gap-1.5 rounded-xl px-1.5 py-2 border-2 ${
-                  propiedadFiltro === nombre ? "border-violet-500" : "border-transparent"
-                }`}
-              >
-                <div className="w-11 h-11 rounded-full flex items-center justify-center bg-slate-100">
-                  <HomeIcon className="w-5 h-5 text-slate-500" strokeWidth={1.8} />
-                </div>
-                <p className="text-xs font-bold text-slate-900 leading-tight">{nombre}</p>
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
+          <p className="font-bold text-slate-900 text-lg leading-tight">{propiedad.nombre}</p>
+          <p className="text-sm text-slate-500 mt-0.5">{propiedad.tipo} · {propiedad.comuna}</p>
+        </div>
 
         <p className="font-bold text-slate-900 text-base mt-1">Servicios</p>
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-        {!loading && filtrados.length === 0 && (
+        {!loading && servicios.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-6 text-center">
             <p className="text-sm text-slate-500">No hay servicios registrados para esta propiedad.</p>
           </div>
         )}
 
-        {filtrados.map((s) => {
+        {servicios.map((s) => {
           const iconInfo = iconosServicio[s.tipo_servicio] || iconosServicio.Luz;
           const p = estadoPillClasses(s.estado);
           return (
@@ -128,7 +92,7 @@ export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-slate-900 text-base leading-tight">{s.tipo_servicio}</p>
-                <p className="text-sm text-slate-500 mt-0.5">{s.propiedad}</p>
+                {s.compania && <p className="text-sm text-slate-500 mt-0.5">{s.compania}</p>}
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{s.estado}</span>
                 </div>
@@ -148,7 +112,7 @@ export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-slate-900 text-base">Pendientes por pagar</p>
                 <p className="text-sm text-slate-600 mt-0.5">
-                  Tienes {pendientes.length} cuenta{pendientes.length > 1 ? "s" : ""} por pagar.
+                  Tienes {pendientes.length} cuenta{pendientes.length > 1 ? "s" : ""} por pagar en {propiedad.nombre}.
                 </p>
               </div>
             </div>
@@ -162,7 +126,7 @@ export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
                       <iconInfo.icon className={`w-5 h-5 ${iconInfo.fg}`} strokeWidth={1.8} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-900 text-sm leading-tight">{s.tipo_servicio} - {s.propiedad}</p>
+                      <p className="font-bold text-slate-900 text-sm leading-tight">{s.tipo_servicio}</p>
                       <p className="text-xs text-red-500 font-medium mt-0.5">Vence: {formatFechaCorta(s.vencimiento)}</p>
                     </div>
                   </div>
@@ -179,7 +143,8 @@ export default function GastosBasicosScreen({ sociedad, backTo, onNavigate }) {
       {showForm && (
         <ServicioForm
           servicio={editing}
-          sociedadId={sociedad.id}
+          sociedadId={propiedad.sociedad_id}
+          propiedadId={propiedad.id}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

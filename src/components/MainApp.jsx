@@ -7,6 +7,7 @@ import AutosScreen from "./AutosScreen";
 import PropiedadesScreen from "./PropiedadesScreen";
 import SociedadesListScreen from "./SociedadesListScreen";
 import SociedadDetailScreen from "./SociedadDetailScreen";
+import SociedadPropiedadesScreen from "./SociedadPropiedadesScreen";
 import TrabajadoresScreen from "./TrabajadoresScreen";
 import OtrosGastosScreen from "./OtrosGastosScreen";
 import ImpuestosScreen from "./ImpuestosScreen";
@@ -16,10 +17,16 @@ import GastosBasicosScreen from "./GastosBasicosScreen";
 export default function MainApp({ session }) {
   const [screen, setScreen] = useState("home");
   const [selectedSociedad, setSelectedSociedad] = useState(null);
+  const [selectedPropiedad, setSelectedPropiedad] = useState(null);
 
   const handleSelectSociedad = (s) => {
     setSelectedSociedad(s);
     setScreen("sociedad-detail");
+  };
+
+  const handleSelectPropiedad = (p) => {
+    setSelectedPropiedad(p);
+    setScreen("gastos-basicos");
   };
 
   return (
@@ -41,8 +48,16 @@ export default function MainApp({ session }) {
         />
       )}
 
-      {screen === "gastos-basicos" && selectedSociedad && (
-        <GastosBasicosScreen sociedad={selectedSociedad} backTo="sociedad-detail" onNavigate={setScreen} />
+      {screen === "propiedades-sociedad" && selectedSociedad && (
+        <SociedadPropiedadesScreen
+          sociedad={selectedSociedad}
+          backTo="sociedad-detail"
+          onNavigate={setScreen}
+          onSelect={handleSelectPropiedad}
+        />
+      )}
+      {screen === "gastos-basicos" && selectedPropiedad && (
+        <GastosBasicosScreen propiedad={selectedPropiedad} backTo="propiedades-sociedad" onNavigate={setScreen} />
       )}
       {screen === "impuestos-sociedad" && selectedSociedad && (
         <ImpuestosScreen sociedad={selectedSociedad} backTo="sociedad-detail" onNavigate={setScreen} />

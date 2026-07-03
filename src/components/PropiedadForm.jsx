@@ -26,7 +26,7 @@ function emptyForm(propiedad) {
   };
 }
 
-export default function PropiedadForm({ propiedad, onClose, onSaved }) {
+export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(propiedad));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -39,6 +39,7 @@ export default function PropiedadForm({ propiedad, onClose, onSaved }) {
 
     const payload = {
       ...form,
+      sociedad_id: sociedadId || null,
       superficie: form.superficie ? parseFloat(form.superficie) : null,
       contribuciones_valor: form.contribuciones_valor ? parseFloat(form.contribuciones_valor) : null,
       seguro_valor: form.seguro_valor ? parseFloat(form.seguro_valor) : null,

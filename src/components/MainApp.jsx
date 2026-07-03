@@ -1,16 +1,17 @@
 import React, { useState } from "react";
+import HomeScreen from "./HomeScreen";
 import AutosScreen from "./AutosScreen";
 import PropiedadesScreen from "./PropiedadesScreen";
-import BottomNav from "./BottomNav";
 
 export default function MainApp({ session }) {
-  const [tab, setTab] = useState("autos");
+  const [screen, setScreen] = useState("home");
+  const goHome = () => setScreen("home");
 
-  return (
-    <>
-      {tab === "autos" && <AutosScreen session={session} />}
-      {tab === "propiedades" && <PropiedadesScreen session={session} />}
-      <BottomNav active={tab} onChange={setTab} />
-    </>
-  );
+  if (screen === "autos") {
+    return <AutosScreen session={session} onBack={goHome} />;
+  }
+  if (screen === "propiedades") {
+    return <PropiedadesScreen session={session} onBack={goHome} />;
+  }
+  return <HomeScreen session={session} onNavigate={setScreen} />;
 }

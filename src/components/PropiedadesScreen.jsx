@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Home, Search, SlidersHorizontal, ChevronDown, ChevronRight, Plus,
-  Landmark, ShieldCheck, Users, Info, LogOut,
+  Landmark, ShieldCheck, Users, Info, LogOut, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import PropiedadForm from "./PropiedadForm";
@@ -35,7 +35,7 @@ function PropiedadRow({ propiedad, onEdit }) {
   );
 }
 
-export default function PropiedadesScreen({ session }) {
+export default function PropiedadesScreen({ session, onBack }) {
   const [propiedades, setPropiedades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -74,9 +74,18 @@ export default function PropiedadesScreen({ session }) {
     <div className="min-h-screen bg-slate-50 flex justify-center">
       <div className="w-full max-w-sm bg-slate-50 min-h-screen flex flex-col">
         <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Propiedades</h1>
-            <p className="text-xs text-slate-400">{session.user.email}</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onBack}
+              className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0"
+              aria-label="Volver"
+            >
+              <ArrowLeft className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">Propiedades</h1>
+              <p className="text-xs text-slate-400">{session.user.email}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -114,7 +123,7 @@ export default function PropiedadesScreen({ session }) {
           </button>
         </div>
 
-        <div className="px-5 flex flex-col gap-3 pb-24">
+        <div className="px-5 flex flex-col gap-3 pb-6">
           <div className="flex items-center justify-between">
             <p className="font-bold text-slate-900 text-base">Mis propiedades</p>
             <p className="text-sm text-slate-500">{propiedadesFiltradas.length} propiedades</p>

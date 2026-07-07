@@ -25,4 +25,5 @@ export const etiquetasServicio = {
   Internet: { compania: "Compañía", numero: "N° de cliente", placeholder: "Movistar, VTR, Mundo..." },
   "Gastos comunes": { compania: "Administración / edificio", numero: "N° de unidad", placeholder: "Nombre del edificio" },
   Seguros: { compania: "Compañía aseguradora", numero: "N° de póliza", placeholder: "Consorcio, HDI..." },
+  Contribuciones: { compania: null, numero: "Rol", placeholder: "" },
 };

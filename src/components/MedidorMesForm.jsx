@@ -104,7 +104,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
       <div className="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-900">
-            {tipoServicio} · {formatMes(registro.periodo)}
+            {tipoServicio} · {registro.periodo ? formatMes(registro.periodo) : registro.cuota}
           </h2>
           <button onClick={onClose} aria-label="Cerrar">
             <X className="w-5 h-5 text-slate-500" />

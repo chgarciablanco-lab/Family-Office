@@ -104,7 +104,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
             destacado ? "px-4 py-4" : "px-4 py-3.5"
           }`}
         >
-          <p className="text-xs font-semibold text-slate-400">{formatMes(r.periodo)}</p>
+          <p className="text-xs font-semibold text-slate-400">{r.periodo ? formatMes(r.periodo) : r.cuota}</p>
           {r.medidores.map((m, i) => {
             const p = estadoPillClasses(m.estado);
             return (

@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  ArrowLeft, Plus, FileText, Calendar, CalendarCheck, Banknote,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowLeft, Plus, FileText, ChevronRight } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import ImpuestoForm from "./ImpuestoForm";
 import BottomNav from "./BottomNav";
@@ -60,11 +57,56 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
   };
 
   const mesActual = new Date().toISOString().slice(0, 7);
+  const anioActual = new Date().getFullYear().toString();
   const registrosVisibles = registros.filter((r) => !r.periodo || r.periodo.slice(0, 7) <= mesActual);
   const actual =
     registrosVisibles.find((r) => (r.periodo || "").slice(0, 7) === mesActual) || registrosVisibles[0];
   const historial = registrosVisibles.filter((r) => r !== actual).slice().reverse();
-  const p = actual ? estadoPillClasses(actual.estado) : null;
+
+  const totalPagadoAnio = registros
+    .filter((r) => (r.periodo || "").slice(0, 4) === anioActual && r.estado === "Pagado")
+    .reduce((sum, r) => sum + (Number(r.total_iva) || 0), 0);
+
+  const renderTarjeta = (r, destacado) => {
+    const p = estadoPillClasses(r.estado);
+    return (
+      <button
+        key={r.id}
+        onClick={() => { setEditing(r); setShowForm(true); }}
+        className={`w-full bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 text-left ${
+          destacado ? "px-4 py-4 gap-4" : "px-4 py-3.5"
+        }`}
+      >
+        {destacado && (
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-violet-100">
+            <FileText className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className={`font-bold text-slate-900 ${destacado ? "text-base" : "text-sm"} leading-tight`}>
+              {formatCLP(r.total_iva)}
+            </p>
+            {destacado && (
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{r.estado}</span>
+            )}
+          </div>
+          {destacado ? (
+            <>
+              <p className="text-sm text-slate-500 mt-0.5">{formatMes(r.periodo)}</p>
+              <p className="text-sm text-slate-500 mt-1">Vence: {formatFechaCorta(r.vencimiento)}</p>
+            </>
+          ) : (
+            <p className="text-xs text-slate-500">{formatMes(r.periodo)} · Vence: {formatFechaCorta(r.vencimiento)}</p>
+          )}
+        </div>
+        {!destacado && (
+          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{r.estado}</span>
+        )}
+        <ChevronRight className={`text-slate-300 shrink-0 ${destacado ? "w-5 h-5" : "w-4 h-4"}`} />
+      </button>
+    );
+  };
 
   return (
     <>
@@ -83,6 +125,20 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
+        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-violet-100">
+            <FileText className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-slate-900 text-base leading-tight">{sociedad.nombre}</p>
+            <p className="text-sm text-slate-500 mt-0.5">Formulario 29 · IVA</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-xs text-slate-400">Pagado {anioActual}</p>
+            <p className="text-sm font-bold text-slate-900">{formatCLP(totalPagadoAnio)}</p>
+          </div>
+        </div>
+
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
         {!loading && !actual && (
@@ -92,86 +148,16 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
         )}
 
         {actual && (
-          <button
-            onClick={() => { setEditing(actual); setShowForm(true); }}
-            className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 text-left"
-          >
-            <p className="font-bold text-slate-900 text-base mb-3">Resumen IVA</p>
-
-            <div className="bg-violet-50 rounded-2xl p-4 flex flex-col gap-4">
-              <div>
-                <p className="text-sm text-slate-500">Total IVA a pagar</p>
-                <p className="text-3xl font-bold text-slate-900 mt-0.5">{formatCLP(actual.total_iva)}</p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 text-sm leading-tight">Formulario 29</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Declaración Mensual y Pago Simultáneo</p>
-                </div>
-              </div>
-
-              <div className="border-t border-violet-100 pt-3 flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-4.5 h-4.5 text-slate-400 shrink-0" strokeWidth={1.8} />
-                  <div className="flex-1">
-                    <p className="text-xs text-slate-500">Período</p>
-                    <p className="text-sm font-bold text-slate-900">{formatMes(actual.periodo)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 border-t border-violet-100 pt-3">
-                  <CalendarCheck className="w-4.5 h-4.5 text-slate-400 shrink-0" strokeWidth={1.8} />
-                  <div className="flex-1">
-                    <p className="text-xs text-slate-500">Fecha de vencimiento</p>
-                    <p className="text-sm font-bold text-red-500">{formatFechaCorta(actual.vencimiento)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 border-t border-violet-100 pt-3">
-                  <Banknote className="w-4.5 h-4.5 text-slate-400 shrink-0" strokeWidth={1.8} />
-                  <div className="flex-1">
-                    <p className="text-xs text-slate-500">Fecha de pago</p>
-                    <p className="text-sm font-bold text-slate-900">{formatFechaCorta(actual.fecha_pago)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 border-t border-violet-100 pt-3">
-                  <p className="flex-1 text-xs text-slate-500">Estado</p>
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>
-                    {actual.estado}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </button>
+          <>
+            <p className="font-bold text-slate-900 text-base mt-1">Mes en curso</p>
+            {renderTarjeta(actual, true)}
+          </>
         )}
 
         {historial.length > 0 && (
           <>
             <p className="font-bold text-slate-900 text-base mt-1">Historial</p>
-            {historial.map((r) => {
-              const pill = estadoPillClasses(r.estado);
-              return (
-                <button
-                  key={r.id}
-                  onClick={() => { setEditing(r); setShowForm(true); }}
-                  className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900">{formatMes(r.periodo)}</p>
-                    <p className="text-xs text-slate-500">{formatCLP(r.total_iva)}</p>
-                  </div>
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${pill.bg} ${pill.text}`}>
-                    {r.estado}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
-                </button>
-              );
-            })}
+            {historial.map((r) => renderTarjeta(r, false))}
           </>
         )}
       </div>

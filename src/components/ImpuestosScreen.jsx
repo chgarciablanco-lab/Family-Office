@@ -8,6 +8,17 @@ import ImpuestoForm from "./ImpuestoForm";
 import BottomNav from "./BottomNav";
 import { formatCLP, formatMes, formatFechaCorta, estadoPillClasses } from "../lib/format";
 
+function generarImpuestosAnio(sociedadId, anio) {
+  return Array.from({ length: 12 }, (_, i) => {
+    const mes = String(i + 1).padStart(2, "0");
+    return {
+      sociedad_id: sociedadId,
+      periodo: `${anio}-${mes}-01`,
+      estado: "Pendiente",
+    };
+  });
+}
+
 export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
   const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,8 +31,21 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
       .from("impuestos")
       .select("*")
       .eq("sociedad_id", sociedad.id)
-      .order("periodo", { ascending: false });
-    if (!error) setRegistros(data || []);
+      .order("periodo", { ascending: true });
+
+    if (!error) {
+      if ((data || []).length === 0) {
+        const anio = new Date().getFullYear();
+        const filas = generarImpuestosAnio(sociedad.id, anio);
+        const { data: creados, error: insertError } = await supabase
+          .from("impuestos")
+          .insert(filas)
+          .select("*");
+        setRegistros(insertError ? [] : creados || []);
+      } else {
+        setRegistros(data);
+      }
+    }
     setLoading(false);
   };
 
@@ -35,7 +59,11 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
     fetchRegistros();
   };
 
-  const actual = registros[0];
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const registrosVisibles = registros.filter((r) => !r.periodo || r.periodo.slice(0, 7) <= mesActual);
+  const actual =
+    registrosVisibles.find((r) => (r.periodo || "").slice(0, 7) === mesActual) || registrosVisibles[0];
+  const historial = registrosVisibles.filter((r) => r !== actual).slice().reverse();
   const p = actual ? estadoPillClasses(actual.estado === "Pagado" ? "Pagado" : "Por vencer") : null;
 
   return (
@@ -136,10 +164,10 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
           </div>
         )}
 
-        {registros.length > 1 && (
+        {historial.length > 0 && (
           <>
             <p className="font-bold text-slate-900 text-base mt-1">Historial</p>
-            {registros.slice(1).map((r) => {
+            {historial.map((r) => {
               const pill = estadoPillClasses(r.estado === "Pagado" ? "Pagado" : "Por vencer");
               return (
                 <button

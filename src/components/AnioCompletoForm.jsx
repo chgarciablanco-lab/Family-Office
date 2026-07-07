@@ -34,7 +34,7 @@ function generarFilas(anio, propiedadId, sociedadId, tipoServicio, compania, num
   });
 }
 
-export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, onClose, onGenerated }) {
+export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, esAdicional, onClose, onGenerated }) {
   const info = etiquetas[tipoServicio] || etiquetas.Luz;
   const [compania, setCompania] = useState("");
   const [companiaOtra, setCompaniaOtra] = useState(false);
@@ -63,7 +63,9 @@ export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, 
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">Configurar {tipoServicio.toLowerCase()}</h2>
+          <h2 className="text-lg font-bold text-slate-900">
+            {esAdicional ? `Agregar otro N° de cliente de ${tipoServicio.toLowerCase()}` : `Configurar ${tipoServicio.toLowerCase()}`}
+          </h2>
           <button onClick={onClose} aria-label="Cerrar">
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -78,8 +80,9 @@ export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, 
 
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <p className="text-sm text-slate-500 -mt-1">
-            Ingresa estos datos una sola vez: se aplicarán automáticamente a los 12 meses del año. Después solo
-            edita el valor, la fecha de pago y el estado de cada mes.
+            {esAdicional
+              ? "Esta propiedad tiene más de un número de cliente (por ejemplo, dos medidores). Ingresa los datos del otro número y se generarán sus propios 12 meses del año."
+              : "Ingresa estos datos una sola vez: se aplicarán automáticamente a los 12 meses del año. Después solo edita el valor, la fecha de pago y el estado de cada mes."}
           </p>
 
           <Field label={info.compania}>

@@ -153,6 +153,15 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
             })}
           </>
         )}
+
+        {esAnioCompleto && actual && (
+          <button
+            onClick={() => setShowSetup(true)}
+            className="w-full bg-white rounded-2xl border border-dashed border-slate-200 px-4 py-3.5 text-center text-sm font-semibold text-violet-600"
+          >
+            + Agregar otro número de cliente
+          </button>
+        )}
       </div>
 
       <div className="flex-1" />
@@ -174,6 +183,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
           propiedad={propiedad}
           sociedadId={sociedadId}
           tipoServicio={tipoServicio}
+          esAdicional={registros.length > 0}
           onClose={() => setShowSetup(false)}
           onGenerated={handleGenerated}
         />

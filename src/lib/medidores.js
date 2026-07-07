@@ -13,7 +13,7 @@ export function medidoresDe(row) {
 }
 
 export function esMultiMedidor(row) {
-  return Array.isArray(row.medidores) && row.medidores.length > 1;
+  return Array.isArray(row.medidores) && row.medidores.length > 0;
 }
 
 export function valorTotal(row) {

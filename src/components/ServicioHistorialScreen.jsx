@@ -125,9 +125,11 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
               </div>
             );
           })}
-          <div className="flex justify-end border-t border-slate-50 pt-2">
-            <p className="text-sm font-bold text-slate-900">Total: {formatCLP(valorTotal(r))}</p>
-          </div>
+          {r.medidores.length > 1 && (
+            <div className="flex justify-end border-t border-slate-50 pt-2">
+              <p className="text-sm font-bold text-slate-900">Total: {formatCLP(valorTotal(r))}</p>
+            </div>
+          )}
         </button>
       );
     }

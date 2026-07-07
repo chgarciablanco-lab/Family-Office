@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
 import { formatMes } from "../lib/format";
+import ConfirmDialog from "./ConfirmDialog";
 
 const estados = ["Pendiente", "Por vencer", "Pagado"];
 
@@ -19,9 +20,51 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDeleteIdx, setConfirmDeleteIdx] = useState(null);
 
   const actualizarItem = (idx, cambios) => {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...cambios } : it)));
+  };
+
+  const handleDeleteNumero = async (idx) => {
+    const numeroCliente = items[idx].numero_cliente;
+    setSaving(true);
+    setError("");
+
+    const { data: filas, error: fetchError } = await supabase
+      .from("servicios")
+      .select("id, medidores")
+      .eq("propiedad_id", propiedad.id)
+      .eq("tipo_servicio", tipoServicio);
+
+    if (fetchError) {
+      setSaving(false);
+      setError(fetchError.message);
+      return;
+    }
+
+    for (const fila of filas || []) {
+      const actuales = Array.isArray(fila.medidores) ? fila.medidores : [];
+      const restantes = actuales.filter((m) => m.numero_cliente !== numeroCliente);
+      if (restantes.length === actuales.length) continue;
+
+      const { error: opError } =
+        restantes.length === 0
+          ? await supabase.from("servicios").delete().eq("id", fila.id)
+          : await supabase
+              .from("servicios")
+              .update({ medidores: restantes, updated_at: new Date().toISOString() })
+              .eq("id", fila.id);
+
+      if (opError) {
+        setSaving(false);
+        setError(opError.message);
+        return;
+      }
+    }
+
+    setSaving(false);
+    onSaved();
   };
 
   const handleSubmit = async (e) => {
@@ -72,15 +115,25 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
 
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <p className="text-sm text-slate-500 -mt-1">
-            Esta propiedad tiene más de un número de cliente. Edita el valor, la fecha de pago y el estado de cada
-            uno para este mes.
+            {items.length > 1
+              ? "Esta propiedad tiene más de un número de cliente. Edita el valor, la fecha de pago y el estado de cada uno para este mes."
+              : "Edita el valor, la fecha de pago y el estado de este mes."}
           </p>
 
           {items.map((it, idx) => (
             <div key={idx} className="border border-slate-100 rounded-xl p-3 flex flex-col gap-3">
-              <div>
-                <p className="text-sm font-bold text-slate-900">N° {it.numero_cliente || "-"}</p>
-                <p className="text-xs text-slate-500">{it.compania || "-"}</p>
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-bold text-slate-900">N° {it.numero_cliente || "-"}</p>
+                  <p className="text-xs text-slate-500">{it.compania || "-"}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteIdx(idx)}
+                  aria-label="Eliminar este número de cliente"
+                >
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-x-3 gap-y-3">
@@ -141,6 +194,19 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
           </button>
         </form>
       </div>
+
+      {confirmDeleteIdx !== null && (
+        <ConfirmDialog
+          title={`¿Eliminar el N° ${items[confirmDeleteIdx].numero_cliente || ""}?`}
+          message="Se eliminará este número de cliente de todos los meses del año, no solo de este mes. Esta acción no se puede deshacer."
+          onConfirm={() => {
+            const idx = confirmDeleteIdx;
+            setConfirmDeleteIdx(null);
+            handleDeleteNumero(idx);
+          }}
+          onCancel={() => setConfirmDeleteIdx(null)}
+        />
+      )}
     </div>
   );
 }

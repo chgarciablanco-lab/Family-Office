@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { tiposServicio } from "../lib/servicioTipos";
@@ -9,6 +9,7 @@ import { esMultiMedidor, medidoresDe, valorTotal, vencimientoProximo, estadoResu
 export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onSelectTipo }) {
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandido, setExpandido] = useState(false);
 
   const fetchServicios = async () => {
     setLoading(true);
@@ -60,6 +61,48 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
+        {!loading && pendientes.length > 0 && (
+          <div className="bg-red-50 rounded-2xl px-4 py-4">
+            <button
+              onClick={() => setExpandido((v) => !v)}
+              className="w-full flex items-start gap-3 text-left"
+            >
+              <span className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-base shrink-0">!</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-900 text-base">Pendientes por pagar</p>
+                <p className="text-sm text-slate-600 mt-0.5">
+                  Tienes {pendientes.length} cuenta{pendientes.length > 1 ? "s" : ""} por pagar en {propiedad.nombre}.
+                </p>
+              </div>
+              <ChevronDown
+                className={`w-5 h-5 text-slate-400 shrink-0 mt-1 transition-transform ${expandido ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {expandido && (
+              <div className="flex flex-col gap-3 mt-3">
+                {pendientesPorTipo.map(({ tipo, icon: Icon, bg, fg, cantidad }) => (
+                  <button
+                    key={tipo}
+                    onClick={() => onSelectTipo(tipo)}
+                    className="bg-white rounded-xl px-3 py-3 flex items-center gap-3 text-left"
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
+                      <Icon className={`w-5 h-5 ${fg}`} strokeWidth={1.8} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-900 text-sm leading-tight">{tipo}</p>
+                    </div>
+                    <p className="text-sm font-bold text-red-500 shrink-0">
+                      {cantidad} cuenta{cantidad > 1 ? "s" : ""}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {!loading && tiposServicio.map(({ tipo, icon: Icon, bg, fg }) => {
           const ultimo = ultimoPorTipo(tipo);
           const estado = ultimo ? estadoResumen(ultimo) : null;
@@ -93,40 +136,6 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
             </button>
           );
         })}
-
-        {pendientes.length > 0 && (
-          <div className="bg-red-50 rounded-2xl px-4 py-4 mt-1">
-            <div className="flex items-start gap-3">
-              <span className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-base shrink-0">!</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-slate-900 text-base">Pendientes por pagar</p>
-                <p className="text-sm text-slate-600 mt-0.5">
-                  Tienes {pendientes.length} cuenta{pendientes.length > 1 ? "s" : ""} por pagar en {propiedad.nombre}.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 mt-3">
-              {pendientesPorTipo.map(({ tipo, icon: Icon, bg, fg, cantidad }) => (
-                <button
-                  key={tipo}
-                  onClick={() => onSelectTipo(tipo)}
-                  className="bg-white rounded-xl px-3 py-3 flex items-center gap-3 text-left"
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
-                    <Icon className={`w-5 h-5 ${fg}`} strokeWidth={1.8} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 text-sm leading-tight">{tipo}</p>
-                  </div>
-                  <p className="text-sm font-bold text-red-500 shrink-0">
-                    {cantidad} cuenta{cantidad > 1 ? "s" : ""}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="flex-1" />

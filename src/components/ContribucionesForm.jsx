@@ -3,6 +3,7 @@ import { X, Plus, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
+import { estadoConPago } from "../lib/format";
 
 const cuotas = ["1era cuota (abril)", "2da cuota (junio)", "3era cuota (septiembre)", "4ta cuota (noviembre)"];
 const estados = ["Pendiente", "Por vencer", "Vencido", "Pagado"];
@@ -58,7 +59,7 @@ export default function ContribucionesForm({ registro, propiedad, sociedadId, on
             valor: roles[0].valor ? parseFloat(roles[0].valor) : null,
             vencimiento: roles[0].vencimiento || null,
             fecha_pago: roles[0].fecha_pago || null,
-            estado: roles[0].estado,
+            estado: estadoConPago(roles[0].estado, roles[0].fecha_pago),
             medidores: null,
           }
         : {
@@ -75,7 +76,7 @@ export default function ContribucionesForm({ registro, propiedad, sociedadId, on
               valor: r.valor ? parseFloat(r.valor) : null,
               vencimiento: r.vencimiento || null,
               fecha_pago: r.fecha_pago || null,
-              estado: r.estado,
+              estado: estadoConPago(r.estado, r.fecha_pago),
             })),
           };
 

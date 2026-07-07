@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 import { companiasLuz } from "../lib/companiasChile";
+import { estadoConPago } from "../lib/format";
 
 const estados = ["Pendiente", "Por vencer", "Vencido", "Pagado"];
 
@@ -42,6 +43,7 @@ export default function UtilidadForm({ registro, propiedad, sociedadId, tipoServ
       valor: form.valor ? parseFloat(form.valor) : null,
       vencimiento: form.vencimiento || null,
       fecha_pago: form.fecha_pago || null,
+      estado: estadoConPago(form.estado, form.fecha_pago),
       periodo: form.periodo ? `${form.periodo}-01` : null,
       updated_at: new Date().toISOString(),
     };

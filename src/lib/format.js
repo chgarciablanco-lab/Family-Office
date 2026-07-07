@@ -44,3 +44,7 @@ export function formatDia(dia) {
   if (!dia) return "-";
   return `Día ${dia} de cada mes`;
 }
+
+export function estadoConPago(estado, fechaPago) {
+  return fechaPago ? "Pagado" : estado;
+}

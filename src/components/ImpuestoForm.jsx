@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
+import { estadoConPago } from "../lib/format";
 
 const estadosImpuesto = ["Pendiente", "Pagado"];
 
@@ -37,6 +38,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
       vencimiento: form.vencimiento || null,
       ultimo_pago: form.ultimo_pago ? parseFloat(form.ultimo_pago) : null,
       ultimo_pago_fecha: form.ultimo_pago_fecha || null,
+      estado: estadoConPago(form.estado, form.ultimo_pago_fecha),
       credito_fiscal: form.credito_fiscal ? parseFloat(form.credito_fiscal) : null,
       updated_at: new Date().toISOString(),
     };

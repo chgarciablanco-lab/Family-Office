@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { X, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
-import { formatMes } from "../lib/format";
+import { formatMes, estadoConPago } from "../lib/format";
 import { etiquetasServicio } from "../lib/servicioTipos";
 import ConfirmDialog from "./ConfirmDialog";
 
@@ -81,7 +81,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
       valor: it.valor ? parseFloat(it.valor) : null,
       vencimiento: it.vencimiento || null,
       fecha_pago: it.fecha_pago || null,
-      estado: it.estado,
+      estado: estadoConPago(it.estado, it.fecha_pago),
     }));
 
     const { error } = await supabase

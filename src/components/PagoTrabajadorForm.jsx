@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
-import { formatMes } from "../lib/format";
+import { formatMes, estadoConPago } from "../lib/format";
 
 const estados = ["Pendiente", "Por vencer", "Vencido", "Pagado"];
 
@@ -27,7 +27,7 @@ export default function PagoTrabajadorForm({ pago, trabajador, onClose, onSaved 
       previred: form.previred ? parseFloat(form.previred) : null,
       vencimiento: form.vencimiento || null,
       fecha_pago: form.fecha_pago || null,
-      estado: form.estado,
+      estado: estadoConPago(form.estado, form.fecha_pago),
       updated_at: new Date().toISOString(),
     };
 

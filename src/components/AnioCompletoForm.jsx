@@ -170,8 +170,8 @@ export default function AnioCompletoForm({
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <p className="text-sm text-slate-500 -mt-1">
             Ingresa estos datos una sola vez: se aplicarán automáticamente a los 12 meses del año. Si la propiedad
-            tiene más de un número de cliente (por ejemplo, dos medidores), agrégalos todos aquí mismo — quedarán
-            juntos en el mismo mes. Después solo edita el valor, la fecha de pago y el estado de cada uno.
+            tiene más de un {info.numero.toLowerCase()}, agrégalos todos aquí mismo — quedarán juntos en el mismo
+            mes. Después solo edita el valor, la fecha de pago y el estado de cada uno.
           </p>
 
           {medidores.map((m, idx) => (

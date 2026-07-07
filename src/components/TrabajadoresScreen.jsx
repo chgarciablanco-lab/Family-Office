@@ -1,52 +1,61 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   ArrowLeft, User, Plus, Search, SlidersHorizontal, ChevronDown,
-  ChevronRight, Info,
+  ChevronRight, Info, Pencil,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import TrabajadorForm from "./TrabajadorForm";
 import BottomNav from "./BottomNav";
 import { colorClasses, formatCLP, formatFechaCorta } from "../lib/format";
 
-function TrabajadorRow({ t, color, onEdit }) {
+function TrabajadorRow({ t, color, onSelect, onEdit }) {
   const c = colorClasses[color] || colorClasses.violet;
   return (
-    <button
-      onClick={() => onEdit(t)}
-      className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
-    >
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
-        <User className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-slate-900 text-base leading-tight">{t.nombre}</p>
-        <p className="text-sm text-slate-500 mt-0.5">{t.cargo}</p>
-        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-2.5">
-          <div>
-            <p className="text-[11px] text-slate-400">RUT</p>
-            <p className="text-xs font-semibold text-slate-700">{t.rut}</p>
-          </div>
-          <div>
-            <p className="text-[11px] text-slate-400">Fecha contrato</p>
-            <p className="text-xs font-semibold text-slate-700">{formatFechaCorta(t.fecha_contrato)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] text-slate-400">Liquidación</p>
-            <p className="text-xs font-semibold text-slate-700">{formatCLP(t.liquidacion)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] text-slate-400">Previred a pagar</p>
-            <p className="text-xs font-semibold text-slate-700">{formatCLP(t.previred)}</p>
+    <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3">
+      <button
+        onClick={() => onSelect(t)}
+        className="flex-1 flex items-center gap-3 text-left active:scale-[0.98] transition-transform min-w-0"
+      >
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
+          <User className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-slate-900 text-base leading-tight">{t.nombre}</p>
+          <p className="text-sm text-slate-500 mt-0.5">{t.cargo}</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 mt-2.5">
+            <div>
+              <p className="text-[11px] text-slate-400">RUT</p>
+              <p className="text-xs font-semibold text-slate-700">{t.rut}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-400">Fecha contrato</p>
+              <p className="text-xs font-semibold text-slate-700">{formatFechaCorta(t.fecha_contrato)}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-400">Liquidación</p>
+              <p className="text-xs font-semibold text-slate-700">{formatCLP(t.liquidacion)}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-400">Previred a pagar</p>
+              <p className="text-xs font-semibold text-slate-700">{formatCLP(t.previred)}</p>
+            </div>
           </div>
         </div>
-      </div>
-      <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
-    </button>
+        <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
+      </button>
+      <button
+        onClick={() => onEdit(t)}
+        aria-label="Editar trabajador"
+        className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
+      >
+        <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+      </button>
+    </div>
   );
 }
 
 export default function TrabajadoresScreen({
-  sociedadId, entidadNombre, entidadColor = "violet", backTo, onNavigate,
+  sociedadId, entidadNombre, entidadColor = "violet", backTo, onNavigate, onSelect,
 }) {
   const [trabajadores, setTrabajadores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,6 +141,7 @@ export default function TrabajadoresScreen({
             key={t.id}
             t={t}
             color={entidadColor}
+            onSelect={onSelect}
             onEdit={(tr) => { setEditing(tr); setShowForm(true); }}
           />
         ))}
@@ -140,7 +150,7 @@ export default function TrabajadoresScreen({
           <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
             <p className="font-bold text-slate-900 text-sm">Mantén tus trabajadores al día</p>
-            <p className="text-sm text-slate-500 mt-0.5">Toca un trabajador para editar sus datos, o usa el botón + para agregar uno nuevo.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca un trabajador para ver sus 12 meses de pago, usa el lápiz para editar sus datos, o el botón + para agregar uno nuevo.</p>
           </div>
         </div>
       </div>

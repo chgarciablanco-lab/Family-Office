@@ -8,6 +8,7 @@ import PropiedadesScreen from "./PropiedadesScreen";
 import SociedadesListScreen from "./SociedadesListScreen";
 import SociedadDetailScreen from "./SociedadDetailScreen";
 import TrabajadoresScreen from "./TrabajadoresScreen";
+import TrabajadorDetailScreen from "./TrabajadorDetailScreen";
 import OtrosGastosScreen from "./OtrosGastosScreen";
 import ImpuestosScreen from "./ImpuestosScreen";
 import ArriendosScreen from "./ArriendosScreen";
@@ -20,6 +21,8 @@ export default function MainApp({ session }) {
   const [selectedPropiedad, setSelectedPropiedad] = useState(null);
   const [propiedadBackTo, setPropiedadBackTo] = useState("propiedades");
   const [selectedTipoServicio, setSelectedTipoServicio] = useState(null);
+  const [selectedTrabajador, setSelectedTrabajador] = useState(null);
+  const [trabajadorBackTo, setTrabajadorBackTo] = useState("trabajadores-persona");
 
   const handleSelectSociedad = (s) => {
     setSelectedSociedad(s);
@@ -35,6 +38,12 @@ export default function MainApp({ session }) {
   const handleSelectTipo = (tipo) => {
     setSelectedTipoServicio(tipo);
     setScreen("servicio-historial");
+  };
+
+  const handleSelectTrabajador = (backTo) => (t) => {
+    setSelectedTrabajador(t);
+    setTrabajadorBackTo(backTo);
+    setScreen("trabajador-detail");
   };
 
   return (
@@ -104,6 +113,7 @@ export default function MainApp({ session }) {
           entidadColor={selectedSociedad.color_tag}
           backTo="sociedad-detail"
           onNavigate={setScreen}
+          onSelect={handleSelectTrabajador("trabajadores-sociedad")}
         />
       )}
       {screen === "otros-gastos-sociedad" && selectedSociedad && (
@@ -122,6 +132,14 @@ export default function MainApp({ session }) {
           entidadNombre="Gestión personal"
           entidadColor="violet"
           backTo="persona"
+          onNavigate={setScreen}
+          onSelect={handleSelectTrabajador("trabajadores-persona")}
+        />
+      )}
+      {screen === "trabajador-detail" && selectedTrabajador && (
+        <TrabajadorDetailScreen
+          trabajador={selectedTrabajador}
+          backTo={trabajadorBackTo}
           onNavigate={setScreen}
         />
       )}

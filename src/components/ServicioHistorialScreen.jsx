@@ -36,7 +36,9 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
       .select("*")
       .eq("propiedad_id", propiedad.id)
       .eq("tipo_servicio", tipoServicio)
-      .order("vencimiento", { ascending: false });
+      .order("periodo", { ascending: false, nullsFirst: false })
+      .order("vencimiento", { ascending: false })
+      .order("numero_cliente", { ascending: true });
 
     if (!error) {
       setRegistros(data || []);

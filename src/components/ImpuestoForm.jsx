@@ -5,17 +5,15 @@ import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 import { estadoConPago } from "../lib/format";
 
-const estadosImpuesto = ["Pendiente", "Pagado"];
+const estadosImpuesto = ["Pendiente", "Por vencer", "Vencido", "Pagado"];
 
 function emptyForm(registro) {
   return {
     periodo: registro?.periodo || "",
     total_iva: registro?.total_iva || "",
     vencimiento: registro?.vencimiento || "",
+    fecha_pago: registro?.fecha_pago || "",
     estado: registro?.estado || "Pendiente",
-    ultimo_pago: registro?.ultimo_pago || "",
-    ultimo_pago_fecha: registro?.ultimo_pago_fecha || "",
-    credito_fiscal: registro?.credito_fiscal || "",
   };
 }
 
@@ -36,10 +34,8 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
       sociedad_id: sociedadId,
       total_iva: form.total_iva ? parseFloat(form.total_iva) : null,
       vencimiento: form.vencimiento || null,
-      ultimo_pago: form.ultimo_pago ? parseFloat(form.ultimo_pago) : null,
-      ultimo_pago_fecha: form.ultimo_pago_fecha || null,
-      estado: estadoConPago(form.estado, form.ultimo_pago_fecha),
-      credito_fiscal: form.credito_fiscal ? parseFloat(form.credito_fiscal) : null,
+      fecha_pago: form.fecha_pago || null,
+      estado: estadoConPago(form.estado, form.fecha_pago),
       updated_at: new Date().toISOString(),
     };
 
@@ -114,50 +110,28 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
             </Field>
           </div>
 
-          <Field label="Estado">
-            <select
-              className={selectClass}
-              value={form.estado}
-              onChange={(e) => setForm({ ...form, estado: e.target.value })}
-            >
-              {estadosImpuesto.map((e) => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
-          </Field>
-
           <div className="grid grid-cols-2 gap-2.5">
-            <Field label="Último pago ($)">
+            <Field label="Fecha de pago">
               <input
-              autoComplete="off"
-                type="number"
-                className={inputClass}
-                value={form.ultimo_pago}
-                onChange={(e) => setForm({ ...form, ultimo_pago: e.target.value })}
-                placeholder="Opcional"
-              />
-            </Field>
-            <Field label="Fecha último pago">
-              <input
-              autoComplete="off"
+                autoComplete="off"
                 type="date"
                 className={inputClass}
-                value={form.ultimo_pago_fecha}
-                onChange={(e) => setForm({ ...form, ultimo_pago_fecha: e.target.value })}
+                value={form.fecha_pago}
+                onChange={(e) => setForm({ ...form, fecha_pago: e.target.value })}
               />
             </Field>
+            <Field label="Estado">
+              <select
+                className={selectClass}
+                value={form.estado}
+                onChange={(e) => setForm({ ...form, estado: e.target.value })}
+              >
+                {estadosImpuesto.map((e) => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+            </Field>
           </div>
-
-          <Field label="Crédito fiscal acumulado ($)">
-            <input
-              autoComplete="off"
-              type="number"
-              className={inputClass}
-              value={form.credito_fiscal}
-              onChange={(e) => setForm({ ...form, credito_fiscal: e.target.value })}
-              placeholder="Opcional"
-            />
-          </Field>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 

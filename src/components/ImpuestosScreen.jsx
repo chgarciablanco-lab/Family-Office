@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ArrowLeft, Plus, FileText, Calendar, CalendarCheck, Banknote,
-  TrendingUp, ChevronRight,
+  ChevronRight,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import ImpuestoForm from "./ImpuestoForm";
@@ -64,7 +64,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
   const actual =
     registrosVisibles.find((r) => (r.periodo || "").slice(0, 7) === mesActual) || registrosVisibles[0];
   const historial = registrosVisibles.filter((r) => r !== actual).slice().reverse();
-  const p = actual ? estadoPillClasses(actual.estado === "Pagado" ? "Pagado" : "Por vencer") : null;
+  const p = actual ? estadoPillClasses(actual.estado) : null;
 
   return (
     <>
@@ -130,6 +130,13 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 border-t border-violet-100 pt-3">
+                  <Banknote className="w-4.5 h-4.5 text-slate-400 shrink-0" strokeWidth={1.8} />
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500">Fecha de pago</p>
+                    <p className="text-sm font-bold text-slate-900">{formatFechaCorta(actual.fecha_pago)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 border-t border-violet-100 pt-3">
                   <p className="flex-1 text-xs text-slate-500">Estado</p>
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>
                     {actual.estado}
@@ -140,35 +147,11 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
           </button>
         )}
 
-        {actual && (
-          <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
-                <Banknote className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-500">Último pago</p>
-                <p className="text-sm font-bold text-slate-900">{formatCLP(actual.ultimo_pago)}</p>
-                <p className="text-xs text-slate-400">{formatFechaCorta(actual.ultimo_pago_fecha)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-500">Crédito fiscal acumulado</p>
-                <p className="text-sm font-bold text-slate-900">{formatCLP(actual.credito_fiscal)}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {historial.length > 0 && (
           <>
             <p className="font-bold text-slate-900 text-base mt-1">Historial</p>
             {historial.map((r) => {
-              const pill = estadoPillClasses(r.estado === "Pagado" ? "Pagado" : "Por vencer");
+              const pill = estadoPillClasses(r.estado);
               return (
                 <button
                   key={r.id}

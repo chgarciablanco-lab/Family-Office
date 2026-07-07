@@ -5,7 +5,7 @@ import { Field, inputClass, selectClass } from "./TramiteSection";
 import { formatMes } from "../lib/format";
 import ConfirmDialog from "./ConfirmDialog";
 
-const estados = ["Pendiente", "Por vencer", "Pagado"];
+const estados = ["Pendiente", "Por vencer", "Vencido", "Pagado"];
 
 export default function MedidorMesForm({ registro, propiedad, tipoServicio, onClose, onSaved }) {
   const [items, setItems] = useState(

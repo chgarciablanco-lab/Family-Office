@@ -32,6 +32,7 @@ export function vencimientoProximo(row) {
 
 export function estadoResumen(row) {
   const estados = medidoresDe(row).map((m) => m.estado);
+  if (estados.includes("Vencido")) return "Vencido";
   if (estados.includes("Pendiente")) return "Pendiente";
   if (estados.includes("Por vencer")) return "Por vencer";
   if (estados.length > 0 && estados.every((e) => e === "Pagado")) return "Pagado";

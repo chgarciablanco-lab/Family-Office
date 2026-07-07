@@ -11,6 +11,7 @@ export const colorClasses = {
 export function estadoPillClasses(estado) {
   if (estado === "Al día" || estado === "Pagado") return { bg: "bg-emerald-100", text: "text-emerald-700" };
   if (estado === "Por vencer") return { bg: "bg-amber-100", text: "text-amber-700" };
+  if (estado === "Vencido") return { bg: "bg-red-600", text: "text-white" };
   return { bg: "bg-red-100", text: "text-red-700" };
 }
 

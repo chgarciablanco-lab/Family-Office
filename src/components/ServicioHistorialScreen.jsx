@@ -80,8 +80,9 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
   };
 
   const mesActual = new Date().toISOString().slice(0, 7);
-  const actual = registros.find((r) => (r.periodo || "").slice(0, 7) === mesActual) || registros[0];
-  const historial = registros.filter((r) => r !== actual);
+  const registrosVisibles = registros.filter((r) => !r.periodo || r.periodo.slice(0, 7) <= mesActual);
+  const actual = registrosVisibles.find((r) => (r.periodo || "").slice(0, 7) === mesActual) || registrosVisibles[0];
+  const historial = registrosVisibles.filter((r) => r !== actual);
 
   const renderTarjeta = (r, destacado) => {
     if (esMultiMedidor(r)) {

@@ -3,11 +3,14 @@ import { X, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
 import { formatMes } from "../lib/format";
+import { etiquetasServicio } from "../lib/servicioTipos";
 import ConfirmDialog from "./ConfirmDialog";
 
 const estados = ["Pendiente", "Por vencer", "Vencido", "Pagado"];
 
 export default function MedidorMesForm({ registro, propiedad, tipoServicio, onClose, onSaved }) {
+  const numero = (etiquetasServicio[tipoServicio] || etiquetasServicio.Luz).numero;
+  const numeroMin = numero.toLowerCase();
   const [items, setItems] = useState(
     registro.medidores.map((m) => ({
       numero_cliente: m.numero_cliente,
@@ -118,7 +121,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <p className="text-sm text-slate-500 -mt-1">
             {items.length > 1
-              ? "Esta propiedad tiene más de un número de cliente. Edita el valor, la fecha de pago y el estado de cada uno para este mes."
+              ? `Esta propiedad tiene más de un ${numeroMin}. Edita el valor, la fecha de pago y el estado de cada uno para este mes.`
               : "Edita el valor, la fecha de pago y el estado de este mes."}
           </p>
 
@@ -132,7 +135,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
                 <button
                   type="button"
                   onClick={() => setConfirmDeleteIdx(idx)}
-                  aria-label="Eliminar este número de cliente"
+                  aria-label={`Eliminar este ${numeroMin}`}
                 >
                   <Trash2 className="w-4 h-4 text-red-400" />
                 </button>
@@ -200,7 +203,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
       {confirmDeleteIdx !== null && (
         <ConfirmDialog
           title={`¿Eliminar el N° ${items[confirmDeleteIdx].numero_cliente || ""}?`}
-          message="Se eliminará este número de cliente de todos los meses del año, no solo de este mes. Esta acción no se puede deshacer."
+          message={`Se eliminará este ${numeroMin} de todos los meses del año, no solo de este mes. Esta acción no se puede deshacer.`}
           onConfirm={() => {
             const idx = confirmDeleteIdx;
             setConfirmDeleteIdx(null);

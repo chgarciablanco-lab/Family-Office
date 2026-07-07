@@ -17,3 +17,12 @@ export const tiposServicio = [
 export function servicioTipoInfo(tipo) {
   return tiposServicio.find((t) => t.tipo === tipo) || tiposServicio[0];
 }
+
+export const etiquetasServicio = {
+  Luz: { compania: "Compañía", numero: "N° de cliente", placeholder: "Enel, CGE..." },
+  Gas: { compania: "Compañía", numero: "N° de cliente", placeholder: "Metrogas, Lipigas..." },
+  Agua: { compania: "Compañía", numero: "N° de cliente", placeholder: "Aguas Andinas..." },
+  Internet: { compania: "Compañía", numero: "N° de cliente", placeholder: "Movistar, VTR, Mundo..." },
+  "Gastos comunes": { compania: "Administración / edificio", numero: "N° de unidad", placeholder: "Nombre del edificio" },
+  Seguros: { compania: "Compañía aseguradora", numero: "N° de póliza", placeholder: "Consorcio, HDI..." },
+};

@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { ArrowLeft, Plus, ChevronRight } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
-import { servicioTipoInfo } from "../lib/servicioTipos";
+import { servicioTipoInfo, etiquetasServicio } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, formatMes, estadoPillClasses } from "../lib/format";
 import { esMultiMedidor, medidoresDe, valorTotal } from "../lib/medidores";
 import AnioCompletoForm from "./AnioCompletoForm";
 import MedidorMesForm from "./MedidorMesForm";
 
-const tiposAnioCompleto = ["Luz", "Gas", "Agua", "Gastos comunes", "Seguros"];
+const tiposAnioCompleto = ["Luz", "Gas", "Agua", "Internet", "Gastos comunes", "Seguros"];
 
 function subtituloRegistro(r) {
   const partes = [];
@@ -191,7 +191,11 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
             }
           }}
           className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label={esAnioCompleto ? "Agregar número de cliente" : `Agregar ${tipoServicio.toLowerCase()}`}
+          aria-label={
+            esAnioCompleto
+              ? `Agregar ${(etiquetasServicio[tipoServicio] || etiquetasServicio.Luz).numero}`
+              : `Agregar ${tipoServicio.toLowerCase()}`
+          }
         >
           <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
         </button>

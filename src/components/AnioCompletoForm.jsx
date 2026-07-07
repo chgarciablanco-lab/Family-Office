@@ -4,14 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
 import { companiasLuz } from "../lib/companiasChile";
 import { medidoresDe } from "../lib/medidores";
-
-const etiquetas = {
-  Luz: { compania: "Compañía", numero: "N° de cliente", placeholder: "Enel, CGE..." },
-  Gas: { compania: "Compañía", numero: "N° de cliente", placeholder: "Metrogas, Lipigas..." },
-  Agua: { compania: "Compañía", numero: "N° de cliente", placeholder: "Aguas Andinas..." },
-  "Gastos comunes": { compania: "Administración / edificio", numero: "N° de unidad", placeholder: "Nombre del edificio" },
-  Seguros: { compania: "Compañía aseguradora", numero: "N° de póliza", placeholder: "Consorcio, HDI..." },
-};
+import { etiquetasServicio } from "../lib/servicioTipos";
 
 function medidorVacio() {
   return { compania: "", companiaOtra: false, numeroCliente: "", diaVencimiento: "5" };
@@ -84,7 +77,7 @@ export default function AnioCompletoForm({
   onClose,
   onGenerated,
 }) {
-  const info = etiquetas[tipoServicio] || etiquetas.Luz;
+  const info = etiquetasServicio[tipoServicio] || etiquetasServicio.Luz;
   const [medidores, setMedidores] = useState([medidorVacio()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -153,7 +146,7 @@ export default function AnioCompletoForm({
       <div className="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-900">
-            {esAdicional ? `Agregar N° de cliente de ${tipoServicio.toLowerCase()}` : `Configurar ${tipoServicio.toLowerCase()}`}
+            {esAdicional ? `Agregar ${info.numero} de ${tipoServicio.toLowerCase()}` : `Configurar ${tipoServicio.toLowerCase()}`}
           </h2>
           <button onClick={onClose} aria-label="Cerrar">
             <X className="w-5 h-5 text-slate-500" />
@@ -178,8 +171,8 @@ export default function AnioCompletoForm({
             <div key={idx} className="border border-slate-100 rounded-xl p-3 flex flex-col gap-3">
               {medidores.length > 1 && (
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-slate-500">N° de cliente {idx + 1}</p>
-                  <button type="button" onClick={() => quitarMedidor(idx)} aria-label="Quitar este número de cliente">
+                  <p className="text-xs font-semibold text-slate-500">{info.numero} {idx + 1}</p>
+                  <button type="button" onClick={() => quitarMedidor(idx)} aria-label={`Quitar este ${info.numero.toLowerCase()}`}>
                     <Trash2 className="w-4 h-4 text-red-400" />
                   </button>
                 </div>
@@ -257,7 +250,7 @@ export default function AnioCompletoForm({
             className="flex items-center justify-center gap-1.5 text-sm font-semibold text-violet-600 py-1"
           >
             <Plus className="w-4 h-4" strokeWidth={2.4} />
-            Agregar otro número de cliente
+            Agregar otro {info.numero.toLowerCase()}
           </button>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

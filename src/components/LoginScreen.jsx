@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TreeDeciduous, User, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export default function LoginScreen() {
@@ -44,9 +44,7 @@ export default function LoginScreen() {
     <div className="min-h-screen bg-slate-50 flex justify-center items-center px-6 py-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-24 h-24 rounded-full border border-gold-500 flex items-center justify-center mb-4">
-            <TreeDeciduous className="w-12 h-12 text-gold-600" strokeWidth={1.3} />
-          </div>
+          <img src="/logo.png" alt="García Blanco Family Office" className="w-24 h-24 object-contain mb-4" />
           <h1 className="font-serif text-3xl tracking-wide text-navy-900">GARCÍA BLANCO</h1>
           <p className="font-serif tracking-[0.3em] text-gold-600 text-sm mt-2">
             FAMILY OFFICE

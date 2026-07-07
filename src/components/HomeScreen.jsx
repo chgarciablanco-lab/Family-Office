@@ -33,9 +33,12 @@ export default function HomeScreen({ session, onNavigate }) {
   return (
     <>
       <div className="px-5 pt-6 pb-2 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">García Blanco Family Office</h1>
-          <p className="text-sm text-slate-500 mt-1">{fechaCap}</p>
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="García Blanco Family Office" className="w-10 h-10 object-contain shrink-0" />
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 leading-tight">García Blanco Family Office</h1>
+            <p className="text-sm text-slate-500 mt-1">{fechaCap}</p>
+          </div>
         </div>
         <button className="relative mt-1 shrink-0" aria-label="Notificaciones">
           <Bell className="w-6 h-6 text-slate-700" strokeWidth={1.8} />

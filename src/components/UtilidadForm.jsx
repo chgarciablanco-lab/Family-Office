@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 import { companiasLuz } from "../lib/companiasChile";
 
@@ -96,7 +96,7 @@ export default function UtilidadForm({ registro, propiedad, sociedadId, tipoServ
               {tipoServicio === "Luz" ? (
                 <>
                   <select
-                    className={inputClass}
+                    className={selectClass}
                     value={companiaOtra ? "Otra" : form.compania}
                     onChange={(e) => {
                       if (e.target.value === "Otra") {
@@ -189,7 +189,7 @@ export default function UtilidadForm({ registro, propiedad, sociedadId, tipoServ
             </Field>
             <Field label="Estado">
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.estado}
               onChange={(e) => setForm({ ...form, estado: e.target.value })}
             >

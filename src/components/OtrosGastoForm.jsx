@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
 const metodosPago = ["Efectivo", "Tarjeta", "Transferencia"];
@@ -108,7 +108,7 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
             </Field>
             <Field label="Método de pago">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.metodo_pago}
                 onChange={(e) => setForm({ ...form, metodo_pago: e.target.value })}
               >

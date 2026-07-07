@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import { companiasLuz } from "../lib/companiasChile";
 import { medidoresDe } from "../lib/medidores";
 
@@ -186,7 +186,7 @@ export default function AnioCompletoForm({
                 {tipoServicio === "Luz" ? (
                   <>
                     <select
-                      className={inputClass}
+                      className={selectClass}
                       value={m.companiaOtra ? "Otra" : m.compania}
                       onChange={(e) => {
                         if (e.target.value === "Otra") {

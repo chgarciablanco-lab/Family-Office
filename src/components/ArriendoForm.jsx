@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
 const estadosArriendo = ["Pagado", "Pendiente", "Vencido"];
@@ -86,7 +86,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Relación">
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.relacion}
               onChange={(e) => setForm({ ...form, relacion: e.target.value })}
             >
@@ -172,7 +172,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
 
           <Field label="Estado">
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.estado}
               onChange={(e) => setForm({ ...form, estado: e.target.value })}
             >

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
 const estadosImpuesto = ["Pendiente", "Pagado"];
@@ -114,7 +114,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
 
           <Field label="Estado">
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.estado}
               onChange={(e) => setForm({ ...form, estado: e.target.value })}
             >

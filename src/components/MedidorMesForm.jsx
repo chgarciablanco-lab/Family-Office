@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import { formatMes } from "../lib/format";
 
 const estados = ["Pendiente", "Por vencer", "Pagado"];
@@ -117,7 +117,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
                 </Field>
                 <Field label="Estado">
                   <select
-                    className={inputClass}
+                    className={selectClass}
                     value={it.estado}
                     onChange={(e) => actualizarItem(idx, { estado: e.target.value })}
                   >

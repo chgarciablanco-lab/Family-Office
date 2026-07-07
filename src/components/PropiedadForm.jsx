@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
 const coloresDisponibles = ["violet", "blue", "orange", "teal", "pink", "emerald"];
@@ -142,7 +142,7 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
 
           <Field label="Color de tarjeta">
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.color_tag}
               onChange={(e) => setForm({ ...form, color_tag: e.target.value })}
             >

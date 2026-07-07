@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
 const cuotas = ["1era cuota (abril)", "2da cuota (junio)", "3era cuota (septiembre)", "4ta cuota (noviembre)"];
@@ -88,7 +88,7 @@ export default function ContribucionesForm({ registro, propiedad, sociedadId, on
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Cuota">
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.cuota}
               onChange={(e) => setForm({ ...form, cuota: e.target.value })}
             >
@@ -133,7 +133,7 @@ export default function ContribucionesForm({ registro, propiedad, sociedadId, on
             </Field>
             <Field label="Estado">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.estado}
                 onChange={(e) => setForm({ ...form, estado: e.target.value })}
               >

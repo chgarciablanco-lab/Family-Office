@@ -94,7 +94,9 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
           }`}
         >
           <p className="text-xs font-semibold text-slate-400">{formatMes(r.periodo)}</p>
-          <p className="text-sm font-bold text-slate-900 text-right">Total: {formatCLP(valorTotal(r))}</p>
+          <div className="flex justify-end">
+            <p className="text-sm font-bold text-slate-900">Total: {formatCLP(valorTotal(r))}</p>
+          </div>
           {r.medidores.map((m, i) => {
             const p = estadoPillClasses(m.estado);
             return (

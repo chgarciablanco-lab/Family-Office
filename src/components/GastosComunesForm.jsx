@@ -47,12 +47,14 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
       : supabase.from("servicios").insert(payload);
 
     const { error } = await query;
-    setSaving(false);
 
     if (error) {
+      setSaving(false);
       setError(error.message);
       return;
     }
+    await supabase.rpc("actualizar_estados_por_vencer");
+    setSaving(false);
     onSaved();
   };
 

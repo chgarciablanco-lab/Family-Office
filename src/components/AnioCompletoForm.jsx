@@ -108,11 +108,13 @@ export default function AnioCompletoForm({
           ? generarFilasLegacy(anio, propiedad.id, sociedadId, tipoServicio, medidores[0])
           : generarFilasConsolidadas(anio, propiedad.id, sociedadId, tipoServicio, medidores);
       const { error } = await supabase.from("servicios").insert(filas);
-      setSaving(false);
       if (error) {
+        setSaving(false);
         setError(error.message);
         return;
       }
+      await supabase.rpc("actualizar_estados_por_vencer");
+      setSaving(false);
       onGenerated();
       return;
     }
@@ -141,6 +143,7 @@ export default function AnioCompletoForm({
         return;
       }
     }
+    await supabase.rpc("actualizar_estados_por_vencer");
     setSaving(false);
     onGenerated();
   };

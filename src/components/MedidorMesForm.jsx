@@ -86,11 +86,13 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
       .update({ medidores: medidoresFinal, updated_at: new Date().toISOString() })
       .eq("id", registro.id);
 
-    setSaving(false);
     if (error) {
+      setSaving(false);
       setError(error.message);
       return;
     }
+    await supabase.rpc("actualizar_estados_por_vencer");
+    setSaving(false);
     onSaved();
   };
 

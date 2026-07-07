@@ -3,7 +3,7 @@ import React from "react";
 export const estados = ["Al día", "Por vencer", "Vencido", "Pagado"];
 
 export const inputClass =
-  "w-full h-11 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 outline-none focus:border-violet-400";
+  "w-full h-9 border border-slate-200 rounded-lg px-2.5 text-sm text-slate-700 outline-none focus:border-violet-400";
 
 export function Field({ label, children }) {
   return (

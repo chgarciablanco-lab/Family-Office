@@ -85,7 +85,7 @@ export default function ContribucionesForm({ registro, propiedad, sociedadId, on
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-5">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <Field label="Cuota">
             <select
               className={inputClass}
@@ -98,7 +98,7 @@ export default function ContribucionesForm({ registro, propiedad, sociedadId, on
             </select>
           </Field>
 
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-3">
             <Field label="Valor ($)">
               <input
               autoComplete="off"
@@ -121,7 +121,7 @@ export default function ContribucionesForm({ registro, propiedad, sociedadId, on
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-3">
             <Field label="Fecha de pago">
               <input
                 autoComplete="off"

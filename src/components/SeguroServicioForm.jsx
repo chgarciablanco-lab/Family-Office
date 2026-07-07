@@ -84,8 +84,8 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-2.5">
+        <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
             <Field label="Compañía aseguradora">
               <input
               autoComplete="off"
@@ -106,7 +106,7 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
             <Field label="Valor prima ($)">
               <input
               autoComplete="off"
@@ -129,7 +129,7 @@ export default function SeguroServicioForm({ registro, propiedad, sociedadId, on
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
             <Field label="Fecha de pago">
               <input
                 autoComplete="off"

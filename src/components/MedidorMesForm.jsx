@@ -77,13 +77,13 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
           </p>
 
           {items.map((it, idx) => (
-            <div key={idx} className="border border-slate-100 rounded-xl p-3 flex flex-col gap-3">
+            <div key={idx} className="border border-slate-100 rounded-xl p-3 flex flex-col gap-5">
               <div>
                 <p className="text-sm font-bold text-slate-900">N° {it.numero_cliente || "-"}</p>
                 <p className="text-xs text-slate-500">{it.compania || "-"}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-5">
                 <Field label="Valor ($)">
                   <input
                     autoComplete="off"
@@ -105,7 +105,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
                 </Field>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-5">
                 <Field label="Fecha de pago">
                   <input
                     autoComplete="off"

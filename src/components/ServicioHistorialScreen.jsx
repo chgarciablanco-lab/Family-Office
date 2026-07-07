@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { servicioTipoInfo } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, formatMes, estadoPillClasses } from "../lib/format";
-import { esMultiMedidor, valorTotal } from "../lib/medidores";
+import { esMultiMedidor, medidoresDe, valorTotal } from "../lib/medidores";
 import AnioCompletoForm from "./AnioCompletoForm";
 import MedidorMesForm from "./MedidorMesForm";
 
@@ -80,9 +80,19 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
   };
 
   const mesActual = new Date().toISOString().slice(0, 7);
+  const anioActual = new Date().getFullYear().toString();
   const registrosVisibles = registros.filter((r) => !r.periodo || r.periodo.slice(0, 7) <= mesActual);
   const actual = registrosVisibles.find((r) => (r.periodo || "").slice(0, 7) === mesActual) || registrosVisibles[0];
-  const historial = registrosVisibles.filter((r) => r !== actual);
+  const historial = registrosVisibles.filter((r) => r !== actual).slice().reverse();
+
+  const totalPagadoAnio = registros
+    .filter((r) => (r.periodo || "").slice(0, 4) === anioActual)
+    .reduce((sum, r) => {
+      const pagado = medidoresDe(r)
+        .filter((m) => m.estado === "Pagado")
+        .reduce((s, m) => s + (Number(m.valor) || 0), 0);
+      return sum + pagado;
+    }, 0);
 
   const renderTarjeta = (r, destacado) => {
     if (esMultiMedidor(r)) {
@@ -186,6 +196,10 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
           <div className="flex-1 min-w-0">
             <p className="font-bold text-slate-900 text-base leading-tight">{propiedad.nombre}</p>
             <p className="text-sm text-slate-500 mt-0.5">{propiedad.direccion}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-xs text-slate-400">Pagado {anioActual}</p>
+            <p className="text-sm font-bold text-slate-900">{formatCLP(totalPagadoAnio)}</p>
           </div>
         </div>
 

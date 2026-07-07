@@ -77,8 +77,8 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
           {items.map((it, idx) => (
             <div key={idx} className="border border-slate-100 rounded-xl p-3 flex flex-col gap-3">
               <div>
-                <p className="text-sm font-bold text-slate-900">{it.compania || "-"}</p>
-                <p className="text-xs text-slate-500">N° {it.numero_cliente || "-"}</p>
+                <p className="text-sm font-bold text-slate-900">N° {it.numero_cliente || "-"}</p>
+                <p className="text-xs text-slate-500">{it.compania || "-"}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">

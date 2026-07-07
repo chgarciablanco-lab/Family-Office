@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { servicioTipoInfo } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, formatMes, estadoPillClasses } from "../lib/format";
-import { esMultiMedidor } from "../lib/medidores";
+import { esMultiMedidor, valorTotal } from "../lib/medidores";
 import AnioCompletoForm from "./AnioCompletoForm";
 import MedidorMesForm from "./MedidorMesForm";
 
@@ -39,8 +39,8 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
       .select("*")
       .eq("propiedad_id", propiedad.id)
       .eq("tipo_servicio", tipoServicio)
-      .order("periodo", { ascending: false, nullsFirst: false })
-      .order("vencimiento", { ascending: false })
+      .order("periodo", { ascending: true, nullsFirst: false })
+      .order("vencimiento", { ascending: true, nullsFirst: false })
       .order("numero_cliente", { ascending: true });
 
     if (!error) {
@@ -79,8 +79,9 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
     }
   };
 
-  const actual = registros[0];
-  const historial = registros.slice(1);
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const actual = registros.find((r) => (r.periodo || "").slice(0, 7) === mesActual) || registros[0];
+  const historial = registros.filter((r) => r !== actual);
 
   const renderTarjeta = (r, destacado) => {
     if (esMultiMedidor(r)) {
@@ -92,7 +93,10 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
             destacado ? "px-4 py-4" : "px-4 py-3.5"
           }`}
         >
-          <p className="text-xs font-semibold text-slate-400">{formatMes(r.periodo)}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-slate-400">{formatMes(r.periodo)}</p>
+            <p className="text-sm font-bold text-slate-900">Total: {formatCLP(valorTotal(r))}</p>
+          </div>
           {r.medidores.map((m, i) => {
             const p = estadoPillClasses(m.estado);
             return (
@@ -101,9 +105,9 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
                 className={`flex items-center justify-between gap-2 ${i > 0 ? "border-t border-slate-50 pt-2" : ""}`}
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-slate-900">{m.compania || "-"}</p>
+                  <p className="text-sm font-bold text-slate-900">N° {m.numero_cliente || "-"}</p>
                   <p className="text-xs text-slate-500">
-                    N° {m.numero_cliente || "-"} · Vence: {formatFechaCorta(m.vencimiento)}
+                    {m.compania || "-"} · Vence: {formatFechaCorta(m.vencimiento)}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
@@ -202,7 +206,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
 
         {actual && (
           <>
-            <p className="font-bold text-slate-900 text-base mt-1">Registro más reciente</p>
+            <p className="font-bold text-slate-900 text-base mt-1">Mes en curso</p>
             {renderTarjeta(actual, true)}
           </>
         )}

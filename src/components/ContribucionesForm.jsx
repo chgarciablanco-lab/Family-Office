@@ -5,7 +5,7 @@ import { Field, inputClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
 const cuotas = ["1era cuota (abril)", "2da cuota (junio)", "3era cuota (septiembre)", "4ta cuota (noviembre)"];
-const estados = ["Pendiente", "Al día", "Por vencer", "Pagado"];
+const estados = ["Pendiente", "Por vencer", "Pagado"];
 
 function emptyForm(registro) {
   return {

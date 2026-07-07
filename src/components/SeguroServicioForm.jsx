@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
-const estados = ["Pendiente", "Al día", "Por vencer", "Pagado"];
+const estados = ["Pendiente", "Por vencer", "Pagado"];
 
 function emptyForm(registro) {
   return {

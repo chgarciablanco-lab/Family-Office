@@ -27,14 +27,21 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
   }, [propiedad.id]);
 
   const ultimoPorTipo = (tipo) => servicios.find((s) => s.tipo_servicio === tipo);
-  const pendientes = servicios.flatMap((s) => {
+
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const esPendiente = (estado) => estado === "Pendiente" || estado === "Por vencer" || estado === "Vencido";
+  const serviciosVisibles = servicios.filter((s) => !s.periodo || s.periodo.slice(0, 7) <= mesActual);
+  const pendientes = serviciosVisibles.flatMap((s) => {
     if (esMultiMedidor(s)) {
       return medidoresDe(s)
-        .filter((m) => m.estado === "Pendiente" || m.estado === "Por vencer")
+        .filter((m) => esPendiente(m.estado))
         .map((m, i) => ({ ...s, ...m, id: `${s.id}-${i}` }));
     }
-    return s.estado === "Pendiente" || s.estado === "Por vencer" ? [s] : [];
+    return esPendiente(s.estado) ? [s] : [];
   });
+  const pendientesPorTipo = tiposServicio
+    .map((t) => ({ ...t, cantidad: pendientes.filter((p) => p.tipo_servicio === t.tipo).length }))
+    .filter((t) => t.cantidad > 0);
 
   return (
     <>
@@ -100,25 +107,23 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
             </div>
 
             <div className="flex flex-col gap-3 mt-3">
-              {pendientes.map((s) => {
-                const tipoInfo = tiposServicio.find((t) => t.tipo === s.tipo_servicio) || tiposServicio[0];
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => onSelectTipo(s.tipo_servicio)}
-                    className="bg-white rounded-xl px-3 py-3 flex items-center gap-3 text-left"
-                  >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${tipoInfo.bg}`}>
-                      <tipoInfo.icon className={`w-5 h-5 ${tipoInfo.fg}`} strokeWidth={1.8} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-900 text-sm leading-tight">{s.tipo_servicio}</p>
-                      <p className="text-xs text-red-500 font-medium mt-0.5">Vence: {formatFechaCorta(s.vencimiento)}</p>
-                    </div>
-                    <p className="text-sm font-bold text-slate-900 shrink-0">{formatCLP(s.valor)}</p>
-                  </button>
-                );
-              })}
+              {pendientesPorTipo.map(({ tipo, icon: Icon, bg, fg, cantidad }) => (
+                <button
+                  key={tipo}
+                  onClick={() => onSelectTipo(tipo)}
+                  className="bg-white rounded-xl px-3 py-3 flex items-center gap-3 text-left"
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
+                    <Icon className={`w-5 h-5 ${fg}`} strokeWidth={1.8} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 text-sm leading-tight">{tipo}</p>
+                  </div>
+                  <p className="text-sm font-bold text-red-500 shrink-0">
+                    {cantidad} cuenta{cantidad > 1 ? "s" : ""}
+                  </p>
+                </button>
+              ))}
             </div>
           </div>
         )}

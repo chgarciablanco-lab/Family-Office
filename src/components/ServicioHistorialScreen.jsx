@@ -180,9 +180,16 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
         </button>
         <h1 className="text-xl font-bold text-slate-900">{tipoServicio}</h1>
         <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
+          onClick={() => {
+            if (esAnioCompleto) {
+              setShowSetup(true);
+            } else {
+              setEditing(null);
+              setShowForm(true);
+            }
+          }}
           className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label={`Agregar ${tipoServicio.toLowerCase()}`}
+          aria-label={esAnioCompleto ? "Agregar número de cliente" : `Agregar ${tipoServicio.toLowerCase()}`}
         >
           <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
         </button>
@@ -231,15 +238,6 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
             <p className="font-bold text-slate-900 text-base mt-1">Historial</p>
             {historial.map((r) => renderTarjeta(r, false))}
           </>
-        )}
-
-        {esAnioCompleto && actual && (
-          <button
-            onClick={() => setShowSetup(true)}
-            className="w-full bg-white rounded-2xl border border-dashed border-slate-200 px-4 py-3.5 text-center text-sm font-semibold text-violet-600"
-          >
-            + Agregar otro número de cliente
-          </button>
         )}
       </div>
 

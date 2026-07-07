@@ -55,6 +55,7 @@ function construirMedidorItem(anio, mesNum, medidor) {
     compania: medidor.compania || null,
     valor: null,
     vencimiento: vencimientoMes(anio, mesNum, diaDe(medidor)),
+    fecha_pago: null,
     estado: "Pendiente",
   };
 }

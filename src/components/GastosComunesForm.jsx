@@ -13,6 +13,7 @@ function emptyForm(registro) {
     periodo: registro?.periodo || "",
     valor: registro?.valor || "",
     vencimiento: registro?.vencimiento || "",
+    fecha_pago: registro?.fecha_pago || "",
     estado: registro?.estado || "Pendiente",
   };
 }
@@ -36,6 +37,7 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
       sociedad_id: sociedadId,
       valor: form.valor ? parseFloat(form.valor) : null,
       vencimiento: form.vencimiento || null,
+      fecha_pago: form.fecha_pago || null,
       periodo: form.periodo ? `${form.periodo}-01` : null,
       updated_at: new Date().toISOString(),
     };
@@ -138,17 +140,28 @@ export default function GastosComunesForm({ registro, propiedad, sociedadId, onC
             </Field>
           </div>
 
-          <Field label="Estado">
-            <select
-              className={inputClass}
-              value={form.estado}
-              onChange={(e) => setForm({ ...form, estado: e.target.value })}
-            >
-              {estados.map((e) => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
-          </Field>
+          <div className="grid grid-cols-2 gap-2.5">
+            <Field label="Fecha de pago">
+              <input
+                autoComplete="off"
+                type="date"
+                className={inputClass}
+                value={form.fecha_pago}
+                onChange={(e) => setForm({ ...form, fecha_pago: e.target.value })}
+              />
+            </Field>
+            <Field label="Estado">
+              <select
+                className={inputClass}
+                value={form.estado}
+                onChange={(e) => setForm({ ...form, estado: e.target.value })}
+              >
+                {estados.map((e) => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 

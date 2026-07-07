@@ -6,6 +6,7 @@ export function medidoresDe(row) {
       compania: row.compania,
       valor: row.valor,
       vencimiento: row.vencimiento,
+      fecha_pago: row.fecha_pago,
       estado: row.estado,
     },
   ];

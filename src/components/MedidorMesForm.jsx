@@ -13,6 +13,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
       compania: m.compania,
       valor: m.valor ?? "",
       vencimiento: m.vencimiento || "",
+      fecha_pago: m.fecha_pago || "",
       estado: m.estado || "Pendiente",
     }))
   );
@@ -33,6 +34,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
       compania: it.compania,
       valor: it.valor ? parseFloat(it.valor) : null,
       vencimiento: it.vencimiento || null,
+      fecha_pago: it.fecha_pago || null,
       estado: it.estado,
     }));
 
@@ -92,7 +94,7 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
                     placeholder="0"
                   />
                 </Field>
-                <Field label="Fecha de pago">
+                <Field label="Vencimiento">
                   <input
                     autoComplete="off"
                     type="date"
@@ -103,17 +105,28 @@ export default function MedidorMesForm({ registro, propiedad, tipoServicio, onCl
                 </Field>
               </div>
 
-              <Field label="Estado">
-                <select
-                  className={inputClass}
-                  value={it.estado}
-                  onChange={(e) => actualizarItem(idx, { estado: e.target.value })}
-                >
-                  {estados.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
-                </select>
-              </Field>
+              <div className="grid grid-cols-2 gap-2.5">
+                <Field label="Fecha de pago">
+                  <input
+                    autoComplete="off"
+                    type="date"
+                    className={inputClass}
+                    value={it.fecha_pago}
+                    onChange={(e) => actualizarItem(idx, { fecha_pago: e.target.value })}
+                  />
+                </Field>
+                <Field label="Estado">
+                  <select
+                    className={inputClass}
+                    value={it.estado}
+                    onChange={(e) => actualizarItem(idx, { estado: e.target.value })}
+                  >
+                    {estados.map((e) => (
+                      <option key={e} value={e}>{e}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
             </div>
           ))}
 

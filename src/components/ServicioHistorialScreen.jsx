@@ -4,7 +4,9 @@ import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { servicioTipoInfo } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, formatMes, estadoPillClasses } from "../lib/format";
+import { esMultiMedidor } from "../lib/medidores";
 import AnioCompletoForm from "./AnioCompletoForm";
+import MedidorMesForm from "./MedidorMesForm";
 
 const tiposAnioCompleto = ["Luz", "Gas", "Agua", "Gastos comunes", "Seguros"];
 
@@ -22,6 +24,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [editingMedidor, setEditingMedidor] = useState(null);
   const [showSetup, setShowSetup] = useState(false);
 
   const info = servicioTipoInfo(tipoServicio);
@@ -57,13 +60,102 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
     fetchRegistros();
   };
 
+  const handleMedidorSaved = () => {
+    setEditingMedidor(null);
+    fetchRegistros();
+  };
+
   const handleGenerated = () => {
     setShowSetup(false);
     fetchRegistros();
   };
 
+  const handleSelect = (r) => {
+    if (esMultiMedidor(r)) {
+      setEditingMedidor(r);
+    } else {
+      setEditing(r);
+      setShowForm(true);
+    }
+  };
+
   const actual = registros[0];
   const historial = registros.slice(1);
+
+  const renderTarjeta = (r, destacado) => {
+    if (esMultiMedidor(r)) {
+      return (
+        <button
+          key={r.id}
+          onClick={() => handleSelect(r)}
+          className={`w-full bg-white rounded-2xl border border-slate-100 shadow-sm text-left flex flex-col gap-2.5 ${
+            destacado ? "px-4 py-4" : "px-4 py-3.5"
+          }`}
+        >
+          <p className="text-xs font-semibold text-slate-400">{formatMes(r.periodo)}</p>
+          {r.medidores.map((m, i) => {
+            const p = estadoPillClasses(m.estado);
+            return (
+              <div
+                key={i}
+                className={`flex items-center justify-between gap-2 ${i > 0 ? "border-t border-slate-50 pt-2" : ""}`}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900">{m.compania || "-"}</p>
+                  <p className="text-xs text-slate-500">
+                    N° {m.numero_cliente || "-"} · Vence: {formatFechaCorta(m.vencimiento)}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <p className="text-sm font-bold text-slate-900">{formatCLP(m.valor)}</p>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.bg} ${p.text}`}>{m.estado}</span>
+                </div>
+              </div>
+            );
+          })}
+        </button>
+      );
+    }
+
+    const p = estadoPillClasses(r.estado);
+    return (
+      <button
+        key={r.id}
+        onClick={() => handleSelect(r)}
+        className={`w-full bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 text-left ${
+          destacado ? "px-4 py-4 gap-4" : "px-4 py-3.5"
+        }`}
+      >
+        {destacado && (
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${info.bg}`}>
+            <Icon className={`w-6 h-6 ${info.fg}`} strokeWidth={1.8} />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className={`font-bold text-slate-900 ${destacado ? "text-base" : "text-sm"} leading-tight`}>
+              {formatCLP(r.valor)}
+            </p>
+            {destacado && (
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{r.estado}</span>
+            )}
+          </div>
+          {destacado ? (
+            <>
+              <p className="text-sm text-slate-500 mt-0.5">{subtituloRegistro(r)}</p>
+              <p className="text-sm text-slate-500 mt-1">Vence: {formatFechaCorta(r.vencimiento)}</p>
+            </>
+          ) : (
+            <p className="text-xs text-slate-500">{subtituloRegistro(r)} · Vence: {formatFechaCorta(r.vencimiento)}</p>
+          )}
+        </div>
+        {!destacado && (
+          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{r.estado}</span>
+        )}
+        <ChevronRight className={`text-slate-300 shrink-0 ${destacado ? "w-5 h-5" : "w-4 h-4"}`} />
+      </button>
+    );
+  };
 
   return (
     <>
@@ -111,48 +203,14 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
         {actual && (
           <>
             <p className="font-bold text-slate-900 text-base mt-1">Registro más reciente</p>
-            <button
-              onClick={() => { setEditing(actual); setShowForm(true); }}
-              className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
-            >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${info.bg}`}>
-                <Icon className={`w-6 h-6 ${info.fg}`} strokeWidth={1.8} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-bold text-slate-900 text-base leading-tight">{formatCLP(actual.valor)}</p>
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${estadoPillClasses(actual.estado).bg} ${estadoPillClasses(actual.estado).text}`}>
-                    {actual.estado}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-500 mt-0.5">{subtituloRegistro(actual)}</p>
-                <p className="text-sm text-slate-500 mt-1">Vence: {formatFechaCorta(actual.vencimiento)}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
-            </button>
+            {renderTarjeta(actual, true)}
           </>
         )}
 
         {historial.length > 0 && (
           <>
             <p className="font-bold text-slate-900 text-base mt-1">Historial</p>
-            {historial.map((r) => {
-              const p = estadoPillClasses(r.estado);
-              return (
-                <button
-                  key={r.id}
-                  onClick={() => { setEditing(r); setShowForm(true); }}
-                  className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900">{formatCLP(r.valor)}</p>
-                    <p className="text-xs text-slate-500">{subtituloRegistro(r)} · Vence: {formatFechaCorta(r.vencimiento)}</p>
-                  </div>
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{r.estado}</span>
-                  <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
-                </button>
-              );
-            })}
+            {historial.map((r) => renderTarjeta(r, false))}
           </>
         )}
 
@@ -180,12 +238,23 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
         />
       )}
 
+      {editingMedidor && (
+        <MedidorMesForm
+          registro={editingMedidor}
+          propiedad={propiedad}
+          tipoServicio={tipoServicio}
+          onClose={() => setEditingMedidor(null)}
+          onSaved={handleMedidorSaved}
+        />
+      )}
+
       {showSetup && (
         <AnioCompletoForm
           propiedad={propiedad}
           sociedadId={sociedadId}
           tipoServicio={tipoServicio}
           esAdicional={registros.length > 0}
+          registrosExistentes={registros}
           onClose={() => setShowSetup(false)}
           onGenerated={handleGenerated}
         />

@@ -3,6 +3,7 @@ import { X, Plus, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass } from "./TramiteSection";
 import { companiasLuz } from "../lib/companiasChile";
+import { medidoresDe } from "../lib/medidores";
 
 const etiquetas = {
   Luz: { compania: "Compañía", numero: "N° de cliente", placeholder: "Enel, CGE..." },
@@ -20,12 +21,21 @@ function ultimoDiaMes(anio, mes) {
   return new Date(anio, mes, 0).getDate();
 }
 
-function generarFilasMedidor(anio, propiedadId, sociedadId, tipoServicio, medidor) {
-  const dia = Math.min(31, Math.max(1, parseInt(medidor.diaVencimiento, 10) || 5));
+function diaDe(medidor) {
+  return Math.min(31, Math.max(1, parseInt(medidor.diaVencimiento, 10) || 5));
+}
+
+function vencimientoMes(anio, mesNum, dia) {
+  const mes = String(mesNum).padStart(2, "0");
+  const diaMes = String(Math.min(dia, ultimoDiaMes(anio, mesNum))).padStart(2, "0");
+  return `${anio}-${mes}-${diaMes}`;
+}
+
+function generarFilasLegacy(anio, propiedadId, sociedadId, tipoServicio, medidor) {
+  const dia = diaDe(medidor);
   return Array.from({ length: 12 }, (_, i) => {
     const mesNum = i + 1;
     const mes = String(mesNum).padStart(2, "0");
-    const diaMes = String(Math.min(dia, ultimoDiaMes(anio, mesNum))).padStart(2, "0");
     return {
       propiedad_id: propiedadId,
       sociedad_id: sociedadId,
@@ -33,13 +43,46 @@ function generarFilasMedidor(anio, propiedadId, sociedadId, tipoServicio, medido
       compania: medidor.compania || null,
       numero_cliente: medidor.numeroCliente || null,
       periodo: `${anio}-${mes}-01`,
-      vencimiento: `${anio}-${mes}-${diaMes}`,
+      vencimiento: vencimientoMes(anio, mesNum, dia),
       estado: "Pendiente",
     };
   });
 }
 
-export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, esAdicional, onClose, onGenerated }) {
+function construirMedidorItem(anio, mesNum, medidor) {
+  return {
+    numero_cliente: medidor.numeroCliente || null,
+    compania: medidor.compania || null,
+    valor: null,
+    vencimiento: vencimientoMes(anio, mesNum, diaDe(medidor)),
+    estado: "Pendiente",
+  };
+}
+
+function generarFilasConsolidadas(anio, propiedadId, sociedadId, tipoServicio, medidoresForm) {
+  return Array.from({ length: 12 }, (_, i) => {
+    const mesNum = i + 1;
+    const mes = String(mesNum).padStart(2, "0");
+    return {
+      propiedad_id: propiedadId,
+      sociedad_id: sociedadId,
+      tipo_servicio: tipoServicio,
+      periodo: `${anio}-${mes}-01`,
+      estado: "Pendiente",
+      medidores: medidoresForm.map((m) => construirMedidorItem(anio, mesNum, m)),
+    };
+  });
+}
+
+export default function AnioCompletoForm({
+  propiedad,
+  sociedadId,
+  tipoServicio,
+  esAdicional,
+  registrosExistentes = [],
+  onClose,
+  onGenerated,
+}) {
   const info = etiquetas[tipoServicio] || etiquetas.Luz;
   const [medidores, setMedidores] = useState([medidorVacio()]);
   const [saving, setSaving] = useState(false);
@@ -57,15 +100,47 @@ export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, 
     setSaving(true);
     setError("");
     const anio = new Date().getFullYear();
-    const filas = medidores.flatMap((m) =>
-      generarFilasMedidor(anio, propiedad.id, sociedadId, tipoServicio, m)
-    );
-    const { error } = await supabase.from("servicios").insert(filas);
-    setSaving(false);
-    if (error) {
-      setError(error.message);
+
+    if (registrosExistentes.length === 0) {
+      const filas =
+        medidores.length === 1
+          ? generarFilasLegacy(anio, propiedad.id, sociedadId, tipoServicio, medidores[0])
+          : generarFilasConsolidadas(anio, propiedad.id, sociedadId, tipoServicio, medidores);
+      const { error } = await supabase.from("servicios").insert(filas);
+      setSaving(false);
+      if (error) {
+        setError(error.message);
+        return;
+      }
+      onGenerated();
       return;
     }
+
+    for (const row of registrosExistentes) {
+      const mesNum = parseInt((row.periodo || row.vencimiento || "").slice(5, 7), 10) || 1;
+      const medidoresFinal = [
+        ...medidoresDe(row),
+        ...medidores.map((m) => construirMedidorItem(anio, mesNum, m)),
+      ];
+      const { error } = await supabase
+        .from("servicios")
+        .update({
+          medidores: medidoresFinal,
+          numero_cliente: null,
+          compania: null,
+          valor: null,
+          vencimiento: null,
+          estado: "Pendiente",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", row.id);
+      if (error) {
+        setSaving(false);
+        setError(error.message);
+        return;
+      }
+    }
+    setSaving(false);
     onGenerated();
   };
 
@@ -91,8 +166,8 @@ export default function AnioCompletoForm({ propiedad, sociedadId, tipoServicio, 
         <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
           <p className="text-sm text-slate-500 -mt-1">
             Ingresa estos datos una sola vez: se aplicarán automáticamente a los 12 meses del año. Si la propiedad
-            tiene más de un número de cliente (por ejemplo, dos medidores), agrégalos todos aquí mismo. Después
-            solo edita el valor, la fecha de pago y el estado de cada mes.
+            tiene más de un número de cliente (por ejemplo, dos medidores), agrégalos todos aquí mismo — quedarán
+            juntos en el mismo mes. Después solo edita el valor, la fecha de pago y el estado de cada uno.
           </p>
 
           {medidores.map((m, idx) => (

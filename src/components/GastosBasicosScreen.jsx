@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { tiposServicio } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, estadoPillClasses } from "../lib/format";
+import { esMultiMedidor, medidoresDe, valorTotal, vencimientoProximo, estadoResumen } from "../lib/medidores";
 
 export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onSelectTipo }) {
   const [servicios, setServicios] = useState([]);
@@ -15,7 +16,8 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
       .from("servicios")
       .select("*")
       .eq("propiedad_id", propiedad.id)
-      .order("vencimiento", { ascending: false });
+      .order("periodo", { ascending: false, nullsFirst: false })
+      .order("vencimiento", { ascending: false, nullsFirst: false });
     if (!error) setServicios(data || []);
     setLoading(false);
   };
@@ -25,7 +27,14 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
   }, [propiedad.id]);
 
   const ultimoPorTipo = (tipo) => servicios.find((s) => s.tipo_servicio === tipo);
-  const pendientes = servicios.filter((s) => s.estado === "Pendiente" || s.estado === "Por vencer");
+  const pendientes = servicios.flatMap((s) => {
+    if (esMultiMedidor(s)) {
+      return medidoresDe(s)
+        .filter((m) => m.estado === "Pendiente" || m.estado === "Por vencer")
+        .map((m, i) => ({ ...s, ...m, id: `${s.id}-${i}` }));
+    }
+    return s.estado === "Pendiente" || s.estado === "Por vencer" ? [s] : [];
+  });
 
   return (
     <>
@@ -46,7 +55,8 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
 
         {!loading && tiposServicio.map(({ tipo, icon: Icon, bg, fg }) => {
           const ultimo = ultimoPorTipo(tipo);
-          const p = ultimo ? estadoPillClasses(ultimo.estado) : null;
+          const estado = ultimo ? estadoResumen(ultimo) : null;
+          const p = estado ? estadoPillClasses(estado) : null;
           return (
             <button
               key={tipo}
@@ -60,17 +70,17 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-bold text-slate-900 text-base leading-tight">{tipo}</p>
                   {ultimo && (
-                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{ultimo.estado}</span>
+                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{estado}</span>
                   )}
                 </div>
                 {ultimo ? (
-                  <p className="text-sm text-slate-500 mt-1">Vence: {formatFechaCorta(ultimo.vencimiento)}</p>
+                  <p className="text-sm text-slate-500 mt-1">Vence: {formatFechaCorta(vencimientoProximo(ultimo))}</p>
                 ) : (
                   <p className="text-sm text-slate-400 mt-1">Sin registros</p>
                 )}
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
-                {ultimo && <p className="text-sm font-bold text-slate-900">{formatCLP(ultimo.valor)}</p>}
+                {ultimo && <p className="text-sm font-bold text-slate-900">{formatCLP(valorTotal(ultimo))}</p>}
                 <ChevronRight className="w-5 h-5 text-slate-300" />
               </div>
             </button>

@@ -34,7 +34,7 @@ export default function HomeScreen({ session, onNavigate }) {
     <>
       <div className="px-5 pt-6 pb-2 flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="García Blanco Family Office" className="w-10 h-10 object-contain shrink-0" />
+          <img src="/logo.png" alt="García Blanco Family Office" className="w-16 h-16 object-contain shrink-0" />
           <div>
             <h1 className="text-xl font-bold text-slate-900 leading-tight">García Blanco Family Office</h1>
             <p className="text-sm text-slate-500 mt-1">{fechaCap}</p>

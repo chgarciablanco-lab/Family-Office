@@ -93,9 +93,9 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
             destacado ? "px-4 py-4" : "px-4 py-3.5"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-400">{formatMes(r.periodo)}</p>
+          <div className="flex items-center gap-2">
             <p className="text-sm font-bold text-slate-900">Total: {formatCLP(valorTotal(r))}</p>
+            <p className="text-xs font-semibold text-slate-400">{formatMes(r.periodo)}</p>
           </div>
           {r.medidores.map((m, i) => {
             const p = estadoPillClasses(m.estado);

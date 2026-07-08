@@ -20,7 +20,7 @@ export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTra
         <button onClick={() => onNavigate(backTo)} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">{auto.patente}</h1>
+        <h1 className="text-xl font-bold text-slate-900">{auto.modelo}</h1>
         <button onClick={() => setShowForm(true)} aria-label="Editar auto">
           <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
         </button>

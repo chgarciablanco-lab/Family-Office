@@ -39,7 +39,7 @@ export async function fetchPendientes() {
 
   const { data: servicios } = await supabase
     .from("servicios")
-    .select("tipo_servicio, compania, numero_cliente, estado, medidores, propiedades:propiedad_id(nombre)");
+    .select("id, tipo_servicio, compania, numero_cliente, estado, medidores, propiedades:propiedad_id(nombre)");
 
   (servicios || []).forEach((s) => {
     const grupo = s.propiedades?.nombre ?? "Propiedad";
@@ -47,11 +47,13 @@ export async function fetchPendientes() {
     if (Array.isArray(s.medidores) && s.medidores.length > 0) {
       s.medidores.forEach((m) => {
         agregar(m.estado, {
+          tabla: "servicios", id: s.id, medidor: { compania: m.compania ?? null, numero_cliente: m.numero_cliente ?? null },
           grupo, tipo: s.tipo_servicio, sub: subtitulo(m.compania, m.numero_cliente), estado: m.estado, ...iconInfo,
         });
       });
     } else {
       agregar(s.estado, {
+        tabla: "servicios", id: s.id, medidor: null,
         grupo, tipo: s.tipo_servicio, sub: subtitulo(s.compania, s.numero_cliente), estado: s.estado, ...iconInfo,
       });
     }
@@ -59,11 +61,12 @@ export async function fetchPendientes() {
 
   const { data: pagosTrabajador } = await supabase
     .from("pagos_trabajador")
-    .select("estado, trabajadores:trabajador_id(nombre, cargo)")
+    .select("id, estado, trabajadores:trabajador_id(nombre, cargo)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (pagosTrabajador || []).forEach((p) => {
     agregar(p.estado, {
+      tabla: "pagos_trabajador", id: p.id, medidor: null,
       grupo: p.trabajadores?.nombre ?? "Trabajador", tipo: "Sueldo", sub: p.trabajadores?.cargo ?? "-",
       estado: p.estado, ...ICONOS_EXTRA.Sueldo,
     });
@@ -71,11 +74,12 @@ export async function fetchPendientes() {
 
   const { data: impuestos } = await supabase
     .from("impuestos")
-    .select("periodo, estado, sociedades:sociedad_id(nombre)")
+    .select("id, periodo, estado, sociedades:sociedad_id(nombre)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (impuestos || []).forEach((i) => {
     agregar(i.estado, {
+      tabla: "impuestos", id: i.id, medidor: null,
       grupo: i.sociedades?.nombre ?? "Gestión personal", tipo: "F29 · IVA", sub: formatMes(i.periodo),
       estado: i.estado, ...ICONOS_EXTRA["F29 · IVA"],
     });
@@ -83,11 +87,12 @@ export async function fetchPendientes() {
 
   const { data: pagosArriendo } = await supabase
     .from("pagos_arriendo")
-    .select("estado, arriendos:arriendo_id(nombre, contraparte_nombre)")
+    .select("id, estado, arriendos:arriendo_id(nombre, contraparte_nombre)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (pagosArriendo || []).forEach((p) => {
     agregar(p.estado, {
+      tabla: "pagos_arriendo", id: p.id, medidor: null,
       grupo: p.arriendos?.nombre ?? "Arriendo", tipo: "Arriendo", sub: p.arriendos?.contraparte_nombre ?? "-",
       estado: p.estado, ...ICONOS_EXTRA.Arriendo,
     });
@@ -95,7 +100,7 @@ export async function fetchPendientes() {
 
   const { data: pagosAuto } = await supabase
     .from("pagos_auto")
-    .select("tipo, estado, autos:auto_id(patente, marca, modelo)")
+    .select("id, tipo, estado, autos:auto_id(patente, marca, modelo)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (pagosAuto || []).forEach((p) => {
@@ -103,17 +108,19 @@ export async function fetchPendientes() {
     const grupo = auto ? `${auto.marca} ${auto.modelo}` : "Auto";
     const tipoLabel = p.tipo === "seguro" ? "Seguro auto" : p.tipo === "revision" ? "Revisión técnica" : "Patente";
     agregar(p.estado, {
+      tabla: "pagos_auto", id: p.id, medidor: null,
       grupo, tipo: tipoLabel, sub: auto?.patente ?? "-", estado: p.estado, ...ICONOS_EXTRA[tipoLabel],
     });
   });
 
   const { data: patentesSociedad } = await supabase
     .from("patentes_sociedad")
-    .select("estado, sociedades:sociedad_id(nombre)")
+    .select("id, estado, sociedades:sociedad_id(nombre)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (patentesSociedad || []).forEach((p) => {
     agregar(p.estado, {
+      tabla: "patentes_sociedad", id: p.id, medidor: null,
       grupo: p.sociedades?.nombre ?? "Sociedad", tipo: "Patente municipal", sub: "Patente semestral",
       estado: p.estado, ...ICONOS_EXTRA["Patente municipal"],
     });
@@ -121,14 +128,57 @@ export async function fetchPendientes() {
 
   const { data: inversiones } = await supabase
     .from("inversiones")
-    .select("nombre, institucion, estado")
+    .select("id, nombre, institucion, estado")
     .in("estado", ["Por vencer", "Vencida"]);
 
   (inversiones || []).forEach((i) => {
     agregar(i.estado, {
+      tabla: "inversiones", id: i.id, medidor: null,
       grupo: i.nombre, tipo: "Inversión", sub: i.institucion ?? "-", estado: i.estado, ...ICONOS_EXTRA.Inversión,
     });
   });
 
   return { porVencer, vencidos };
+}
+
+export async function marcarComoPagado(item) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const ahora = new Date().toISOString();
+
+  if (item.tabla === "inversiones") {
+    const { error } = await supabase
+      .from("inversiones")
+      .update({ estado: "Liquidada", updated_at: ahora })
+      .eq("id", item.id);
+    return error;
+  }
+
+  if (item.tabla === "servicios" && item.medidor) {
+    const { data: row, error: fetchError } = await supabase
+      .from("servicios")
+      .select("medidores")
+      .eq("id", item.id)
+      .single();
+    if (fetchError) return fetchError;
+
+    const medidores = (row.medidores || []).map((m) =>
+      (m.compania ?? null) === item.medidor.compania && (m.numero_cliente ?? null) === item.medidor.numero_cliente
+        ? { ...m, fecha_pago: hoy, estado: "Pagado" }
+        : m
+    );
+
+    const { error } = await supabase
+      .from("servicios")
+      .update({ medidores, updated_at: ahora })
+      .eq("id", item.id);
+    if (!error) await supabase.rpc("actualizar_estados_por_vencer");
+    return error;
+  }
+
+  const { error } = await supabase
+    .from(item.tabla)
+    .update({ fecha_pago: hoy, estado: "Pagado", updated_at: ahora })
+    .eq("id", item.id);
+  if (!error) await supabase.rpc("actualizar_estados_por_vencer");
+  return error;
 }

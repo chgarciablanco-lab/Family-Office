@@ -36,11 +36,15 @@ export default function HomeScreen({ session, onNavigate }) {
   const [vencidos, setVencidos] = useState([]);
   const [abierto, setAbierto] = useState(null);
 
-  useEffect(() => {
+  const cargarPendientes = () => {
     fetchPendientes().then(({ porVencer, vencidos }) => {
       setPorVencer(porVencer);
       setVencidos(vencidos);
     });
+  };
+
+  useEffect(() => {
+    cargarPendientes();
   }, []);
 
   const totalPendientes = porVencer.length + vencidos.length;
@@ -107,7 +111,7 @@ export default function HomeScreen({ session, onNavigate }) {
                 </p>
                 <div className="flex flex-col gap-2.5 px-2 pb-2">
                   {listaAbierta.slice(0, 5).map((item, i) => (
-                    <PendienteRow key={i} item={item} />
+                    <PendienteRow key={i} item={item} onDone={cargarPendientes} />
                   ))}
                 </div>
                 {listaAbierta.length > 5 && (

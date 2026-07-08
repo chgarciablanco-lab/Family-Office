@@ -9,14 +9,16 @@ export default function NotificacionesScreen({ backTo, onNavigate }) {
   const [porVencer, setPorVencer] = useState([]);
   const [vencidos, setVencidos] = useState([]);
 
+  const cargarPendientes = async () => {
+    setLoading(true);
+    const { porVencer, vencidos } = await fetchPendientes();
+    setPorVencer(porVencer);
+    setVencidos(vencidos);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { porVencer, vencidos } = await fetchPendientes();
-      setPorVencer(porVencer);
-      setVencidos(vencidos);
-      setLoading(false);
-    })();
+    cargarPendientes();
   }, []);
 
   const sinPendientes = !loading && porVencer.length === 0 && vencidos.length === 0;
@@ -45,7 +47,7 @@ export default function NotificacionesScreen({ backTo, onNavigate }) {
             <div className="flex flex-col gap-2.5">
               {porVencer.map((item, i) => (
                 <div key={`manana-${i}`} className="bg-white rounded-2xl border border-slate-100 shadow-sm px-3 py-3">
-                  <PendienteRow item={item} />
+                  <PendienteRow item={item} onDone={cargarPendientes} />
                 </div>
               ))}
             </div>
@@ -58,7 +60,7 @@ export default function NotificacionesScreen({ backTo, onNavigate }) {
             <div className="flex flex-col gap-2.5">
               {vencidos.map((item, i) => (
                 <div key={`vencido-${i}`} className="bg-white rounded-2xl border border-slate-100 shadow-sm px-3 py-3">
-                  <PendienteRow item={item} />
+                  <PendienteRow item={item} onDone={cargarPendientes} />
                 </div>
               ))}
             </div>

@@ -16,6 +16,7 @@ import ImpuestosScreen from "./ImpuestosScreen";
 import ArriendosScreen from "./ArriendosScreen";
 import ArriendoDetailScreen from "./ArriendoDetailScreen";
 import InversionesScreen from "./InversionesScreen";
+import PatenteSociedadScreen from "./PatenteSociedadScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
@@ -169,6 +170,13 @@ export default function MainApp({ session }) {
         <ImpuestosScreen
           sociedadId={selectedSociedad.id}
           entidadNombre={selectedSociedad.nombre}
+          backTo="sociedad-detail"
+          onNavigate={setScreen}
+        />
+      )}
+      {screen === "patente-sociedad" && selectedSociedad && (
+        <PatenteSociedadScreen
+          sociedad={selectedSociedad}
           backTo="sociedad-detail"
           onNavigate={setScreen}
         />

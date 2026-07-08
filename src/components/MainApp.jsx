@@ -22,6 +22,7 @@ import DocumentosScreen from "./DocumentosScreen";
 import CalendarioScreen from "./CalendarioScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
+import { fetchPendientes } from "../lib/pendientes";
 
 const NAV_STORAGE_KEY = "familyOfficeNavState";
 
@@ -47,6 +48,19 @@ export default function MainApp({ session }) {
   const [selectedAuto, setSelectedAuto] = useState(initialNav.selectedAuto || null);
   const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(initialNav.selectedTramiteAuto || null);
   const [documentosCtx, setDocumentosCtx] = useState(initialNav.documentosCtx || null);
+  const [notifCount, setNotifCount] = useState(0);
+
+  const cargarNotifCount = () => {
+    fetchPendientes().then(({ porVencer, vencidos }) => setNotifCount(porVencer.length + vencidos.length));
+  };
+
+  useEffect(() => {
+    cargarNotifCount();
+  }, []);
+
+  useEffect(() => {
+    if (screen === "home") cargarNotifCount();
+  }, [screen]);
 
   useEffect(() => {
     sessionStorage.setItem(
@@ -107,7 +121,7 @@ export default function MainApp({ session }) {
   };
 
   return (
-    <Screen>
+    <Screen onNavigate={setScreen} notifCount={notifCount} ocultarCampana={screen === "notificaciones"}>
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
       {screen === "notificaciones" && (
         <NotificacionesScreen backTo="home" onNavigate={setScreen} />

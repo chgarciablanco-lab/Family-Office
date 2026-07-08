@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, Trash2, Folder } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
@@ -19,7 +19,7 @@ function generarPagosAnio(trabajadorId, anio, liquidacion, previred) {
   });
 }
 
-export default function TrabajadorDetailScreen({ trabajador, backTo, onNavigate }) {
+export default function TrabajadorDetailScreen({ trabajador, backTo, onNavigate, onOpenDocumentos }) {
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
@@ -78,6 +78,17 @@ export default function TrabajadorDetailScreen({ trabajador, backTo, onNavigate 
           <p className="font-bold text-slate-900 text-base">{trabajador.nombre}</p>
           <p className="text-sm text-slate-500 mt-0.5">{trabajador.cargo}</p>
         </div>
+
+        <button
+          onClick={() => onOpenDocumentos(trabajador)}
+          className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+        >
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+            <Folder className="w-5 h-5 text-slate-500" strokeWidth={1.8} />
+          </div>
+          <p className="flex-1 font-bold text-slate-900 text-sm">Documentos</p>
+          <ChevronRight className="w-5 h-5 text-slate-300" />
+        </button>
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 

@@ -18,6 +18,7 @@ import ArriendoDetailScreen from "./ArriendoDetailScreen";
 import InversionesScreen from "./InversionesScreen";
 import PatenteSociedadScreen from "./PatenteSociedadScreen";
 import NotificacionesScreen from "./NotificacionesScreen";
+import DocumentosScreen from "./DocumentosScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
@@ -44,6 +45,7 @@ export default function MainApp({ session }) {
   const [arriendoBackTo, setArriendoBackTo] = useState(initialNav.arriendoBackTo || "arriendos-persona");
   const [selectedAuto, setSelectedAuto] = useState(initialNav.selectedAuto || null);
   const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(initialNav.selectedTramiteAuto || null);
+  const [documentosCtx, setDocumentosCtx] = useState(initialNav.documentosCtx || null);
 
   useEffect(() => {
     sessionStorage.setItem(
@@ -51,11 +53,13 @@ export default function MainApp({ session }) {
       JSON.stringify({
         screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
         selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
+        documentosCtx,
       })
     );
   }, [
     screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
     selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
+    documentosCtx,
   ]);
 
   const handleSelectSociedad = (s) => {
@@ -96,11 +100,25 @@ export default function MainApp({ session }) {
     setScreen("auto-tramite");
   };
 
+  const handleOpenDocumentos = (entidadTipo, backTo) => (entidad) => {
+    setDocumentosCtx({ entidadTipo, entidadId: entidad.id, entidadNombre: entidad.nombre, backTo });
+    setScreen("documentos");
+  };
+
   return (
     <Screen>
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
       {screen === "notificaciones" && (
         <NotificacionesScreen backTo="home" onNavigate={setScreen} />
+      )}
+      {screen === "documentos" && documentosCtx && (
+        <DocumentosScreen
+          entidadTipo={documentosCtx.entidadTipo}
+          entidadId={documentosCtx.entidadId}
+          entidadNombre={documentosCtx.entidadNombre}
+          backTo={documentosCtx.backTo}
+          onNavigate={setScreen}
+        />
       )}
       {screen === "persona" && <PersonaScreen onNavigate={setScreen} />}
       {screen === "perfil" && <PerfilScreen session={session} onNavigate={setScreen} />}
@@ -141,6 +159,7 @@ export default function MainApp({ session }) {
           sociedad={selectedSociedad}
           onNavigate={setScreen}
           onUpdated={() => setScreen("sociedades-list")}
+          onOpenDocumentos={handleOpenDocumentos("sociedad", "sociedad-detail")}
         />
       )}
 
@@ -159,6 +178,7 @@ export default function MainApp({ session }) {
           backTo={propiedadBackTo}
           onNavigate={setScreen}
           onSelectTipo={handleSelectTipo}
+          onOpenDocumentos={handleOpenDocumentos("propiedad", "gastos-basicos")}
         />
       )}
       {screen === "servicio-historial" && selectedPropiedad && selectedTipoServicio && (
@@ -253,6 +273,7 @@ export default function MainApp({ session }) {
           trabajador={selectedTrabajador}
           backTo={trabajadorBackTo}
           onNavigate={setScreen}
+          onOpenDocumentos={handleOpenDocumentos("trabajador", "trabajador-detail")}
         />
       )}
       {screen === "inversiones" && (

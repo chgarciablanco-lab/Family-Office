@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight, ChevronDown, Home as HomeIcon } from "lucide-react";
+import { ArrowLeft, ChevronRight, ChevronDown, Home as HomeIcon, Folder } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { tiposServicio } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, estadoPillClasses } from "../lib/format";
 import { esMultiMedidor, medidoresDe, valorTotal, vencimientoProximo, estadoResumen } from "../lib/medidores";
 
-export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onSelectTipo }) {
+export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onSelectTipo, onOpenDocumentos }) {
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandido, setExpandido] = useState(false);
@@ -78,6 +78,17 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
         <div className="flex items-center justify-between mt-1">
           <p className="font-bold text-slate-900 text-base">Gastos de {propiedad.nombre}</p>
         </div>
+
+        <button
+          onClick={() => onOpenDocumentos(propiedad)}
+          className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+        >
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+            <Folder className="w-5 h-5 text-slate-500" strokeWidth={1.8} />
+          </div>
+          <p className="flex-1 font-bold text-slate-900 text-sm">Documentos</p>
+          <ChevronRight className="w-5 h-5 text-slate-300" />
+        </button>
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 

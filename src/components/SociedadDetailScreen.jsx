@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   ArrowLeft, MoreHorizontal, Building2, Calendar, Users, FileText,
-  Home as HomeIcon, Key, ClipboardList, ChevronRight, Info, Award,
+  Home as HomeIcon, Key, ClipboardList, ChevronRight, Info, Award, Folder,
 } from "lucide-react";
 import SociedadForm from "./SociedadForm";
 import BottomNav from "./BottomNav";
@@ -14,9 +14,10 @@ const secciones = [
   { key: "impuestos-sociedad", title: "Impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
   { key: "patente-sociedad", title: "Patente", subtitle: "Patente municipal, 2 pagos\nal año.", icon: Award, bg: "bg-teal-100", fg: "text-teal-600" },
   { key: "otros-gastos-sociedad", title: "Otros gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
+  { key: "documentos-sociedad", title: "Documentos", subtitle: "Escrituras, estatutos, contratos\ny comprobantes.", icon: Folder, bg: "bg-slate-100", fg: "text-slate-500" },
 ];
 
-export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated }) {
+export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated, onOpenDocumentos }) {
   const [showForm, setShowForm] = useState(false);
   const c = colorClasses[sociedad.color_tag] || colorClasses.violet;
   const p = estadoSociedadPillClasses(sociedad.estado);
@@ -79,7 +80,7 @@ export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated }
         {secciones.map((sec) => (
           <button
             key={sec.key}
-            onClick={() => onNavigate(sec.key)}
+            onClick={() => (sec.key === "documentos-sociedad" ? onOpenDocumentos(sociedad) : onNavigate(sec.key))}
             className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
           >
             <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${sec.bg}`}>

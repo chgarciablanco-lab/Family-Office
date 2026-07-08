@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Screen from "./Screen";
 import HomeScreen from "./HomeScreen";
 import PersonaScreen from "./PersonaScreen";
@@ -18,18 +18,42 @@ import ArriendoDetailScreen from "./ArriendoDetailScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
+const NAV_STORAGE_KEY = "familyOfficeNavState";
+
+function loadNavState() {
+  try {
+    return JSON.parse(sessionStorage.getItem(NAV_STORAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
 export default function MainApp({ session }) {
-  const [screen, setScreen] = useState("home");
-  const [selectedSociedad, setSelectedSociedad] = useState(null);
-  const [selectedPropiedad, setSelectedPropiedad] = useState(null);
-  const [propiedadBackTo, setPropiedadBackTo] = useState("propiedades");
-  const [selectedTipoServicio, setSelectedTipoServicio] = useState(null);
-  const [selectedTrabajador, setSelectedTrabajador] = useState(null);
-  const [trabajadorBackTo, setTrabajadorBackTo] = useState("trabajadores-persona");
-  const [selectedArriendo, setSelectedArriendo] = useState(null);
-  const [arriendoBackTo, setArriendoBackTo] = useState("arriendos-persona");
-  const [selectedAuto, setSelectedAuto] = useState(null);
-  const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(null);
+  const initialNav = loadNavState();
+  const [screen, setScreen] = useState(initialNav.screen || "home");
+  const [selectedSociedad, setSelectedSociedad] = useState(initialNav.selectedSociedad || null);
+  const [selectedPropiedad, setSelectedPropiedad] = useState(initialNav.selectedPropiedad || null);
+  const [propiedadBackTo, setPropiedadBackTo] = useState(initialNav.propiedadBackTo || "propiedades");
+  const [selectedTipoServicio, setSelectedTipoServicio] = useState(initialNav.selectedTipoServicio || null);
+  const [selectedTrabajador, setSelectedTrabajador] = useState(initialNav.selectedTrabajador || null);
+  const [trabajadorBackTo, setTrabajadorBackTo] = useState(initialNav.trabajadorBackTo || "trabajadores-persona");
+  const [selectedArriendo, setSelectedArriendo] = useState(initialNav.selectedArriendo || null);
+  const [arriendoBackTo, setArriendoBackTo] = useState(initialNav.arriendoBackTo || "arriendos-persona");
+  const [selectedAuto, setSelectedAuto] = useState(initialNav.selectedAuto || null);
+  const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(initialNav.selectedTramiteAuto || null);
+
+  useEffect(() => {
+    sessionStorage.setItem(
+      NAV_STORAGE_KEY,
+      JSON.stringify({
+        screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
+        selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
+      })
+    );
+  }, [
+    screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
+    selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
+  ]);
 
   const handleSelectSociedad = (s) => {
     setSelectedSociedad(s);

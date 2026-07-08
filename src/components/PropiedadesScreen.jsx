@@ -12,6 +12,7 @@ export default function PropiedadesScreen({
   sociedadId = null, entidadNombre = "tus propiedades", backTo = "persona", onNavigate, onSelect,
 }) {
   const [propiedades, setPropiedades] = useState([]);
+  const [arrendadas, setArrendadas] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -23,6 +24,19 @@ export default function PropiedadesScreen({
     query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
     const { data, error } = await query;
     if (!error) setPropiedades(data || []);
+
+    if (sociedadId) {
+      const { data: arriendosData } = await supabase
+        .from("arriendos")
+        .select("propiedad_id")
+        .eq("sociedad_id", sociedadId)
+        .eq("relacion", "propia")
+        .not("propiedad_id", "is", null);
+      setArrendadas(new Set((arriendosData || []).map((a) => a.propiedad_id)));
+    } else {
+      setArrendadas(new Set());
+    }
+
     setLoading(false);
   };
 
@@ -107,7 +121,14 @@ export default function PropiedadesScreen({
                   <HomeIcon className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-900 text-base leading-tight">{p.nombre}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold text-slate-900 text-base leading-tight">{p.nombre}</p>
+                    {arrendadas.has(p.id) && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                        Arrendada
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-slate-500 mt-0.5">{p.tipo} · {p.comuna}</p>
                   <p className="text-xs text-slate-400">{p.direccion}</p>
                 </div>

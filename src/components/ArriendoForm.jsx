@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
@@ -12,6 +12,7 @@ const relaciones = [
 
 function emptyForm(arriendo) {
   return {
+    propiedad_id: arriendo?.propiedad_id || "",
     nombre: arriendo?.nombre || "",
     tipo: arriendo?.tipo || "",
     ubicacion: arriendo?.ubicacion || "",
@@ -26,10 +27,31 @@ function emptyForm(arriendo) {
 
 export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(arriendo));
+  const [propiedades, setPropiedades] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isEditing = Boolean(arriendo);
+
+  useEffect(() => {
+    if (form.relacion !== "propia") return;
+    supabase
+      .from("propiedades")
+      .select("id, nombre, direccion")
+      .eq("sociedad_id", sociedadId)
+      .order("nombre")
+      .then(({ data }) => setPropiedades(data || []));
+  }, [form.relacion, sociedadId]);
+
+  const seleccionarPropiedad = (propiedadId) => {
+    const p = propiedades.find((x) => x.id === propiedadId);
+    setForm({
+      ...form,
+      propiedad_id: propiedadId,
+      nombre: p ? p.nombre : form.nombre,
+      ubicacion: p ? p.direccion : form.ubicacion,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,6 +60,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
 
     const payload = {
       ...form,
+      propiedad_id: form.relacion === "propia" ? form.propiedad_id || null : null,
       sociedad_id: sociedadId,
       monto: form.monto ? parseFloat(form.monto) : null,
       vencimiento: form.vencimiento || null,
@@ -95,6 +118,24 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
               ))}
             </select>
           </Field>
+
+          {form.relacion === "propia" && (
+            <Field label="Propiedad">
+              <select
+                className={selectClass}
+                value={form.propiedad_id}
+                onChange={(e) => seleccionarPropiedad(e.target.value)}
+              >
+                <option value="">Sin vincular a una propiedad</option>
+                {propiedades.map((p) => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-400 mt-1">
+                Al vincularla, esa propiedad deja de mostrar Gastos básicos porque los paga el arrendatario.
+              </p>
+            </Field>
+          )}
 
           <Field label="Nombre de la propiedad">
             <input

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronRight, ChevronDown, Home as HomeIcon } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { tiposServicio } from "../lib/servicioTipos";
@@ -10,9 +10,26 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandido, setExpandido] = useState(false);
+  const [arriendo, setArriendo] = useState(undefined);
 
   const fetchServicios = async () => {
     setLoading(true);
+
+    const { data: arriendoData } = await supabase
+      .from("arriendos")
+      .select("id, contraparte_nombre")
+      .eq("propiedad_id", propiedad.id)
+      .eq("relacion", "propia")
+      .limit(1)
+      .maybeSingle();
+
+    if (arriendoData) {
+      setArriendo(arriendoData);
+      setLoading(false);
+      return;
+    }
+    setArriendo(null);
+
     const { data, error } = await supabase
       .from("servicios")
       .select("*")
@@ -61,7 +78,21 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-        {!loading && pendientes.length > 0 && (
+        {!loading && arriendo && (
+          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
+              <HomeIcon className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 text-base">Propiedad arrendada</p>
+              <p className="text-sm text-slate-500 mt-1">
+                Esta propiedad está arrendada{arriendo.contraparte_nombre ? ` a ${arriendo.contraparte_nombre}` : ""}, por lo que los gastos básicos los paga el arrendatario.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!loading && !arriendo && pendientes.length > 0 && (
           <div className="bg-red-50 rounded-2xl px-4 py-4">
             <button
               onClick={() => setExpandido((v) => !v)}
@@ -103,7 +134,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
           </div>
         )}
 
-        {!loading && tiposServicio.map(({ tipo, icon: Icon, bg, fg }) => {
+        {!loading && !arriendo && tiposServicio.map(({ tipo, icon: Icon, bg, fg }) => {
           const ultimo = ultimoPorTipo(tipo);
           const estado = ultimo ? estadoResumen(ultimo) : null;
           const p = estado ? estadoPillClasses(estado) : null;

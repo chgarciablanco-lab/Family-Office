@@ -177,6 +177,18 @@ export async function fetchEventosMes(anio, mes) {
   return (data || []).map((e) => ({ ...e, dia: diaDe(e.fecha) }));
 }
 
+export async function fetchEventosProximos() {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from("eventos_calendario")
+    .select("*")
+    .gte("fecha", hoy)
+    .order("fecha", { ascending: true })
+    .order("hora", { ascending: true, nullsFirst: false });
+  if (error) return [];
+  return data || [];
+}
+
 export async function crearEvento({ titulo, fecha, hora, descripcion }) {
   const { error } = await supabase.from("eventos_calendario").insert({
     titulo, fecha, hora: hora || null, descripcion: descripcion || null,

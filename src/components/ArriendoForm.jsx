@@ -35,12 +35,9 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
 
   useEffect(() => {
     if (form.relacion !== "propia") return;
-    supabase
-      .from("propiedades")
-      .select("id, nombre, direccion")
-      .eq("sociedad_id", sociedadId)
-      .order("nombre")
-      .then(({ data }) => setPropiedades(data || []));
+    let query = supabase.from("propiedades").select("id, nombre, direccion").order("nombre");
+    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    query.then(({ data }) => setPropiedades(data || []));
   }, [form.relacion, sociedadId]);
 
   const seleccionarPropiedad = (propiedadId) => {

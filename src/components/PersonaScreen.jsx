@@ -1,7 +1,7 @@
 import React from "react";
 import {
   ArrowLeft, MoreHorizontal, Home as HomeIcon, Users, Car,
-  TrendingUp, ClipboardList, Info,
+  TrendingUp, ClipboardList, Info, Key,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 
@@ -10,6 +10,11 @@ const secciones = [
     key: "propiedades", title: "Propiedades",
     subtitle: "Controla tus propiedades\ny obligaciones.",
     icon: HomeIcon, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
+  },
+  {
+    key: "arriendos-persona", title: "Arriendos",
+    subtitle: "Administra contratos de arriendo\ny pagos asociados.",
+    icon: Key, bg: "bg-orange-100", fg: "text-orange-500", disponible: true,
   },
   {
     key: "trabajadores-persona", title: "Trabajadores",

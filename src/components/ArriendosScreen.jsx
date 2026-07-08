@@ -52,7 +52,7 @@ function ArriendoRow({ item, onEdit }) {
   );
 }
 
-export default function ArriendosScreen({ sociedad, backTo, onNavigate }) {
+export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tus arriendos", backTo, onNavigate }) {
   const [arriendos, setArriendos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -61,18 +61,16 @@ export default function ArriendosScreen({ sociedad, backTo, onNavigate }) {
 
   const fetchArriendos = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("arriendos")
-      .select("*")
-      .eq("sociedad_id", sociedad.id)
-      .order("nombre");
+    let query = supabase.from("arriendos").select("*").order("nombre");
+    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    const { data, error } = await query;
     if (!error) setArriendos(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchArriendos();
-  }, [sociedad.id]);
+  }, [sociedadId]);
 
   const filtrados = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -127,7 +125,7 @@ export default function ArriendosScreen({ sociedad, backTo, onNavigate }) {
         </div>
 
         <div className="flex items-center justify-between mt-1">
-          <p className="font-bold text-slate-900 text-base">Arriendos de {sociedad.nombre}</p>
+          <p className="font-bold text-slate-900 text-base">Arriendos de {entidadNombre}</p>
           <p className="text-sm text-slate-500">{filtrados.length} arriendos</p>
         </div>
 
@@ -172,7 +170,7 @@ export default function ArriendosScreen({ sociedad, backTo, onNavigate }) {
       {showForm && (
         <ArriendoForm
           arriendo={editing}
-          sociedadId={sociedad.id}
+          sociedadId={sociedadId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

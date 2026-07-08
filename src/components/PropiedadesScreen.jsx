@@ -25,17 +25,14 @@ export default function PropiedadesScreen({
     const { data, error } = await query;
     if (!error) setPropiedades(data || []);
 
-    if (sociedadId) {
-      const { data: arriendosData } = await supabase
-        .from("arriendos")
-        .select("propiedad_id")
-        .eq("sociedad_id", sociedadId)
-        .eq("relacion", "propia")
-        .not("propiedad_id", "is", null);
-      setArrendadas(new Set((arriendosData || []).map((a) => a.propiedad_id)));
-    } else {
-      setArrendadas(new Set());
-    }
+    let arriendosQuery = supabase
+      .from("arriendos")
+      .select("propiedad_id")
+      .eq("relacion", "propia")
+      .not("propiedad_id", "is", null);
+    arriendosQuery = sociedadId ? arriendosQuery.eq("sociedad_id", sociedadId) : arriendosQuery.is("sociedad_id", null);
+    const { data: arriendosData } = await arriendosQuery;
+    setArrendadas(new Set((arriendosData || []).map((a) => a.propiedad_id)));
 
     setLoading(false);
   };

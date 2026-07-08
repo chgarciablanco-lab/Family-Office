@@ -32,9 +32,8 @@ export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTra
             <Car className={`w-7 h-7 ${c.fg}`} strokeWidth={1.8} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-900 text-lg leading-tight">{auto.marca} {auto.modelo}</p>
-            <p className="text-sm text-slate-500 mt-0.5">{auto.patente} · {auto.tipo}</p>
-            <p className="text-sm text-slate-500">Año {auto.anio}</p>
+            <p className="font-bold text-slate-900 text-lg leading-tight">{auto.patente}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{auto.tipo} · Año {auto.anio}</p>
           </div>
         </div>
 

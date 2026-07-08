@@ -20,7 +20,7 @@ export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTra
         <button onClick={() => onNavigate(backTo)} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">{auto.modelo}</h1>
+        <h1 className="text-xl font-bold text-slate-900">{auto.marca} {auto.modelo}</h1>
         <button onClick={() => setShowForm(true)} aria-label="Editar auto">
           <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
         </button>
@@ -32,9 +32,9 @@ export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTra
             <Car className={`w-7 h-7 ${c.fg}`} strokeWidth={1.8} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-900 text-lg leading-tight">{auto.patente}</p>
-            <p className="text-sm text-slate-500 mt-0.5">{auto.tipo}</p>
-            <p className="text-sm text-slate-500">{auto.marca} {auto.modelo} · Año {auto.anio}</p>
+            <p className="font-bold text-slate-900 text-lg leading-tight">{auto.marca} {auto.modelo}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{auto.patente} · {auto.tipo}</p>
+            <p className="text-sm text-slate-500">Año {auto.anio}</p>
           </div>
         </div>
 

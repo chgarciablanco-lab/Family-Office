@@ -65,8 +65,8 @@ export default function AutoTramiteScreen({ auto, tipo, backTo, onNavigate }) {
 
       <div className="px-5 flex flex-col gap-3 pb-4">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
-          <p className="font-bold text-slate-900 text-base">{auto.patente}</p>
-          <p className="text-sm text-slate-500 mt-0.5">{auto.marca} {auto.modelo} · {config.titulo}</p>
+          <p className="font-bold text-slate-900 text-base">{auto.marca} {auto.modelo}</p>
+          <p className="text-sm text-slate-500 mt-0.5">{auto.patente} · {config.titulo}</p>
         </div>
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}

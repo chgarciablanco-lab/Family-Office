@@ -11,6 +11,7 @@ export const MODULOS = [
   { key: "otros_gastos", label: "Otros gastos" },
   { key: "documentos", label: "Documentos" },
   { key: "calendario_tareas", label: "Calendario y tareas" },
+  { key: "notas", label: "Notas" },
 ];
 
 export async function fetchProfiles() {

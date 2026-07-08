@@ -22,6 +22,7 @@ import DocumentosScreen from "./DocumentosScreen";
 import CalendarioScreen from "./CalendarioScreen";
 import TareasScreen from "./TareasScreen";
 import UsuariosScreen from "./UsuariosScreen";
+import NotasScreen from "./NotasScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
@@ -154,6 +155,9 @@ function MainAppInner({ session }) {
       )}
       {screen === "usuarios" && (
         <UsuariosScreen backTo="home" onNavigate={setScreen} />
+      )}
+      {screen === "notas" && (
+        <NotasScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

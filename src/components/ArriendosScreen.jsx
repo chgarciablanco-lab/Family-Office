@@ -21,7 +21,14 @@ function ArriendoRow({ item, onEdit }) {
         <Icon className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-slate-900 text-base leading-tight">{item.nombre}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-bold text-slate-900 text-base leading-tight">{item.nombre}</p>
+          {item.relacion === "propia" && !item.propiedad_id && (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              Sin vincular
+            </span>
+          )}
+        </div>
         <p className="text-sm text-slate-500 mt-0.5">{item.tipo} · {item.ubicacion}</p>
 
         <div className="flex flex-wrap items-start gap-x-4 gap-y-1.5 mt-2">
@@ -154,7 +161,7 @@ export default function ArriendosScreen({ sociedad, backTo, onNavigate }) {
           <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
             <p className="font-bold text-slate-900 text-sm">Mantén tus arriendos al día</p>
-            <p className="text-sm text-slate-500 mt-0.5">Toca un arriendo para editar sus datos, o usa el botón + para agregar uno nuevo.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca un arriendo para editar sus datos, o usa el botón + para agregar uno nuevo. Si es una propiedad propia, vincúlala a la propiedad real para que deje de mostrar Gastos básicos.</p>
           </div>
         </div>
       </div>

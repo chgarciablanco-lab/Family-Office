@@ -55,8 +55,14 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     setError("");
+
+    if (form.relacion === "propia" && !form.propiedad_id) {
+      setError("Selecciona a qué propiedad corresponde este arriendo.");
+      return;
+    }
+
+    setSaving(true);
 
     const payload = {
       ...form,
@@ -126,13 +132,15 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
                 value={form.propiedad_id}
                 onChange={(e) => seleccionarPropiedad(e.target.value)}
               >
-                <option value="">Sin vincular a una propiedad</option>
+                <option value="" disabled>Selecciona una propiedad</option>
                 {propiedades.map((p) => (
                   <option key={p.id} value={p.id}>{p.nombre}</option>
                 ))}
               </select>
               <p className="text-xs text-slate-400 mt-1">
-                Al vincularla, esa propiedad deja de mostrar Gastos básicos porque los paga el arrendatario.
+                {form.propiedad_id
+                  ? "Vinculada: esta propiedad ya no muestra Gastos básicos porque los paga el arrendatario."
+                  : "Sin propiedad seleccionada, Gastos básicos seguirá visible para esa propiedad."}
               </p>
             </Field>
           )}
@@ -141,7 +149,8 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
             <input
               autoComplete="off"
               required
-              className={inputClass}
+              disabled={form.relacion === "propia" && Boolean(form.propiedad_id)}
+              className={`${inputClass} disabled:bg-slate-50 disabled:text-slate-400`}
               value={form.nombre}
               onChange={(e) => setForm({ ...form, nombre: e.target.value })}
               placeholder="Oficina Providencia 1201"
@@ -162,7 +171,8 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
             <Field label="Ubicación">
               <input
               autoComplete="off"
-                className={inputClass}
+                disabled={form.relacion === "propia" && Boolean(form.propiedad_id)}
+                className={`${inputClass} disabled:bg-slate-50 disabled:text-slate-400`}
                 value={form.ubicacion}
                 onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
                 placeholder="Providencia, Santiago"

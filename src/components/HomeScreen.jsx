@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, ClipboardList } from "lucide-react";
+import { Building2, User, ChevronRight, ClipboardList, ShieldCheck } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
+import { usePermisos } from "../context/PermisosContext";
+
+const MODULOS_PERSONA = ["propiedades", "autos", "trabajadores", "impuestos", "arriendos", "inversiones", "otros_gastos"];
 
 const menuItems = [
   {
@@ -29,9 +32,28 @@ const menuItems = [
     bg: "bg-emerald-100",
     fg: "text-emerald-600",
   },
+  {
+    key: "usuarios",
+    title: "Usuarios",
+    subtitle: "Crea usuarios y decide qué\npuede ver y editar cada uno",
+    icon: ShieldCheck,
+    bg: "bg-amber-100",
+    fg: "text-amber-600",
+    soloAdmin: true,
+  },
 ];
 
 export default function HomeScreen({ session, onNavigate }) {
+  const { esAdmin, puedeVer } = usePermisos();
+
+  const itemsVisibles = menuItems.filter((item) => {
+    if (item.soloAdmin) return esAdmin;
+    if (item.key === "sociedades") return puedeVer("sociedades");
+    if (item.key === "persona") return MODULOS_PERSONA.some((m) => puedeVer(m));
+    if (item.key === "tareas") return puedeVer("calendario_tareas");
+    return true;
+  });
+
   const fecha = new Date().toLocaleDateString("es-CL", {
     weekday: "long",
     day: "numeric",
@@ -125,7 +147,7 @@ export default function HomeScreen({ session, onNavigate }) {
       )}
 
       <div className="px-5 flex flex-col gap-3 pb-4">
-        {menuItems.map((item) => (
+        {itemsVisibles.map((item) => (
           <button
             key={item.key}
             onClick={() => onNavigate(item.key)}

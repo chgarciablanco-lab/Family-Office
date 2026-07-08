@@ -4,46 +4,50 @@ import {
   TrendingUp, ClipboardList, Info, Key, FileText,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
+import { usePermisos } from "../context/PermisosContext";
 
 const secciones = [
   {
-    key: "propiedades", title: "Propiedades",
+    key: "propiedades", title: "Propiedades", modulo: "propiedades",
     subtitle: "Controla tus propiedades\ny obligaciones.",
     icon: HomeIcon, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
   },
   {
-    key: "arriendos-persona", title: "Arriendos",
+    key: "arriendos-persona", title: "Arriendos", modulo: "arriendos",
     subtitle: "Administra contratos de arriendo\ny pagos asociados.",
     icon: Key, bg: "bg-orange-100", fg: "text-orange-500", disponible: true,
   },
   {
-    key: "trabajadores-persona", title: "Trabajadores",
+    key: "trabajadores-persona", title: "Trabajadores", modulo: "trabajadores",
     subtitle: "Gestiona tu equipo\ny documentación.",
     icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600", disponible: true,
   },
   {
-    key: "impuestos-persona", title: "Impuestos",
+    key: "impuestos-persona", title: "Impuestos", modulo: "impuestos",
     subtitle: "Revisa y gestiona tus impuestos\ny declaraciones.",
     icon: FileText, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
   },
   {
-    key: "autos", title: "Autos",
+    key: "autos", title: "Autos", modulo: "autos",
     subtitle: "Administra tus vehículos\ny vencimientos.",
     icon: Car, bg: "bg-emerald-100", fg: "text-emerald-600", disponible: true,
   },
   {
-    key: "inversiones", title: "Inversiones",
+    key: "inversiones", title: "Inversiones", modulo: "inversiones",
     subtitle: "Controla tus inversiones\ny plazos.",
     icon: TrendingUp, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
   },
   {
-    key: "otros-gastos-persona", title: "Otros gastos",
+    key: "otros-gastos-persona", title: "Otros gastos", modulo: "otros_gastos",
     subtitle: "Registra y controla tus\ngastos diarios.",
     icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500", disponible: true,
   },
 ];
 
 export default function PersonaScreen({ onNavigate }) {
+  const { puedeVer } = usePermisos();
+  const seccionesVisibles = secciones.filter((sec) => puedeVer(sec.modulo));
+
   return (
     <>
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
@@ -57,7 +61,7 @@ export default function PersonaScreen({ onNavigate }) {
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
-        {secciones.map((sec) => (
+        {seccionesVisibles.map((sec) => (
           <button
             key={sec.key}
             onClick={() => sec.disponible && onNavigate(sec.key)}

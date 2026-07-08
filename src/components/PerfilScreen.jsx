@@ -2,8 +2,10 @@ import React from "react";
 import { ArrowLeft, User, LogOut } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
+import { usePermisos } from "../context/PermisosContext";
 
 export default function PerfilScreen({ session, onNavigate }) {
+  const { esAdmin } = usePermisos();
   return (
     <>
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
@@ -21,7 +23,7 @@ export default function PerfilScreen({ session, onNavigate }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-slate-900 text-base leading-tight">{session.user.email}</p>
-            <p className="text-sm text-slate-500 mt-0.5">Cuenta familiar</p>
+            <p className="text-sm text-slate-500 mt-0.5">{esAdmin ? "Administrador" : "Ejecutivo"}</p>
           </div>
         </div>
 

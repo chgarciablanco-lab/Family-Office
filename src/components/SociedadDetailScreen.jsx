@@ -6,21 +6,25 @@ import {
 import SociedadForm from "./SociedadForm";
 import BottomNav from "./BottomNav";
 import { colorClasses, estadoSociedadPillClasses, formatFechaCorta } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 const secciones = [
-  { key: "propiedades-sociedad", title: "Propiedades", subtitle: "Administra las propiedades y sus\ngastos básicos.", icon: HomeIcon, bg: "bg-blue-100", fg: "text-blue-600" },
-  { key: "arriendos-sociedad", title: "Arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: Key, bg: "bg-orange-100", fg: "text-orange-500" },
-  { key: "trabajadores-sociedad", title: "Trabajadores", subtitle: "Gestiona la información y contratos\nde los trabajadores.", icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600" },
-  { key: "impuestos-sociedad", title: "Impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
-  { key: "patente-sociedad", title: "Patente", subtitle: "Patente municipal, 2 pagos\nal año.", icon: Award, bg: "bg-teal-100", fg: "text-teal-600" },
-  { key: "otros-gastos-sociedad", title: "Otros gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
-  { key: "documentos-sociedad", title: "Documentos", subtitle: "Escrituras, estatutos, contratos\ny comprobantes.", icon: Folder, bg: "bg-slate-100", fg: "text-slate-500" },
+  { key: "propiedades-sociedad", title: "Propiedades", modulo: "propiedades", subtitle: "Administra las propiedades y sus\ngastos básicos.", icon: HomeIcon, bg: "bg-blue-100", fg: "text-blue-600" },
+  { key: "arriendos-sociedad", title: "Arriendos", modulo: "arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: Key, bg: "bg-orange-100", fg: "text-orange-500" },
+  { key: "trabajadores-sociedad", title: "Trabajadores", modulo: "trabajadores", subtitle: "Gestiona la información y contratos\nde los trabajadores.", icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600" },
+  { key: "impuestos-sociedad", title: "Impuestos", modulo: "impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
+  { key: "patente-sociedad", title: "Patente", modulo: "sociedades", subtitle: "Patente municipal, 2 pagos\nal año.", icon: Award, bg: "bg-teal-100", fg: "text-teal-600" },
+  { key: "otros-gastos-sociedad", title: "Otros gastos", modulo: "otros_gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
+  { key: "documentos-sociedad", title: "Documentos", modulo: "documentos", subtitle: "Escrituras, estatutos, contratos\ny comprobantes.", icon: Folder, bg: "bg-slate-100", fg: "text-slate-500" },
 ];
 
 export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated, onOpenDocumentos }) {
+  const { puedeVer, puedeEditar } = usePermisos();
   const [showForm, setShowForm] = useState(false);
   const c = colorClasses[sociedad.color_tag] || colorClasses.violet;
   const p = estadoSociedadPillClasses(sociedad.estado);
+  const seccionesVisibles = secciones.filter((sec) => puedeVer(sec.modulo));
+  const puedeEditarSociedad = puedeEditar("sociedades");
 
   const handleSaved = () => {
     setShowForm(false);
@@ -34,14 +38,18 @@ export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated, 
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">{sociedad.nombre}</h1>
-        <button onClick={() => setShowForm(true)} aria-label="Editar sociedad">
-          <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
-        </button>
+        {puedeEditarSociedad ? (
+          <button onClick={() => setShowForm(true)} aria-label="Editar sociedad">
+            <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
+          </button>
+        ) : (
+          <div className="w-6" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => puedeEditarSociedad && setShowForm(true)}
           className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 pt-4 pb-3 text-left"
         >
           <div className="flex items-center gap-4">
@@ -77,7 +85,7 @@ export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated, 
           </div>
         </button>
 
-        {secciones.map((sec) => (
+        {seccionesVisibles.map((sec) => (
           <button
             key={sec.key}
             onClick={() => (sec.key === "documentos-sociedad" ? onOpenDocumentos(sociedad) : onNavigate(sec.key))}

@@ -21,6 +21,8 @@ import NotificacionesScreen from "./NotificacionesScreen";
 import DocumentosScreen from "./DocumentosScreen";
 import CalendarioScreen from "./CalendarioScreen";
 import TareasScreen from "./TareasScreen";
+import UsuariosScreen from "./UsuariosScreen";
+import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 import { fetchPendientes } from "../lib/pendientes";
@@ -36,6 +38,15 @@ function loadNavState() {
 }
 
 export default function MainApp({ session }) {
+  return (
+    <PermisosProvider session={session}>
+      <MainAppInner session={session} />
+    </PermisosProvider>
+  );
+}
+
+function MainAppInner({ session }) {
+  const { loading: cargandoPermisos } = usePermisos();
   const initialNav = loadNavState();
   const [screen, setScreen] = useState(initialNav.screen || "home");
   const [selectedSociedad, setSelectedSociedad] = useState(initialNav.selectedSociedad || null);
@@ -121,6 +132,14 @@ export default function MainApp({ session }) {
     setScreen("documentos");
   };
 
+  if (cargandoPermisos) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-sm text-slate-400">Cargando...</p>
+      </div>
+    );
+  }
+
   return (
     <Screen onNavigate={setScreen} notifCount={notifCount} ocultarCampana={screen === "notificaciones"}>
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
@@ -132,6 +151,9 @@ export default function MainApp({ session }) {
       )}
       {screen === "tareas" && (
         <TareasScreen backTo="home" onNavigate={setScreen} />
+      )}
+      {screen === "usuarios" && (
+        <UsuariosScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

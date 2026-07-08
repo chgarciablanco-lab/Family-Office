@@ -4,8 +4,11 @@ import { supabase } from "../lib/supabaseClient";
 import SociedadForm from "./SociedadForm";
 import BottomNav from "./BottomNav";
 import { colorClasses, estadoSociedadPillClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 export default function SociedadesListScreen({ onNavigate, onSelect }) {
+  const { puedeEditar } = usePermisos();
+  const puedeAgregar = puedeEditar("sociedades");
   const [sociedades, setSociedades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -40,9 +43,13 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Sociedades</h1>
-        <button onClick={() => setShowForm(true)} aria-label="Agregar sociedad">
-          <Plus className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
-        </button>
+        {puedeAgregar ? (
+          <button onClick={() => setShowForm(true)} aria-label="Agregar sociedad">
+            <Plus className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
+          </button>
+        ) : (
+          <div className="w-6" />
+        )}
       </div>
 
       <div className="px-5 flex items-center gap-2 pb-4">
@@ -69,14 +76,18 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
             <Building2 className="w-8 h-8 text-slate-300" strokeWidth={1.6} />
             <div>
               <p className="text-sm font-semibold text-slate-700">Aún no tienes sociedades</p>
-              <p className="text-sm text-slate-500 mt-0.5">Toca el botón + arriba para agregar la primera.</p>
+              <p className="text-sm text-slate-500 mt-0.5">
+                {puedeAgregar ? "Toca el botón + arriba para agregar la primera." : "Aún no hay sociedades registradas."}
+              </p>
             </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="mt-1 bg-violet-600 text-white font-semibold text-sm rounded-xl px-4 py-2.5"
-            >
-              Agregar sociedad
-            </button>
+            {puedeAgregar && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="mt-1 bg-violet-600 text-white font-semibold text-sm rounded-xl px-4 py-2.5"
+              >
+                Agregar sociedad
+              </button>
+            )}
           </div>
         )}
 

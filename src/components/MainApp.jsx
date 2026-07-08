@@ -78,6 +78,10 @@ function MainAppInner({ session }) {
   }, [screen]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen]);
+
+  useEffect(() => {
     sessionStorage.setItem(
       NAV_STORAGE_KEY,
       JSON.stringify({

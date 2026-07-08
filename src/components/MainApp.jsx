@@ -20,6 +20,7 @@ import PatenteSociedadScreen from "./PatenteSociedadScreen";
 import NotificacionesScreen from "./NotificacionesScreen";
 import DocumentosScreen from "./DocumentosScreen";
 import CalendarioScreen from "./CalendarioScreen";
+import TareasScreen from "./TareasScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 import { fetchPendientes } from "../lib/pendientes";
@@ -128,6 +129,9 @@ export default function MainApp({ session }) {
       )}
       {screen === "calendario" && (
         <CalendarioScreen backTo="home" onNavigate={setScreen} />
+      )}
+      {screen === "tareas" && (
+        <TareasScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

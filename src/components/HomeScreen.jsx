@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight } from "lucide-react";
+import { Building2, User, ChevronRight, ClipboardList } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -20,6 +20,14 @@ const menuItems = [
     icon: User,
     bg: "bg-violet-100",
     fg: "text-violet-600",
+  },
+  {
+    key: "tareas",
+    title: "Tareas",
+    subtitle: "Asigna tareas a otras personas\ny avísales por correo",
+    icon: ClipboardList,
+    bg: "bg-emerald-100",
+    fg: "text-emerald-600",
   },
 ];
 

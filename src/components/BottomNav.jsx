@@ -9,7 +9,7 @@ export default function BottomNav({ variant, onNavigate, notifCount }) {
           <HomeIcon className="w-6 h-6" strokeWidth={2} />
           <span className="text-[11px] font-medium">Inicio</span>
         </button>
-        <button className="flex flex-col items-center gap-0.5 text-slate-400">
+        <button onClick={() => onNavigate("calendario")} className="flex flex-col items-center gap-0.5 text-slate-400">
           <Calendar className="w-6 h-6" strokeWidth={1.8} />
           <span className="text-[11px] font-medium">Calendario</span>
         </button>

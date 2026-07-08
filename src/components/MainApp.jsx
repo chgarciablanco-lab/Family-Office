@@ -19,6 +19,7 @@ import InversionesScreen from "./InversionesScreen";
 import PatenteSociedadScreen from "./PatenteSociedadScreen";
 import NotificacionesScreen from "./NotificacionesScreen";
 import DocumentosScreen from "./DocumentosScreen";
+import CalendarioScreen from "./CalendarioScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
@@ -110,6 +111,9 @@ export default function MainApp({ session }) {
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
       {screen === "notificaciones" && (
         <NotificacionesScreen backTo="home" onNavigate={setScreen} />
+      )}
+      {screen === "calendario" && (
+        <CalendarioScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

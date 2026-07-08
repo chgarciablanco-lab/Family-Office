@@ -14,6 +14,17 @@ const ICONOS_EXTRA = {
   Inversión: { icon: TrendingUp, bg: "bg-violet-100", fg: "text-violet-600" },
 };
 
+// nombre de la columna que guarda el monto en cada tabla
+const CAMPO_MONTO = {
+  servicios: "valor",
+  pagos_trabajador: "liquidacion",
+  impuestos: "total_iva",
+  pagos_arriendo: "monto",
+  pagos_auto: "monto",
+  patentes_sociedad: "monto",
+  inversiones: "monto",
+};
+
 function iconoServicio(tipoServicio) {
   const info = tiposServicio.find((t) => t.tipo === tipoServicio);
   return info
@@ -39,7 +50,7 @@ export async function fetchPendientes() {
 
   const { data: servicios } = await supabase
     .from("servicios")
-    .select("id, tipo_servicio, compania, numero_cliente, estado, medidores, propiedades:propiedad_id(nombre)");
+    .select("id, tipo_servicio, compania, numero_cliente, valor, estado, medidores, propiedades:propiedad_id(nombre)");
 
   (servicios || []).forEach((s) => {
     const grupo = s.propiedades?.nombre ?? "Propiedad";
@@ -48,59 +59,61 @@ export async function fetchPendientes() {
       s.medidores.forEach((m) => {
         agregar(m.estado, {
           tabla: "servicios", id: s.id, medidor: { compania: m.compania ?? null, numero_cliente: m.numero_cliente ?? null },
-          grupo, tipo: s.tipo_servicio, sub: subtitulo(m.compania, m.numero_cliente), estado: m.estado, ...iconInfo,
+          grupo, tipo: s.tipo_servicio, sub: subtitulo(m.compania, m.numero_cliente), estado: m.estado,
+          monto: m.valor ?? null, ...iconInfo,
         });
       });
     } else {
       agregar(s.estado, {
         tabla: "servicios", id: s.id, medidor: null,
-        grupo, tipo: s.tipo_servicio, sub: subtitulo(s.compania, s.numero_cliente), estado: s.estado, ...iconInfo,
+        grupo, tipo: s.tipo_servicio, sub: subtitulo(s.compania, s.numero_cliente), estado: s.estado,
+        monto: s.valor ?? null, ...iconInfo,
       });
     }
   });
 
   const { data: pagosTrabajador } = await supabase
     .from("pagos_trabajador")
-    .select("id, estado, trabajadores:trabajador_id(nombre, cargo)")
+    .select("id, estado, liquidacion, trabajadores:trabajador_id(nombre, cargo)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (pagosTrabajador || []).forEach((p) => {
     agregar(p.estado, {
       tabla: "pagos_trabajador", id: p.id, medidor: null,
       grupo: p.trabajadores?.nombre ?? "Trabajador", tipo: "Sueldo", sub: p.trabajadores?.cargo ?? "-",
-      estado: p.estado, ...ICONOS_EXTRA.Sueldo,
+      estado: p.estado, monto: p.liquidacion ?? null, ...ICONOS_EXTRA.Sueldo,
     });
   });
 
   const { data: impuestos } = await supabase
     .from("impuestos")
-    .select("id, periodo, estado, sociedades:sociedad_id(nombre)")
+    .select("id, periodo, estado, total_iva, sociedades:sociedad_id(nombre)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (impuestos || []).forEach((i) => {
     agregar(i.estado, {
       tabla: "impuestos", id: i.id, medidor: null,
       grupo: i.sociedades?.nombre ?? "Gestión personal", tipo: "F29 · IVA", sub: formatMes(i.periodo),
-      estado: i.estado, ...ICONOS_EXTRA["F29 · IVA"],
+      estado: i.estado, monto: i.total_iva ?? null, ...ICONOS_EXTRA["F29 · IVA"],
     });
   });
 
   const { data: pagosArriendo } = await supabase
     .from("pagos_arriendo")
-    .select("id, estado, arriendos:arriendo_id(nombre, contraparte_nombre)")
+    .select("id, estado, monto, arriendos:arriendo_id(nombre, contraparte_nombre)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (pagosArriendo || []).forEach((p) => {
     agregar(p.estado, {
       tabla: "pagos_arriendo", id: p.id, medidor: null,
       grupo: p.arriendos?.nombre ?? "Arriendo", tipo: "Arriendo", sub: p.arriendos?.contraparte_nombre ?? "-",
-      estado: p.estado, ...ICONOS_EXTRA.Arriendo,
+      estado: p.estado, monto: p.monto ?? null, ...ICONOS_EXTRA.Arriendo,
     });
   });
 
   const { data: pagosAuto } = await supabase
     .from("pagos_auto")
-    .select("id, tipo, estado, autos:auto_id(patente, marca, modelo)")
+    .select("id, tipo, estado, monto, autos:auto_id(patente, marca, modelo)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (pagosAuto || []).forEach((p) => {
@@ -109,46 +122,50 @@ export async function fetchPendientes() {
     const tipoLabel = p.tipo === "seguro" ? "Seguro auto" : p.tipo === "revision" ? "Revisión técnica" : "Patente";
     agregar(p.estado, {
       tabla: "pagos_auto", id: p.id, medidor: null,
-      grupo, tipo: tipoLabel, sub: auto?.patente ?? "-", estado: p.estado, ...ICONOS_EXTRA[tipoLabel],
+      grupo, tipo: tipoLabel, sub: auto?.patente ?? "-", estado: p.estado, monto: p.monto ?? null,
+      ...ICONOS_EXTRA[tipoLabel],
     });
   });
 
   const { data: patentesSociedad } = await supabase
     .from("patentes_sociedad")
-    .select("id, estado, sociedades:sociedad_id(nombre)")
+    .select("id, estado, monto, sociedades:sociedad_id(nombre)")
     .in("estado", ["Por vencer", "Vencido"]);
 
   (patentesSociedad || []).forEach((p) => {
     agregar(p.estado, {
       tabla: "patentes_sociedad", id: p.id, medidor: null,
       grupo: p.sociedades?.nombre ?? "Sociedad", tipo: "Patente municipal", sub: "Patente semestral",
-      estado: p.estado, ...ICONOS_EXTRA["Patente municipal"],
+      estado: p.estado, monto: p.monto ?? null, ...ICONOS_EXTRA["Patente municipal"],
     });
   });
 
   const { data: inversiones } = await supabase
     .from("inversiones")
-    .select("id, nombre, institucion, estado")
+    .select("id, nombre, institucion, monto, estado")
     .in("estado", ["Por vencer", "Vencida"]);
 
   (inversiones || []).forEach((i) => {
     agregar(i.estado, {
       tabla: "inversiones", id: i.id, medidor: null,
-      grupo: i.nombre, tipo: "Inversión", sub: i.institucion ?? "-", estado: i.estado, ...ICONOS_EXTRA.Inversión,
+      grupo: i.nombre, tipo: "Inversión", sub: i.institucion ?? "-", estado: i.estado, monto: i.monto ?? null,
+      ...ICONOS_EXTRA.Inversión,
     });
   });
 
   return { porVencer, vencidos };
 }
 
-export async function marcarComoPagado(item) {
+export async function marcarComoPagado(item, montoPagado) {
   const hoy = new Date().toISOString().slice(0, 10);
   const ahora = new Date().toISOString();
+  const campoMonto = CAMPO_MONTO[item.tabla];
+  const monto = montoPagado !== "" && montoPagado != null ? parseFloat(montoPagado) : null;
 
   if (item.tabla === "inversiones") {
     const { error } = await supabase
       .from("inversiones")
-      .update({ estado: "Liquidada", updated_at: ahora })
+      .update({ estado: "Liquidada", [campoMonto]: monto, updated_at: ahora })
       .eq("id", item.id);
     return error;
   }
@@ -163,7 +180,7 @@ export async function marcarComoPagado(item) {
 
     const medidores = (row.medidores || []).map((m) =>
       (m.compania ?? null) === item.medidor.compania && (m.numero_cliente ?? null) === item.medidor.numero_cliente
-        ? { ...m, fecha_pago: hoy, estado: "Pagado" }
+        ? { ...m, valor: monto, fecha_pago: hoy, estado: "Pagado" }
         : m
     );
 
@@ -177,7 +194,7 @@ export async function marcarComoPagado(item) {
 
   const { error } = await supabase
     .from(item.tabla)
-    .update({ fecha_pago: hoy, estado: "Pagado", updated_at: ahora })
+    .update({ [campoMonto]: monto, fecha_pago: hoy, estado: "Pagado", updated_at: ahora })
     .eq("id", item.id);
   if (!error) await supabase.rpc("actualizar_estados_por_vencer");
   return error;

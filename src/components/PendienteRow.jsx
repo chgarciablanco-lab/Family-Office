@@ -1,20 +1,27 @@
 import React, { useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { estadoPillClasses } from "../lib/format";
 import { marcarComoPagado } from "../lib/pendientes";
-import ConfirmDialog from "./ConfirmDialog";
+import { Field, inputClass } from "./TramiteSection";
 
 export default function PendienteRow({ item, onDone }) {
-  const [confirming, setConfirming] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [monto, setMonto] = useState("");
   const [saving, setSaving] = useState(false);
   const p = estadoPillClasses(item.estado);
   const Icon = item.icon;
 
-  const handleConfirm = async () => {
-    setConfirming(false);
+  const abrirForm = () => {
+    setMonto(item.monto ?? "");
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setSaving(true);
-    await marcarComoPagado(item);
+    await marcarComoPagado(item, monto);
     setSaving(false);
+    setShowForm(false);
     onDone?.();
   };
 
@@ -31,26 +38,48 @@ export default function PendienteRow({ item, onDone }) {
         {item.estado}
       </span>
       <button
-        onClick={() => setConfirming(true)}
-        disabled={saving}
+        onClick={abrirForm}
         aria-label="Marcar como pagado"
-        className="w-7 h-7 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center shrink-0 disabled:opacity-50"
+        className="w-7 h-7 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center shrink-0"
       >
-        {saving ? (
-          <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
-        ) : (
-          <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2.5} />
-        )}
+        <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2.5} />
       </button>
 
-      {confirming && (
-        <ConfirmDialog
-          title="¿Marcar como pagado?"
-          message={`${item.grupo} · ${item.tipo} se marcará como pagado hoy.`}
-          confirmLabel="Marcar pagado"
-          onConfirm={handleConfirm}
-          onCancel={() => setConfirming(false)}
-        />
+      {showForm && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl">
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-900">{item.grupo} · {item.tipo}</h2>
+              <button onClick={() => setShowForm(false)} aria-label="Cerrar">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} autoComplete="off" className="p-5 flex flex-col gap-4">
+              <Field label="Monto pagado ($)">
+                <input
+                  autoComplete="off"
+                  autoFocus
+                  type="number"
+                  className={inputClass}
+                  value={monto}
+                  onChange={(e) => setMonto(e.target.value)}
+                  placeholder="0"
+                />
+              </Field>
+
+              <p className="text-xs text-slate-400 -mt-2">La fecha de pago quedará registrada como hoy.</p>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="w-full bg-violet-600 text-white font-semibold text-sm rounded-xl py-3 disabled:opacity-60"
+              >
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -9,9 +9,9 @@ import { colorClasses, estadoSociedadPillClasses, formatFechaCorta } from "../li
 
 const secciones = [
   { key: "propiedades-sociedad", title: "Propiedades", subtitle: "Administra las propiedades y sus\ngastos básicos.", icon: HomeIcon, bg: "bg-blue-100", fg: "text-blue-600" },
+  { key: "arriendos-sociedad", title: "Arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: Key, bg: "bg-orange-100", fg: "text-orange-500" },
   { key: "trabajadores-sociedad", title: "Trabajadores", subtitle: "Gestiona la información y contratos\nde los trabajadores.", icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600" },
   { key: "impuestos-sociedad", title: "Impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
-  { key: "arriendos-sociedad", title: "Arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: Key, bg: "bg-orange-100", fg: "text-orange-500" },
   { key: "otros-gastos-sociedad", title: "Otros gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
 ];
 

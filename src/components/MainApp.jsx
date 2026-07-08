@@ -110,7 +110,20 @@ export default function MainApp({ session }) {
         />
       )}
       {screen === "impuestos-sociedad" && selectedSociedad && (
-        <ImpuestosScreen sociedad={selectedSociedad} backTo="sociedad-detail" onNavigate={setScreen} />
+        <ImpuestosScreen
+          sociedadId={selectedSociedad.id}
+          entidadNombre={selectedSociedad.nombre}
+          backTo="sociedad-detail"
+          onNavigate={setScreen}
+        />
+      )}
+      {screen === "impuestos-persona" && (
+        <ImpuestosScreen
+          sociedadId={null}
+          entidadNombre="Gestión personal"
+          backTo="persona"
+          onNavigate={setScreen}
+        />
       )}
       {screen === "arriendos-sociedad" && selectedSociedad && (
         <ArriendosScreen

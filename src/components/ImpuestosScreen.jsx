@@ -16,7 +16,7 @@ function generarImpuestosAnio(sociedadId, anio) {
   });
 }
 
-export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
+export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Gestión personal", backTo, onNavigate }) {
   const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -24,16 +24,14 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
 
   const fetchRegistros = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("impuestos")
-      .select("*")
-      .eq("sociedad_id", sociedad.id)
-      .order("periodo", { ascending: true });
+    let query = supabase.from("impuestos").select("*").order("periodo", { ascending: true });
+    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    const { data, error } = await query;
 
     if (!error) {
       if ((data || []).length === 0) {
         const anio = new Date().getFullYear();
-        const filas = generarImpuestosAnio(sociedad.id, anio);
+        const filas = generarImpuestosAnio(sociedadId, anio);
         const { data: creados, error: insertError } = await supabase
           .from("impuestos")
           .insert(filas)
@@ -48,7 +46,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
 
   useEffect(() => {
     fetchRegistros();
-  }, [sociedad.id]);
+  }, [sociedadId]);
 
   const handleSaved = () => {
     setShowForm(false);
@@ -130,7 +128,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
             <FileText className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-900 text-base leading-tight">{sociedad.nombre}</p>
+            <p className="font-bold text-slate-900 text-base leading-tight">{entidadNombre}</p>
             <p className="text-sm text-slate-500 mt-0.5">Formulario 29 · IVA</p>
           </div>
           <div className="text-right shrink-0">
@@ -143,7 +141,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
 
         {!loading && !actual && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
-            <p className="text-sm text-slate-500">Aún no hay registros de impuestos para {sociedad.nombre}.</p>
+            <p className="text-sm text-slate-500">Aún no hay registros de impuestos para {entidadNombre}.</p>
           </div>
         )}
 
@@ -168,7 +166,7 @@ export default function ImpuestosScreen({ sociedad, backTo, onNavigate }) {
       {showForm && (
         <ImpuestoForm
           registro={editing}
-          sociedadId={sociedad.id}
+          sociedadId={sociedadId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

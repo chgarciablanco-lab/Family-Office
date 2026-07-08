@@ -1,7 +1,7 @@
 import React from "react";
 import {
   ArrowLeft, MoreHorizontal, Home as HomeIcon, Users, Car,
-  TrendingUp, ClipboardList, Info, Key,
+  TrendingUp, ClipboardList, Info, Key, FileText,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 
@@ -20,6 +20,11 @@ const secciones = [
     key: "trabajadores-persona", title: "Trabajadores",
     subtitle: "Gestiona tu equipo\ny documentación.",
     icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600", disponible: true,
+  },
+  {
+    key: "impuestos-persona", title: "Impuestos",
+    subtitle: "Revisa y gestiona tus impuestos\ny declaraciones.",
+    icon: FileText, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
   },
   {
     key: "autos", title: "Autos",

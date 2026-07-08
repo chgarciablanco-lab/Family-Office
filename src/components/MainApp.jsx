@@ -23,6 +23,7 @@ import CalendarioScreen from "./CalendarioScreen";
 import TareasScreen from "./TareasScreen";
 import UsuariosScreen from "./UsuariosScreen";
 import NotasScreen from "./NotasScreen";
+import NotaDetailScreen from "./NotaDetailScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
@@ -61,6 +62,7 @@ function MainAppInner({ session }) {
   const [selectedAuto, setSelectedAuto] = useState(initialNav.selectedAuto || null);
   const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(initialNav.selectedTramiteAuto || null);
   const [documentosCtx, setDocumentosCtx] = useState(initialNav.documentosCtx || null);
+  const [selectedNota, setSelectedNota] = useState(initialNav.selectedNota || null);
   const [notifCount, setNotifCount] = useState(0);
 
   const cargarNotifCount = () => {
@@ -81,13 +83,13 @@ function MainAppInner({ session }) {
       JSON.stringify({
         screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
         selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
-        documentosCtx,
+        documentosCtx, selectedNota,
       })
     );
   }, [
     screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
     selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
-    documentosCtx,
+    documentosCtx, selectedNota,
   ]);
 
   const handleSelectSociedad = (s) => {
@@ -128,6 +130,11 @@ function MainAppInner({ session }) {
     setScreen("auto-tramite");
   };
 
+  const handleSelectNota = (n) => {
+    setSelectedNota(n);
+    setScreen("nota-detail");
+  };
+
   const handleOpenDocumentos = (entidadTipo, backTo) => (entidad) => {
     setDocumentosCtx({ entidadTipo, entidadId: entidad.id, entidadNombre: entidad.nombre, backTo });
     setScreen("documentos");
@@ -157,7 +164,10 @@ function MainAppInner({ session }) {
         <UsuariosScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "notas" && (
-        <NotasScreen backTo="home" onNavigate={setScreen} />
+        <NotasScreen backTo="home" onNavigate={setScreen} onSelect={handleSelectNota} />
+      )}
+      {screen === "nota-detail" && selectedNota && (
+        <NotaDetailScreen nota={selectedNota} backTo="notas" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

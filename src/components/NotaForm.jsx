@@ -7,7 +7,7 @@ import ConfirmDialog from "./ConfirmDialog";
 
 const COLORES = ["amber", "violet", "blue", "emerald", "orange", "pink", "teal"];
 
-export default function NotaForm({ nota, onClose, onSaved }) {
+export default function NotaForm({ nota, onClose, onSaved, onDeleted }) {
   const esEdicion = Boolean(nota);
   const [titulo, setTitulo] = useState(nota?.titulo || "");
   const [contenido, setContenido] = useState(nota?.contenido || "");
@@ -34,7 +34,8 @@ export default function NotaForm({ nota, onClose, onSaved }) {
   const handleDelete = async () => {
     setConfirmDelete(false);
     await eliminarNota(nota.id);
-    onSaved();
+    if (onDeleted) onDeleted();
+    else onSaved();
   };
 
   return (
@@ -62,7 +63,7 @@ export default function NotaForm({ nota, onClose, onSaved }) {
 
           <Field label="Contenido">
             <textarea
-              className={`${inputClass} h-32 py-2 resize-none`}
+              className={`${inputClass} h-64 py-2.5 resize-none`}
               value={contenido}
               onChange={(e) => setContenido(e.target.value)}
               placeholder="Escribe aquí..."

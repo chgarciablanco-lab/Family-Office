@@ -9,6 +9,16 @@ export async function fetchNotas() {
   return data || [];
 }
 
+export async function fetchNota(id) {
+  const { data, error } = await supabase
+    .from("notas")
+    .select("*, profiles:created_by(nombre)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) return null;
+  return data;
+}
+
 export async function crearNota({ titulo, contenido, color }) {
   const { data: userData } = await supabase.auth.getUser();
   const { error } = await supabase.from("notas").insert({

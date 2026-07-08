@@ -6,13 +6,12 @@ import { fetchNotas } from "../lib/notas";
 import { colorClasses, formatFechaCorta } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
 
-export default function NotasScreen({ backTo, onNavigate }) {
+export default function NotasScreen({ backTo, onNavigate, onSelect }) {
   const { puedeEditar } = usePermisos();
   const editable = puedeEditar("notas");
   const [notas, setNotas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
 
   const cargar = async () => {
     setLoading(true);
@@ -26,7 +25,6 @@ export default function NotasScreen({ backTo, onNavigate }) {
 
   const handleSaved = () => {
     setShowForm(false);
-    setEditing(null);
     cargar();
   };
 
@@ -39,7 +37,7 @@ export default function NotasScreen({ backTo, onNavigate }) {
         <h1 className="text-xl font-bold text-slate-900">Notas</h1>
         {editable ? (
           <button
-            onClick={() => { setEditing(null); setShowForm(true); }}
+            onClick={() => setShowForm(true)}
             className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
             aria-label="Agregar nota"
           >
@@ -65,16 +63,15 @@ export default function NotasScreen({ backTo, onNavigate }) {
           return (
             <button
               key={n.id}
-              onClick={() => { if (editable) { setEditing(n); setShowForm(true); } }}
-              disabled={!editable}
-              className={`w-full rounded-2xl border border-slate-100 shadow-sm px-4 py-4 text-left ${c.bg}`}
+              onClick={() => onSelect(n)}
+              className={`w-full rounded-2xl border border-slate-100 shadow-sm px-4 py-4 text-left active:scale-[0.98] transition-transform ${c.bg}`}
             >
               <div className="flex items-center gap-2 mb-1.5">
                 <StickyNote className={`w-4 h-4 ${c.fg} shrink-0`} strokeWidth={1.8} />
                 <p className="font-bold text-slate-900 text-sm leading-tight flex-1 min-w-0 truncate">{n.titulo}</p>
               </div>
               {n.contenido && (
-                <p className="text-sm text-slate-700 leading-snug whitespace-pre-line line-clamp-4">{n.contenido}</p>
+                <p className="text-sm text-slate-700 truncate">{n.contenido}</p>
               )}
               <p className="text-[11px] text-slate-500 mt-2">
                 {n.profiles?.nombre ? `${n.profiles.nombre} · ` : ""}{formatFechaCorta(n.updated_at?.slice(0, 10))}
@@ -89,8 +86,7 @@ export default function NotasScreen({ backTo, onNavigate }) {
 
       {showForm && (
         <NotaForm
-          nota={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
+          onClose={() => setShowForm(false)}
           onSaved={handleSaved}
         />
       )}

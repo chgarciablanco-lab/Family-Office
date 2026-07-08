@@ -63,7 +63,8 @@ export default function NotaForm({ nota, onClose, onSaved, onDeleted }) {
 
           <Field label="Contenido">
             <textarea
-              className={`${inputClass} h-64 py-2.5 resize-none`}
+              className="w-full border border-slate-200 rounded-lg px-2.5 py-2.5 text-sm text-slate-700 outline-none focus:border-violet-400 bg-white resize-none"
+              rows={5}
               value={contenido}
               onChange={(e) => setContenido(e.target.value)}
               placeholder="Escribe aquí..."

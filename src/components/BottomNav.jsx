@@ -1,5 +1,5 @@
 import React from "react";
-import { Home as HomeIcon, Calendar, User, Building2, Bell } from "lucide-react";
+import { Home as HomeIcon, Calendar, User, Bell } from "lucide-react";
 
 export default function BottomNav({ variant, onNavigate, notifCount }) {
   if (variant === "home") {
@@ -26,10 +26,6 @@ export default function BottomNav({ variant, onNavigate, notifCount }) {
       <button onClick={() => onNavigate("home")} className="flex flex-col items-center gap-0.5 text-blue-600">
         <HomeIcon className="w-6 h-6" strokeWidth={2} />
         <span className="text-[11px] font-medium">Inicio</span>
-      </button>
-      <button onClick={() => onNavigate("sociedades-list")} className="flex flex-col items-center gap-0.5 text-slate-400">
-        <Building2 className="w-6 h-6" strokeWidth={1.8} />
-        <span className="text-[11px] font-medium">Sociedades</span>
       </button>
       <button className="relative flex flex-col items-center gap-0.5 text-slate-400">
         <span className="relative">

@@ -23,12 +23,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
       .limit(1)
       .maybeSingle();
 
-    if (arriendoData) {
-      setArriendo(arriendoData);
-      setLoading(false);
-      return;
-    }
-    setArriendo(null);
+    setArriendo(arriendoData || null);
 
     const { data, error } = await supabase
       .from("servicios")
@@ -46,9 +41,17 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
 
   const ultimoPorTipo = (tipo) => servicios.find((s) => s.tipo_servicio === tipo);
 
+  // luz, agua, gas, internet y gastos comunes los paga el arrendatario en propiedades arrendadas;
+  // seguros y contribuciones siguen siendo obligación del propietario
+  const tiposVisibles = arriendo
+    ? tiposServicio.filter((t) => t.tipo === "Seguros" || t.tipo === "Contribuciones")
+    : tiposServicio;
+
   const mesActual = new Date().toISOString().slice(0, 7);
   const esPendiente = (estado) => estado === "Pendiente" || estado === "Por vencer" || estado === "Vencido";
-  const serviciosVisibles = servicios.filter((s) => !s.periodo || s.periodo.slice(0, 7) <= mesActual);
+  const serviciosVisibles = servicios
+    .filter((s) => !s.periodo || s.periodo.slice(0, 7) <= mesActual)
+    .filter((s) => tiposVisibles.some((t) => t.tipo === s.tipo_servicio));
   const pendientes = serviciosVisibles.flatMap((s) => {
     if (esMultiMedidor(s)) {
       return medidoresDe(s)
@@ -57,7 +60,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
     }
     return esPendiente(s.estado) ? [s] : [];
   });
-  const pendientesPorTipo = tiposServicio
+  const pendientesPorTipo = tiposVisibles
     .map((t) => ({ ...t, cantidad: pendientes.filter((p) => p.tipo_servicio === t.tipo).length }))
     .filter((t) => t.cantidad > 0);
 
@@ -79,20 +82,21 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
         {!loading && arriendo && (
-          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
-              <HomeIcon className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
+          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+              <HomeIcon className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
             </div>
             <div>
-              <p className="font-bold text-slate-900 text-base">Propiedad arrendada</p>
-              <p className="text-sm text-slate-500 mt-1">
-                Esta propiedad está arrendada{arriendo.contraparte_nombre ? ` a ${arriendo.contraparte_nombre}` : ""}, por lo que los gastos básicos los paga el arrendatario.
+              <p className="font-bold text-slate-900 text-sm">Propiedad arrendada</p>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Está arrendada{arriendo.contraparte_nombre ? ` a ${arriendo.contraparte_nombre}` : ""}: luz, agua, gas,
+                internet y gastos comunes los paga el arrendatario. Seguros y contribuciones siguen a cargo tuyo.
               </p>
             </div>
           </div>
         )}
 
-        {!loading && !arriendo && pendientes.length > 0 && (
+        {!loading && pendientes.length > 0 && (
           <div className="bg-red-50 rounded-2xl px-4 py-4">
             <button
               onClick={() => setExpandido((v) => !v)}
@@ -134,7 +138,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
           </div>
         )}
 
-        {!loading && !arriendo && tiposServicio.map(({ tipo, icon: Icon, bg, fg }) => {
+        {!loading && tiposVisibles.map(({ tipo, icon: Icon, bg, fg }) => {
           const ultimo = ultimoPorTipo(tipo);
           const estado = ultimo ? estadoResumen(ultimo) : null;
           const p = estado ? estadoPillClasses(estado) : null;

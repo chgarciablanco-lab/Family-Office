@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabaseClient";
 import OtrosGastoForm from "./OtrosGastoForm";
 import BottomNav from "./BottomNav";
 import { formatCLP, formatFechaCorta } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 const tabs = ["Todos", "Hoy", "Esta semana", "Este mes"];
 
@@ -26,10 +27,11 @@ function dentroDeTab(fechaStr, tab) {
   return true;
 }
 
-function GastoRow({ g, onEdit }) {
+function GastoRow({ g, onEdit, editable }) {
   return (
     <button
-      onClick={() => onEdit(g)}
+      onClick={() => editable && onEdit(g)}
+      disabled={!editable}
       className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
     >
       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-100">
@@ -49,6 +51,8 @@ function GastoRow({ g, onEdit }) {
 }
 
 export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("otros_gastos");
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -91,13 +95,17 @@ export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, o
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Otros gastos</h1>
-        <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
-          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label="Agregar gasto"
-        >
-          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-        </button>
+        {editable ? (
+          <button
+            onClick={() => { setEditing(null); setShowForm(true); }}
+            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+            aria-label="Agregar gasto"
+          >
+            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
@@ -142,7 +150,7 @@ export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, o
         )}
 
         {filtrados.map((g) => (
-          <GastoRow key={g.id} g={g} onEdit={(gasto) => { setEditing(gasto); setShowForm(true); }} />
+          <GastoRow key={g.id} g={g} onEdit={(gasto) => { setEditing(gasto); setShowForm(true); }} editable={editable} />
         ))}
 
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">

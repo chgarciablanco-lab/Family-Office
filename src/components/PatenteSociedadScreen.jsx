@@ -6,6 +6,7 @@ import ConfirmDialog from "./ConfirmDialog";
 import PatenteSociedadPagoForm from "./PatenteSociedadPagoForm";
 import { formatCLP, estadoPillClasses } from "../lib/format";
 import { periodoLabelAuto } from "../lib/autoTramites";
+import { usePermisos } from "../context/PermisosContext";
 
 function generarPeriodosPatente(sociedadId, anio) {
   return [
@@ -15,6 +16,8 @@ function generarPeriodosPatente(sociedadId, anio) {
 }
 
 export default function PatenteSociedadScreen({ sociedad, backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("sociedades");
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
@@ -85,7 +88,8 @@ export default function PatenteSociedadScreen({ sociedad, backTo, onNavigate }) 
                 className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3"
               >
                 <button
-                  onClick={() => setEditing(p)}
+                  onClick={() => editable && setEditing(p)}
+                  disabled={!editable}
                   className="flex-1 flex items-center justify-between gap-3 text-left min-w-0"
                 >
                   <div className="min-w-0">
@@ -97,15 +101,17 @@ export default function PatenteSociedadScreen({ sociedad, backTo, onNavigate }) 
                     </div>
                     <p className="text-xs text-slate-500 mt-1">Monto: {formatCLP(p.monto)}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                  {editable && <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />}
                 </button>
-                <button
-                  onClick={() => setConfirmDeleteId(p.id)}
-                  aria-label="Eliminar este registro"
-                  className="shrink-0"
-                >
-                  <Trash2 className="w-4 h-4 text-red-400" />
-                </button>
+                {editable && (
+                  <button
+                    onClick={() => setConfirmDeleteId(p.id)}
+                    aria-label="Eliminar este registro"
+                    className="shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-400" />
+                  </button>
+                )}
               </div>
             );
           })}

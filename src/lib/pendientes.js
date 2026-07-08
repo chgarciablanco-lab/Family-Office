@@ -25,6 +25,16 @@ const CAMPO_MONTO = {
   inversiones: "monto",
 };
 
+export const MODULO_DE_TABLA = {
+  servicios: "propiedades",
+  pagos_trabajador: "trabajadores",
+  impuestos: "impuestos",
+  pagos_arriendo: "arriendos",
+  pagos_auto: "autos",
+  patentes_sociedad: "sociedades",
+  inversiones: "inversiones",
+};
+
 function iconoServicio(tipoServicio) {
   const info = tiposServicio.find((t) => t.tipo === tipoServicio);
   return info

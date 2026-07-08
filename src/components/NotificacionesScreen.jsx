@@ -6,8 +6,11 @@ import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
 import { fetchEventosProximos, eliminarEvento } from "../lib/calendario";
 import { formatFechaCorta } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 export default function NotificacionesScreen({ backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editableCalendario = puedeEditar("calendario_tareas");
   const [loading, setLoading] = useState(true);
   const [porVencer, setPorVencer] = useState([]);
   const [vencidos, setVencidos] = useState([]);
@@ -74,9 +77,11 @@ export default function NotificacionesScreen({ backTo, onNavigate }) {
                       {formatFechaCorta(ev.fecha)}{ev.hora ? ` · ${ev.hora.slice(0, 5)}` : ""}{ev.descripcion ? ` · ${ev.descripcion}` : ""}
                     </p>
                   </div>
-                  <button onClick={() => setConfirmDeleteEvento(ev.id)} aria-label="Eliminar tarea" className="shrink-0">
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </button>
+                  {editableCalendario && (
+                    <button onClick={() => setConfirmDeleteEvento(ev.id)} aria-label="Eliminar tarea" className="shrink-0">
+                      <Trash2 className="w-4 h-4 text-red-400" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

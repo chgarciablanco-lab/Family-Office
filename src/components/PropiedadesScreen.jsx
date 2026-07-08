@@ -7,10 +7,13 @@ import { supabase } from "../lib/supabaseClient";
 import PropiedadForm from "./PropiedadForm";
 import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 export default function PropiedadesScreen({
   sociedadId = null, entidadNombre = "tus propiedades", backTo = "persona", onNavigate, onSelect,
 }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("propiedades");
   const [propiedades, setPropiedades] = useState([]);
   const [arrendadas, setArrendadas] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -62,13 +65,17 @@ export default function PropiedadesScreen({
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Propiedades</h1>
-        <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
-          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label="Agregar propiedad"
-        >
-          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-        </button>
+        {editable ? (
+          <button
+            onClick={() => { setEditing(null); setShowForm(true); }}
+            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+            aria-label="Agregar propiedad"
+          >
+            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
@@ -131,13 +138,15 @@ export default function PropiedadesScreen({
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
               </button>
-              <button
-                onClick={() => { setEditing(p); setShowForm(true); }}
-                aria-label="Editar propiedad"
-                className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
-              >
-                <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
-              </button>
+              {editable && (
+                <button
+                  onClick={() => { setEditing(p); setShowForm(true); }}
+                  aria-label="Editar propiedad"
+                  className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
+                >
+                  <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+                </button>
+              )}
             </div>
           );
         })}

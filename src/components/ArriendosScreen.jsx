@@ -7,8 +7,9 @@ import { supabase } from "../lib/supabaseClient";
 import ArriendoForm from "./ArriendoForm";
 import BottomNav from "./BottomNav";
 import { formatCLP, formatFechaCorta, estadoPillClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
-function ArriendoRow({ item, onSelect, onEdit }) {
+function ArriendoRow({ item, onSelect, onEdit, editable }) {
   const p = estadoPillClasses(item.estado === "Pagado" ? "Pagado" : item.estado === "Vencido" ? "Vencido" : "Por vencer");
   const contraparteLabel = item.relacion === "propia" ? "Arrendatario" : "Arrendador";
   const Icon = item.relacion === "propia" ? HomeIcon : Building2;
@@ -50,18 +51,22 @@ function ArriendoRow({ item, onSelect, onEdit }) {
         </div>
         <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
       </button>
-      <button
-        onClick={() => onEdit(item)}
-        aria-label="Editar arriendo"
-        className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
-      >
-        <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
-      </button>
+      {editable && (
+        <button
+          onClick={() => onEdit(item)}
+          aria-label="Editar arriendo"
+          className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
+        >
+          <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+        </button>
+      )}
     </div>
   );
 }
 
 export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tus arriendos", backTo, onNavigate, onSelect }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("arriendos");
   const [arriendos, setArriendos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -105,13 +110,17 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Arriendos</h1>
-        <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
-          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label="Agregar arriendo"
-        >
-          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-        </button>
+        {editable ? (
+          <button
+            onClick={() => { setEditing(null); setShowForm(true); }}
+            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+            aria-label="Agregar arriendo"
+          >
+            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
@@ -155,6 +164,7 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
                 item={item}
                 onSelect={onSelect}
                 onEdit={(a) => { setEditing(a); setShowForm(true); }}
+                editable={editable}
               />
             ))}
           </>
@@ -169,6 +179,7 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
                 item={item}
                 onSelect={onSelect}
                 onEdit={(a) => { setEditing(a); setShowForm(true); }}
+                editable={editable}
               />
             ))}
           </>

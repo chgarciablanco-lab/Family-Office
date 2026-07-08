@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { Check, X } from "lucide-react";
 import { estadoPillClasses } from "../lib/format";
-import { marcarComoPagado } from "../lib/pendientes";
+import { marcarComoPagado, MODULO_DE_TABLA } from "../lib/pendientes";
 import { Field, inputClass } from "./TramiteSection";
+import { usePermisos } from "../context/PermisosContext";
 
 export default function PendienteRow({ item, onDone }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar(MODULO_DE_TABLA[item.tabla]);
   const [showForm, setShowForm] = useState(false);
   const [monto, setMonto] = useState("");
   const [saving, setSaving] = useState(false);
@@ -37,13 +40,15 @@ export default function PendienteRow({ item, onDone }) {
       <span className={`text-[10.5px] font-bold px-2.5 py-1 rounded-full shrink-0 ${p.bg} ${p.text}`}>
         {item.estado}
       </span>
-      <button
-        onClick={abrirForm}
-        aria-label="Marcar como pagado"
-        className="w-7 h-7 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center shrink-0"
-      >
-        <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2.5} />
-      </button>
+      {editable && (
+        <button
+          onClick={abrirForm}
+          aria-label="Marcar como pagado"
+          className="w-7 h-7 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center shrink-0"
+        >
+          <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2.5} />
+        </button>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">

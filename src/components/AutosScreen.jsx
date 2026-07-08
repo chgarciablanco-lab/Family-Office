@@ -7,8 +7,9 @@ import { supabase } from "../lib/supabaseClient";
 import AutoForm from "./AutoForm";
 import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
-function AutoRow({ auto, onSelect, onEdit }) {
+function AutoRow({ auto, onSelect, onEdit, editable }) {
   const c = colorClasses[auto.color_tag] || colorClasses.violet;
   return (
     <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3">
@@ -26,18 +27,22 @@ function AutoRow({ auto, onSelect, onEdit }) {
         </div>
         <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
       </button>
-      <button
-        onClick={() => onEdit(auto)}
-        aria-label="Editar auto"
-        className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
-      >
-        <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
-      </button>
+      {editable && (
+        <button
+          onClick={() => onEdit(auto)}
+          aria-label="Editar auto"
+          className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
+        >
+          <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+        </button>
+      )}
     </div>
   );
 }
 
 export default function AutosScreen({ onNavigate, onSelect }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("autos");
   const [autos, setAutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -79,13 +84,17 @@ export default function AutosScreen({ onNavigate, onSelect }) {
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Autos</h1>
-        <button
-          onClick={() => { setEditingAuto(null); setShowForm(true); }}
-          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label="Agregar auto"
-        >
-          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-        </button>
+        {editable ? (
+          <button
+            onClick={() => { setEditingAuto(null); setShowForm(true); }}
+            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+            aria-label="Agregar auto"
+          >
+            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
@@ -126,6 +135,7 @@ export default function AutosScreen({ onNavigate, onSelect }) {
             auto={auto}
             onSelect={onSelect}
             onEdit={(a) => { setEditingAuto(a); setShowForm(true); }}
+            editable={editable}
           />
         ))}
 

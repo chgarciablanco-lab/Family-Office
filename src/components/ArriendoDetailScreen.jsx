@@ -5,6 +5,7 @@ import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
 import PagoArriendoForm from "./PagoArriendoForm";
 import { formatCLP, formatMes, estadoPillClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 function diaDeVencimiento(vencimiento) {
   if (!vencimiento) return 5;
@@ -31,6 +32,8 @@ function generarPagosAnio(arriendoId, anio, monto, dia) {
 }
 
 export default function ArriendoDetailScreen({ arriendo, backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("arriendos");
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
@@ -102,7 +105,8 @@ export default function ArriendoDetailScreen({ arriendo, backTo, onNavigate }) {
                 className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3"
               >
                 <button
-                  onClick={() => setEditing(p)}
+                  onClick={() => editable && setEditing(p)}
+                  disabled={!editable}
                   className="flex-1 flex items-center justify-between gap-3 text-left min-w-0"
                 >
                   <div className="min-w-0">
@@ -114,15 +118,17 @@ export default function ArriendoDetailScreen({ arriendo, backTo, onNavigate }) {
                     </div>
                     <p className="text-xs text-slate-500 mt-1">Monto: {formatCLP(p.monto)}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                  {editable && <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />}
                 </button>
-                <button
-                  onClick={() => setConfirmDeleteId(p.id)}
-                  aria-label="Eliminar este mes"
-                  className="shrink-0"
-                >
-                  <Trash2 className="w-4 h-4 text-red-400" />
-                </button>
+                {editable && (
+                  <button
+                    onClick={() => setConfirmDeleteId(p.id)}
+                    aria-label="Eliminar este mes"
+                    className="shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-400" />
+                  </button>
+                )}
               </div>
             );
           })}

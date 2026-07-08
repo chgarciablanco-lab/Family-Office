@@ -5,6 +5,7 @@ import ConfirmDialog from "./ConfirmDialog";
 import PendienteRow from "./PendienteRow";
 import EventoCalendarioForm from "./EventoCalendarioForm";
 import { fetchVencimientosMes, fetchEventosMes, eliminarEvento } from "../lib/calendario";
+import { usePermisos } from "../context/PermisosContext";
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
@@ -26,6 +27,8 @@ function colorPunto(items) {
 }
 
 export default function CalendarioScreen({ backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("calendario_tareas");
   const hoy = new Date();
   const [anio, setAnio] = useState(hoy.getFullYear());
   const [mes, setMes] = useState(hoy.getMonth() + 1);
@@ -141,13 +144,15 @@ export default function CalendarioScreen({ backTo, onNavigate }) {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5">
             <div className="flex items-center justify-between mb-1">
               <p className="text-sm font-bold text-slate-900">{diaSeleccionado} de {MESES[mes - 1]}</p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center"
-                aria-label="Agregar tarea o reunión"
-              >
-                <Plus className="w-4 h-4 text-white" strokeWidth={2.4} />
-              </button>
+              {editable && (
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center"
+                  aria-label="Agregar tarea o reunión"
+                >
+                  <Plus className="w-4 h-4 text-white" strokeWidth={2.4} />
+                </button>
+              )}
             </div>
 
             {vencimientosDia.length === 0 && eventosDia.length === 0 && (
@@ -167,9 +172,11 @@ export default function CalendarioScreen({ backTo, onNavigate }) {
                         {ev.hora ? ev.hora.slice(0, 5) : "Todo el día"}{ev.descripcion ? ` · ${ev.descripcion}` : ""}
                       </p>
                     </div>
-                    <button onClick={() => setConfirmDelete(ev.id)} aria-label="Eliminar tarea" className="shrink-0">
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                    </button>
+                    {editable && (
+                      <button onClick={() => setConfirmDelete(ev.id)} aria-label="Eliminar tarea" className="shrink-0">
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

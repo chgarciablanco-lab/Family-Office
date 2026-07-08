@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import ImpuestoForm from "./ImpuestoForm";
 import BottomNav from "./BottomNav";
 import { formatCLP, formatMes, formatFechaCorta, estadoPillClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 function generarImpuestosAnio(sociedadId, anio) {
   return Array.from({ length: 12 }, (_, i) => {
@@ -17,6 +18,8 @@ function generarImpuestosAnio(sociedadId, anio) {
 }
 
 export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Gestión personal", backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("impuestos");
   const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -70,7 +73,8 @@ export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Ge
     return (
       <button
         key={r.id}
-        onClick={() => { setEditing(r); setShowForm(true); }}
+        onClick={() => { if (editable) { setEditing(r); setShowForm(true); } }}
+        disabled={!editable}
         className={`w-full bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 text-left ${
           destacado ? "px-4 py-4 gap-4" : "px-4 py-3.5"
         }`}
@@ -113,13 +117,17 @@ export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Ge
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Impuestos</h1>
-        <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
-          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label="Agregar F29"
-        >
-          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-        </button>
+        {editable ? (
+          <button
+            onClick={() => { setEditing(null); setShowForm(true); }}
+            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+            aria-label="Agregar F29"
+          >
+            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">

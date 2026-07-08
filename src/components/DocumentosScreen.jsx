@@ -6,6 +6,7 @@ import { formatFechaCorta } from "../lib/format";
 import {
   CATEGORIAS_DOCUMENTOS, fetchDocumentos, subirDocumento, obtenerUrlPreview, eliminarDocumento, formatTamano,
 } from "../lib/documentos";
+import { usePermisos } from "../context/PermisosContext";
 
 function iconoDoc(contentType) {
   if (contentType?.startsWith("image/")) return ImageIcon;
@@ -58,7 +59,7 @@ function PreviewModal({ doc, onClose }) {
   );
 }
 
-function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onChanged }) {
+function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onChanged, editable }) {
   const inputRef = useRef(null);
   const [subiendo, setSubiendo] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -87,14 +88,16 @@ function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onCha
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-slate-900">{categoria}</p>
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={subiendo}
-          aria-label={`Agregar documento a ${categoria}`}
-          className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center disabled:opacity-50"
-        >
-          <Plus className="w-4 h-4 text-white" strokeWidth={2.4} />
-        </button>
+        {editable && (
+          <button
+            onClick={() => inputRef.current?.click()}
+            disabled={subiendo}
+            aria-label={`Agregar documento a ${categoria}`}
+            className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center disabled:opacity-50"
+          >
+            <Plus className="w-4 h-4 text-white" strokeWidth={2.4} />
+          </button>
+        )}
         <input ref={inputRef} type="file" className="hidden" onChange={handleFile} accept="image/*,application/pdf" />
       </div>
 
@@ -119,9 +122,11 @@ function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onCha
                     {formatTamano(doc.tamano_bytes)} · {formatFechaCorta(doc.created_at.slice(0, 10))}
                   </p>
                 </button>
-                <button onClick={() => setConfirmDelete(doc)} aria-label="Eliminar documento" className="shrink-0">
-                  <Trash2 className="w-4 h-4 text-red-400" />
-                </button>
+                {editable && (
+                  <button onClick={() => setConfirmDelete(doc)} aria-label="Eliminar documento" className="shrink-0">
+                    <Trash2 className="w-4 h-4 text-red-400" />
+                  </button>
+                )}
               </div>
             );
           })}
@@ -143,6 +148,8 @@ function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onCha
 }
 
 export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre, backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("documentos");
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -182,6 +189,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
             categoria={categoria}
             documentos={documentos}
             onChanged={cargar}
+            editable={editable}
           />
         ))}
       </div>

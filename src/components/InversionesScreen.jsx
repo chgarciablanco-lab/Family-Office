@@ -6,12 +6,14 @@ import { supabase } from "../lib/supabaseClient";
 import InversionForm from "./InversionForm";
 import BottomNav from "./BottomNav";
 import { formatCLP, formatFechaCorta, estadoInversionPillClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
-function InversionRow({ inv, onEdit }) {
+function InversionRow({ inv, onEdit, editable }) {
   const p = estadoInversionPillClasses(inv.estado);
   return (
     <button
-      onClick={() => onEdit(inv)}
+      onClick={() => editable && onEdit(inv)}
+      disabled={!editable}
       className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
     >
       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-violet-100">
@@ -35,6 +37,8 @@ function InversionRow({ inv, onEdit }) {
 }
 
 export default function InversionesScreen({ sociedadId = null, entidadNombre = "tus inversiones", backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("inversiones");
   const [inversiones, setInversiones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -80,13 +84,17 @@ export default function InversionesScreen({ sociedadId = null, entidadNombre = "
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Inversiones</h1>
-        <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
-          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label="Agregar inversión"
-        >
-          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-        </button>
+        {editable ? (
+          <button
+            onClick={() => { setEditing(null); setShowForm(true); }}
+            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+            aria-label="Agregar inversión"
+          >
+            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
@@ -120,7 +128,7 @@ export default function InversionesScreen({ sociedadId = null, entidadNombre = "
         )}
 
         {filtradas.map((inv) => (
-          <InversionRow key={inv.id} inv={inv} onEdit={(i) => { setEditing(i); setShowForm(true); }} />
+          <InversionRow key={inv.id} inv={inv} onEdit={(i) => { setEditing(i); setShowForm(true); }} editable={editable} />
         ))}
 
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">

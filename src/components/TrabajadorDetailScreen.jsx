@@ -5,6 +5,7 @@ import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
 import PagoTrabajadorForm from "./PagoTrabajadorForm";
 import { formatCLP, formatMes, estadoPillClasses } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 function generarPagosAnio(trabajadorId, anio, liquidacion, previred) {
   return Array.from({ length: 12 }, (_, i) => {
@@ -20,6 +21,8 @@ function generarPagosAnio(trabajadorId, anio, liquidacion, previred) {
 }
 
 export default function TrabajadorDetailScreen({ trabajador, backTo, onNavigate, onOpenDocumentos }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("trabajadores");
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
@@ -101,7 +104,8 @@ export default function TrabajadorDetailScreen({ trabajador, backTo, onNavigate,
                 className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3"
               >
                 <button
-                  onClick={() => setEditing(p)}
+                  onClick={() => editable && setEditing(p)}
+                  disabled={!editable}
                   className="flex-1 flex items-center justify-between gap-3 text-left min-w-0"
                 >
                   <div className="min-w-0">
@@ -115,15 +119,17 @@ export default function TrabajadorDetailScreen({ trabajador, backTo, onNavigate,
                       Liquidación: {formatCLP(p.liquidacion)} · Previred: {formatCLP(p.previred)}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                  {editable && <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />}
                 </button>
-                <button
-                  onClick={() => setConfirmDeleteId(p.id)}
-                  aria-label="Eliminar este mes"
-                  className="shrink-0"
-                >
-                  <Trash2 className="w-4 h-4 text-red-400" />
-                </button>
+                {editable && (
+                  <button
+                    onClick={() => setConfirmDeleteId(p.id)}
+                    aria-label="Eliminar este mes"
+                    className="shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-400" />
+                  </button>
+                )}
               </div>
             );
           })}

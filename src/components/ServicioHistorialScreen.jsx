@@ -7,6 +7,7 @@ import { formatCLP, formatFechaCorta, formatMes, estadoPillClasses } from "../li
 import { esMultiMedidor, medidoresDe, valorTotal } from "../lib/medidores";
 import AnioCompletoForm from "./AnioCompletoForm";
 import MedidorMesForm from "./MedidorMesForm";
+import { usePermisos } from "../context/PermisosContext";
 
 const tiposAnioCompleto = ["Luz", "Gas", "Agua", "Internet", "Gastos comunes", "Seguros"];
 
@@ -20,6 +21,8 @@ function subtituloRegistro(r) {
 }
 
 export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoServicio, backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("propiedades");
   const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -71,6 +74,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
   };
 
   const handleSelect = (r) => {
+    if (!editable) return;
     if (esMultiMedidor(r)) {
       setEditingMedidor(r);
     } else {
@@ -100,6 +104,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
         <button
           key={r.id}
           onClick={() => handleSelect(r)}
+          disabled={!editable}
           className={`w-full bg-white rounded-2xl border border-slate-100 shadow-sm text-left flex flex-col gap-2.5 ${
             destacado ? "px-4 py-4" : "px-4 py-3.5"
           }`}
@@ -139,6 +144,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
       <button
         key={r.id}
         onClick={() => handleSelect(r)}
+        disabled={!editable}
         className={`w-full bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 text-left ${
           destacado ? "px-4 py-4 gap-4" : "px-4 py-3.5"
         }`}
@@ -181,24 +187,28 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">{tipoServicio}</h1>
-        <button
-          onClick={() => {
-            if (esAnioCompleto) {
-              setShowSetup(true);
-            } else {
-              setEditing(null);
-              setShowForm(true);
+        {editable ? (
+          <button
+            onClick={() => {
+              if (esAnioCompleto) {
+                setShowSetup(true);
+              } else {
+                setEditing(null);
+                setShowForm(true);
+              }
+            }}
+            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+            aria-label={
+              esAnioCompleto
+                ? `Agregar ${(etiquetasServicio[tipoServicio] || etiquetasServicio.Luz).numero}`
+                : `Agregar ${tipoServicio.toLowerCase()}`
             }
-          }}
-          className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-          aria-label={
-            esAnioCompleto
-              ? `Agregar ${(etiquetasServicio[tipoServicio] || etiquetasServicio.Luz).numero}`
-              : `Agregar ${tipoServicio.toLowerCase()}`
-          }
-        >
-          <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
-        </button>
+          >
+            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
@@ -221,7 +231,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
         {!loading && !actual && !showSetup && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center flex flex-col items-center gap-3">
             <p className="text-sm text-slate-500">Aún no hay registros de {tipoServicio.toLowerCase()} para esta propiedad.</p>
-            {esAnioCompleto && (
+            {esAnioCompleto && editable && (
               <button
                 onClick={() => setShowSetup(true)}
                 className="text-sm font-semibold text-violet-600"

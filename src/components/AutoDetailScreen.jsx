@@ -4,8 +4,11 @@ import AutoForm from "./AutoForm";
 import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
 import { TIPOS_AUTO } from "../lib/autoTramites";
+import { usePermisos } from "../context/PermisosContext";
 
 export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTramite, onUpdated }) {
+  const { puedeEditar } = usePermisos();
+  const editable = puedeEditar("autos");
   const [showForm, setShowForm] = useState(false);
   const c = colorClasses[auto.color_tag] || colorClasses.violet;
 
@@ -21,9 +24,13 @@ export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTra
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">{auto.marca} {auto.modelo}</h1>
-        <button onClick={() => setShowForm(true)} aria-label="Editar auto">
-          <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
-        </button>
+        {editable ? (
+          <button onClick={() => setShowForm(true)} aria-label="Editar auto">
+            <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
+          </button>
+        ) : (
+          <div className="w-6" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">

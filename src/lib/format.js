@@ -21,6 +21,12 @@ export function estadoSociedadPillClasses(estado) {
   return { bg: "bg-slate-100", text: "text-slate-600" };
 }
 
+export function estadoInversionPillClasses(estado) {
+  if (estado === "Activa") return { bg: "bg-emerald-100", text: "text-emerald-700" };
+  if (estado === "Vencida") return { bg: "bg-red-600", text: "text-white" };
+  return { bg: "bg-slate-100", text: "text-slate-600" };
+}
+
 export function formatFechaCorta(fecha) {
   if (!fecha) return "-";
   const d = new Date(fecha + "T00:00:00");

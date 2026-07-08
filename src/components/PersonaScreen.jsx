@@ -34,7 +34,7 @@ const secciones = [
   {
     key: "inversiones", title: "Inversiones",
     subtitle: "Controla tus inversiones\ny plazos.",
-    icon: TrendingUp, bg: "bg-violet-100", fg: "text-violet-600", disponible: false,
+    icon: TrendingUp, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
   },
   {
     key: "otros-gastos-persona", title: "Otros gastos",

@@ -15,6 +15,7 @@ import OtrosGastosScreen from "./OtrosGastosScreen";
 import ImpuestosScreen from "./ImpuestosScreen";
 import ArriendosScreen from "./ArriendosScreen";
 import ArriendoDetailScreen from "./ArriendoDetailScreen";
+import InversionesScreen from "./InversionesScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
@@ -239,6 +240,14 @@ export default function MainApp({ session }) {
         <TrabajadorDetailScreen
           trabajador={selectedTrabajador}
           backTo={trabajadorBackTo}
+          onNavigate={setScreen}
+        />
+      )}
+      {screen === "inversiones" && (
+        <InversionesScreen
+          sociedadId={null}
+          entidadNombre="Gestión personal"
+          backTo="persona"
           onNavigate={setScreen}
         />
       )}

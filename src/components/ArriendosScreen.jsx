@@ -1,58 +1,67 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   ArrowLeft, Plus, Search, SlidersHorizontal, ChevronDown,
-  Building2, Home as HomeIcon, ChevronRight, Info,
+  Building2, Home as HomeIcon, ChevronRight, Info, Pencil,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import ArriendoForm from "./ArriendoForm";
 import BottomNav from "./BottomNav";
 import { formatCLP, formatFechaCorta, estadoPillClasses } from "../lib/format";
 
-function ArriendoRow({ item, onEdit }) {
+function ArriendoRow({ item, onSelect, onEdit }) {
   const p = estadoPillClasses(item.estado === "Pagado" ? "Pagado" : item.estado === "Vencido" ? "Vencido" : "Por vencer");
   const contraparteLabel = item.relacion === "propia" ? "Arrendatario" : "Arrendador";
   const Icon = item.relacion === "propia" ? HomeIcon : Building2;
   return (
-    <button
-      onClick={() => onEdit(item)}
-      className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
-    >
-      <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
-        <Icon className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-bold text-slate-900 text-base leading-tight">{item.nombre}</p>
-          {item.relacion === "propia" && !item.propiedad_id && (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-              Sin vincular
-            </span>
-          )}
+    <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3">
+      <button
+        onClick={() => onSelect(item)}
+        className="flex-1 flex items-center gap-3 text-left active:scale-[0.98] transition-transform min-w-0"
+      >
+        <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+          <Icon className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
         </div>
-        <p className="text-sm text-slate-500 mt-0.5">{item.tipo} · {item.ubicacion}</p>
-
-        <div className="flex flex-wrap items-start gap-x-4 gap-y-1.5 mt-2">
-          <div>
-            <p className="text-[11px] text-slate-400">{contraparteLabel}</p>
-            <p className="text-xs font-semibold text-slate-700">{item.contraparte_nombre || "-"}</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-bold text-slate-900 text-base leading-tight">{item.nombre}</p>
+            {item.relacion === "propia" && !item.propiedad_id && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                Sin vincular
+              </span>
+            )}
           </div>
-          <div>
-            <p className="text-[11px] text-slate-400">Monto</p>
-            <p className="text-xs font-bold text-slate-900">{formatCLP(item.monto)}</p>
+          <p className="text-sm text-slate-500 mt-0.5">{item.tipo} · {item.ubicacion}</p>
+
+          <div className="flex flex-wrap items-start gap-x-4 gap-y-1.5 mt-2">
+            <div>
+              <p className="text-[11px] text-slate-400">{contraparteLabel}</p>
+              <p className="text-xs font-semibold text-slate-700">{item.contraparte_nombre || "-"}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-400">Monto</p>
+              <p className="text-xs font-bold text-slate-900">{formatCLP(item.monto)}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 mt-2">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{item.estado}</span>
+            <span className="text-xs text-slate-500">Vence: {formatFechaCorta(item.vencimiento)}</span>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 mt-2">
-          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${p.bg} ${p.text}`}>{item.estado}</span>
-          <span className="text-xs text-slate-500">Vence: {formatFechaCorta(item.vencimiento)}</span>
-        </div>
-      </div>
-      <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
-    </button>
+        <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
+      </button>
+      <button
+        onClick={() => onEdit(item)}
+        aria-label="Editar arriendo"
+        className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
+      >
+        <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+      </button>
+    </div>
   );
 }
 
-export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tus arriendos", backTo, onNavigate }) {
+export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tus arriendos", backTo, onNavigate, onSelect }) {
   const [arriendos, setArriendos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -141,7 +150,12 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
           <>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Propias arrendadas a terceros</p>
             {propias.map((item) => (
-              <ArriendoRow key={item.id} item={item} onEdit={(a) => { setEditing(a); setShowForm(true); }} />
+              <ArriendoRow
+                key={item.id}
+                item={item}
+                onSelect={onSelect}
+                onEdit={(a) => { setEditing(a); setShowForm(true); }}
+              />
             ))}
           </>
         )}
@@ -150,7 +164,12 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
           <>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Arrendadas de terceros</p>
             {terceros.map((item) => (
-              <ArriendoRow key={item.id} item={item} onEdit={(a) => { setEditing(a); setShowForm(true); }} />
+              <ArriendoRow
+                key={item.id}
+                item={item}
+                onSelect={onSelect}
+                onEdit={(a) => { setEditing(a); setShowForm(true); }}
+              />
             ))}
           </>
         )}
@@ -159,7 +178,7 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
           <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
             <p className="font-bold text-slate-900 text-sm">Mantén tus arriendos al día</p>
-            <p className="text-sm text-slate-500 mt-0.5">Toca un arriendo para editar sus datos, o usa el botón + para agregar uno nuevo. Si es una propiedad propia, vincúlala a la propiedad real para que deje de mostrar Gastos básicos.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca un arriendo para ver sus 12 meses de pago, usa el lápiz para editar sus datos, o el botón + para agregar uno nuevo. Si es una propiedad propia, vincúlala a la propiedad real para que deje de mostrar Gastos básicos.</p>
           </div>
         </div>
       </div>

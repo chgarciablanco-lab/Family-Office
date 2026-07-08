@@ -12,6 +12,7 @@ import TrabajadorDetailScreen from "./TrabajadorDetailScreen";
 import OtrosGastosScreen from "./OtrosGastosScreen";
 import ImpuestosScreen from "./ImpuestosScreen";
 import ArriendosScreen from "./ArriendosScreen";
+import ArriendoDetailScreen from "./ArriendoDetailScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
@@ -23,6 +24,8 @@ export default function MainApp({ session }) {
   const [selectedTipoServicio, setSelectedTipoServicio] = useState(null);
   const [selectedTrabajador, setSelectedTrabajador] = useState(null);
   const [trabajadorBackTo, setTrabajadorBackTo] = useState("trabajadores-persona");
+  const [selectedArriendo, setSelectedArriendo] = useState(null);
+  const [arriendoBackTo, setArriendoBackTo] = useState("arriendos-persona");
 
   const handleSelectSociedad = (s) => {
     setSelectedSociedad(s);
@@ -44,6 +47,12 @@ export default function MainApp({ session }) {
     setSelectedTrabajador(t);
     setTrabajadorBackTo(backTo);
     setScreen("trabajador-detail");
+  };
+
+  const handleSelectArriendo = (backTo) => (a) => {
+    setSelectedArriendo(a);
+    setArriendoBackTo(backTo);
+    setScreen("arriendo-detail");
   };
 
   return (
@@ -109,6 +118,7 @@ export default function MainApp({ session }) {
           entidadNombre={selectedSociedad.nombre}
           backTo="sociedad-detail"
           onNavigate={setScreen}
+          onSelect={handleSelectArriendo("arriendos-sociedad")}
         />
       )}
       {screen === "arriendos-persona" && (
@@ -116,6 +126,14 @@ export default function MainApp({ session }) {
           sociedadId={null}
           entidadNombre="Gestión personal"
           backTo="persona"
+          onNavigate={setScreen}
+          onSelect={handleSelectArriendo("arriendos-persona")}
+        />
+      )}
+      {screen === "arriendo-detail" && selectedArriendo && (
+        <ArriendoDetailScreen
+          arriendo={selectedArriendo}
+          backTo={arriendoBackTo}
           onNavigate={setScreen}
         />
       )}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import { Field, inputClass, selectClass, SeccionTramite } from "./TramiteSection";
+import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
 const coloresDisponibles = ["violet", "blue", "orange", "teal", "pink", "emerald"];
@@ -14,15 +14,6 @@ function emptyForm(auto) {
     modelo: auto?.modelo || "",
     anio: auto?.anio || "",
     color_tag: auto?.color_tag || "violet",
-    seguro_estado: auto?.seguro_estado || "Al día",
-    seguro_dia_vencimiento: auto?.seguro_dia_vencimiento || "",
-    seguro_valor: auto?.seguro_valor || "",
-    revision_estado: auto?.revision_estado || "Al día",
-    revision_vence: auto?.revision_vence || "",
-    revision_valor: auto?.revision_valor || "",
-    permiso_estado: auto?.permiso_estado || "Al día",
-    permiso_vence: auto?.permiso_vence || "",
-    permiso_valor: auto?.permiso_valor || "",
   };
 }
 
@@ -41,12 +32,6 @@ export default function AutoForm({ auto, onClose, onSaved }) {
     const payload = {
       ...form,
       anio: parseInt(form.anio, 10),
-      seguro_valor: form.seguro_valor ? parseFloat(form.seguro_valor) : null,
-      revision_valor: form.revision_valor ? parseFloat(form.revision_valor) : null,
-      permiso_valor: form.permiso_valor ? parseFloat(form.permiso_valor) : null,
-      seguro_dia_vencimiento: form.seguro_dia_vencimiento ? parseInt(form.seguro_dia_vencimiento, 10) : null,
-      revision_vence: form.revision_vence || null,
-      permiso_vence: form.permiso_vence || null,
       updated_at: new Date().toISOString(),
     };
 
@@ -155,10 +140,6 @@ export default function AutoForm({ auto, onClose, onSaved }) {
               </select>
             </Field>
           </div>
-
-          <SeccionTramite titulo="Seguro" prefix="seguro" form={form} setForm={setForm} tipoFecha="dia" />
-          <SeccionTramite titulo="Revisión técnica" prefix="revision" form={form} setForm={setForm} />
-          <SeccionTramite titulo="Patente / Permiso de circulación" prefix="permiso" form={form} setForm={setForm} />
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 

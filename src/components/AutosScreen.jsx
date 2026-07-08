@@ -1,22 +1,21 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Car, Search, SlidersHorizontal, ChevronDown, ChevronRight, Plus,
-  ShieldCheck, ClipboardCheck, FileText, Info, ArrowLeft,
+  Info, ArrowLeft, Pencil,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import AutoForm from "./AutoForm";
-import StatItem from "./StatItem";
 import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
 
-function AutoRow({ auto, onEdit }) {
+function AutoRow({ auto, onSelect, onEdit }) {
   const c = colorClasses[auto.color_tag] || colorClasses.violet;
   return (
-    <button
-      onClick={() => onEdit(auto)}
-      className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex flex-col gap-3 text-left active:scale-[0.98] transition-transform"
-    >
-      <div className="flex items-center gap-3">
+    <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-3">
+      <button
+        onClick={() => onSelect(auto)}
+        className="flex-1 flex items-center gap-3 text-left active:scale-[0.98] transition-transform min-w-0"
+      >
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
           <Car className={`w-6 h-6 ${c.fg}`} strokeWidth={1.8} />
         </div>
@@ -26,17 +25,19 @@ function AutoRow({ auto, onEdit }) {
           <p className="text-xs text-slate-500">{auto.marca} {auto.modelo} · Año {auto.anio}</p>
         </div>
         <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
-      </div>
-      <div className="flex flex-col gap-3.5 border-t border-slate-100 pt-3.5">
-        <StatItem icon={ShieldCheck} label="Seguro" estado={auto.seguro_estado} vence={auto.seguro_dia_vencimiento} valor={auto.seguro_valor} tipoFecha="dia" />
-        <StatItem icon={ClipboardCheck} label="Revisión técnica" estado={auto.revision_estado} vence={auto.revision_vence} valor={auto.revision_valor} />
-        <StatItem icon={FileText} label="Patente" estado={auto.permiso_estado} vence={auto.permiso_vence} valor={auto.permiso_valor} />
-      </div>
-    </button>
+      </button>
+      <button
+        onClick={() => onEdit(auto)}
+        aria-label="Editar auto"
+        className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"
+      >
+        <Pencil className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
+      </button>
+    </div>
   );
 }
 
-export default function AutosScreen({ onNavigate }) {
+export default function AutosScreen({ onNavigate, onSelect }) {
   const [autos, setAutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -120,14 +121,19 @@ export default function AutosScreen({ onNavigate }) {
         )}
 
         {autosFiltrados.map((auto) => (
-          <AutoRow key={auto.id} auto={auto} onEdit={(a) => { setEditingAuto(a); setShowForm(true); }} />
+          <AutoRow
+            key={auto.id}
+            auto={auto}
+            onSelect={onSelect}
+            onEdit={(a) => { setEditingAuto(a); setShowForm(true); }}
+          />
         ))}
 
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
           <Info className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
             <p className="font-bold text-slate-900 text-sm">Mantén tus autos al día</p>
-            <p className="text-sm text-slate-500 mt-0.5">Toca un auto para editar sus datos, o usa el botón + para agregar uno nuevo.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Toca un auto para ver Seguro, Revisión técnica y Patente, usa el lápiz para editar sus datos, o el botón + para agregar uno nuevo.</p>
           </div>
         </div>
       </div>

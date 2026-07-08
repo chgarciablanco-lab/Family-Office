@@ -4,6 +4,8 @@ import HomeScreen from "./HomeScreen";
 import PersonaScreen from "./PersonaScreen";
 import PerfilScreen from "./PerfilScreen";
 import AutosScreen from "./AutosScreen";
+import AutoDetailScreen from "./AutoDetailScreen";
+import AutoTramiteScreen from "./AutoTramiteScreen";
 import PropiedadesScreen from "./PropiedadesScreen";
 import SociedadesListScreen from "./SociedadesListScreen";
 import SociedadDetailScreen from "./SociedadDetailScreen";
@@ -26,6 +28,8 @@ export default function MainApp({ session }) {
   const [trabajadorBackTo, setTrabajadorBackTo] = useState("trabajadores-persona");
   const [selectedArriendo, setSelectedArriendo] = useState(null);
   const [arriendoBackTo, setArriendoBackTo] = useState("arriendos-persona");
+  const [selectedAuto, setSelectedAuto] = useState(null);
+  const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(null);
 
   const handleSelectSociedad = (s) => {
     setSelectedSociedad(s);
@@ -55,12 +59,39 @@ export default function MainApp({ session }) {
     setScreen("arriendo-detail");
   };
 
+  const handleSelectAuto = (a) => {
+    setSelectedAuto(a);
+    setScreen("auto-detail");
+  };
+
+  const handleSelectTramiteAuto = (tipo) => {
+    setSelectedTramiteAuto(tipo);
+    setScreen("auto-tramite");
+  };
+
   return (
     <Screen>
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
       {screen === "persona" && <PersonaScreen onNavigate={setScreen} />}
       {screen === "perfil" && <PerfilScreen session={session} onNavigate={setScreen} />}
-      {screen === "autos" && <AutosScreen onNavigate={setScreen} />}
+      {screen === "autos" && <AutosScreen onNavigate={setScreen} onSelect={handleSelectAuto} />}
+      {screen === "auto-detail" && selectedAuto && (
+        <AutoDetailScreen
+          auto={selectedAuto}
+          backTo="autos"
+          onNavigate={setScreen}
+          onSelectTramite={handleSelectTramiteAuto}
+          onUpdated={() => setScreen("autos")}
+        />
+      )}
+      {screen === "auto-tramite" && selectedAuto && selectedTramiteAuto && (
+        <AutoTramiteScreen
+          auto={selectedAuto}
+          tipo={selectedTramiteAuto}
+          backTo="auto-detail"
+          onNavigate={setScreen}
+        />
+      )}
 
       {screen === "propiedades" && (
         <PropiedadesScreen

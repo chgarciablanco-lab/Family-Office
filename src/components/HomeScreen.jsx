@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Building2, User, ChevronRight, Bell } from "lucide-react";
 import BottomNav from "./BottomNav";
+import PendienteRow from "./PendienteRow";
+import { fetchPendientes } from "../lib/pendientes";
 
 const menuItems = [
   {
@@ -30,6 +32,20 @@ export default function HomeScreen({ session, onNavigate }) {
   });
   const fechaCap = fecha.charAt(0).toUpperCase() + fecha.slice(1);
 
+  const [porVencer, setPorVencer] = useState([]);
+  const [vencidos, setVencidos] = useState([]);
+  const [abierto, setAbierto] = useState(null);
+
+  useEffect(() => {
+    fetchPendientes().then(({ porVencer, vencidos }) => {
+      setPorVencer(porVencer);
+      setVencidos(vencidos);
+    });
+  }, []);
+
+  const totalPendientes = porVencer.length + vencidos.length;
+  const listaAbierta = abierto === "por-vencer" ? porVencer : abierto === "vencidos" ? vencidos : [];
+
   return (
     <>
       <div className="px-5 pt-6 pb-2 flex items-start justify-between">
@@ -42,8 +58,15 @@ export default function HomeScreen({ session, onNavigate }) {
             <p className="text-sm text-slate-500 mt-1">{fechaCap}</p>
           </div>
         </div>
-        <button className="relative mt-1 shrink-0" aria-label="Notificaciones">
+        <button
+          className="relative mt-1 shrink-0"
+          aria-label="Ver notificaciones"
+          onClick={() => onNavigate("notificaciones")}
+        >
           <Bell className="w-6 h-6 text-slate-700" strokeWidth={1.8} />
+          {totalPendientes > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white" />
+          )}
         </button>
       </div>
 
@@ -51,6 +74,55 @@ export default function HomeScreen({ session, onNavigate }) {
         <h2 className="text-lg font-bold text-slate-900">¿Qué quieres gestionar hoy?</h2>
         <p className="text-sm text-slate-500 mt-0.5">Selecciona una opción para comenzar</p>
       </div>
+
+      {totalPendientes > 0 && (
+        <div className="px-5 pb-4">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <p className="px-4 pt-3.5 text-sm font-bold text-slate-900">Pendientes</p>
+            <div className="flex gap-2 px-4 py-3">
+              <button
+                onClick={() => setAbierto(abierto === "por-vencer" ? null : "por-vencer")}
+                className={`flex-1 rounded-xl px-3 py-2.5 flex items-baseline gap-1.5 bg-amber-100 border ${
+                  abierto === "por-vencer" ? "border-amber-600" : "border-transparent"
+                }`}
+              >
+                <span className="text-lg font-extrabold text-amber-800">{porVencer.length}</span>
+                <span className="text-xs font-semibold text-amber-700">por vencer</span>
+              </button>
+              <button
+                onClick={() => setAbierto(abierto === "vencidos" ? null : "vencidos")}
+                className={`flex-1 rounded-xl px-3 py-2.5 flex items-baseline gap-1.5 bg-red-100 border ${
+                  abierto === "vencidos" ? "border-red-600" : "border-transparent"
+                }`}
+              >
+                <span className="text-lg font-extrabold text-red-800">{vencidos.length}</span>
+                <span className="text-xs font-semibold text-red-700">vencidos</span>
+              </button>
+            </div>
+
+            {abierto && (
+              <div className="border-t border-slate-100">
+                <p className="px-4 pt-2.5 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+                  {abierto === "por-vencer" ? `Por vencer (${porVencer.length})` : `Vencidos (${vencidos.length})`}
+                </p>
+                <div className="flex flex-col gap-2.5 px-2 pb-2">
+                  {listaAbierta.slice(0, 5).map((item, i) => (
+                    <PendienteRow key={i} item={item} />
+                  ))}
+                </div>
+                {listaAbierta.length > 5 && (
+                  <button
+                    onClick={() => onNavigate("notificaciones")}
+                    className="w-full text-center py-2.5 text-xs font-bold text-violet-600 border-t border-slate-100"
+                  >
+                    Ver los {listaAbierta.length} {abierto === "por-vencer" ? "por vencer" : "vencidos"} →
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="px-5 flex flex-col gap-3 pb-4">
         {menuItems.map((item) => (

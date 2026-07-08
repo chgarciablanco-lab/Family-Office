@@ -17,6 +17,7 @@ import ArriendosScreen from "./ArriendosScreen";
 import ArriendoDetailScreen from "./ArriendoDetailScreen";
 import InversionesScreen from "./InversionesScreen";
 import PatenteSociedadScreen from "./PatenteSociedadScreen";
+import NotificacionesScreen from "./NotificacionesScreen";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 
@@ -98,6 +99,9 @@ export default function MainApp({ session }) {
   return (
     <Screen>
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
+      {screen === "notificaciones" && (
+        <NotificacionesScreen backTo="home" onNavigate={setScreen} />
+      )}
       {screen === "persona" && <PersonaScreen onNavigate={setScreen} />}
       {screen === "perfil" && <PerfilScreen session={session} onNavigate={setScreen} />}
       {screen === "autos" && <AutosScreen onNavigate={setScreen} onSelect={handleSelectAuto} />}

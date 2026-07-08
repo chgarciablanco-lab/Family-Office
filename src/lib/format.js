@@ -23,6 +23,7 @@ export function estadoSociedadPillClasses(estado) {
 
 export function estadoInversionPillClasses(estado) {
   if (estado === "Activa") return { bg: "bg-emerald-100", text: "text-emerald-700" };
+  if (estado === "Por vencer") return { bg: "bg-amber-100", text: "text-amber-700" };
   if (estado === "Vencida") return { bg: "bg-red-600", text: "text-white" };
   return { bg: "bg-slate-100", text: "text-slate-600" };
 }

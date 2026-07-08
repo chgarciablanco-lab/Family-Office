@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Field, inputClass, selectClass } from "./TramiteSection";
 import ConfirmDialog from "./ConfirmDialog";
 
-const estadosInversion = ["Activa", "Vencida", "Liquidada"];
+const estadosInversion = ["Activa", "Por vencer", "Vencida", "Liquidada"];
 
 function emptyForm(inversion) {
   return {
@@ -45,12 +45,14 @@ export default function InversionForm({ inversion, sociedadId, onClose, onSaved 
       : supabase.from("inversiones").insert(payload);
 
     const { error } = await query;
-    setSaving(false);
 
     if (error) {
+      setSaving(false);
       setError(error.message);
       return;
     }
+    await supabase.rpc("actualizar_estados_por_vencer");
+    setSaving(false);
     onSaved();
   };
 

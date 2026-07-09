@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Plus, FileText, Image as ImageIcon, File as FileIcon, Trash2, X } from "lucide-react";
+import { ArrowLeft, Plus, FileText, Image as ImageIcon, File as FileIcon, Trash2, X, FilePlus2 } from "lucide-react";
 import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
+import NuevaCategoriaDocumentoForm from "./NuevaCategoriaDocumentoForm";
 import { formatFechaCorta } from "../lib/format";
 import {
   CATEGORIAS_DOCUMENTOS, fetchDocumentos, subirDocumento, obtenerUrlPreview, eliminarDocumento, formatTamano,
@@ -152,6 +153,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
   const editable = puedeEditar("documentos");
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showNuevo, setShowNuevo] = useState(false);
 
   const cargar = async () => {
     setLoading(true);
@@ -164,7 +166,11 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
     cargar();
   }, [entidadTipo, entidadId]);
 
-  const categorias = CATEGORIAS_DOCUMENTOS[entidadTipo] || [];
+  const categoriasBase = CATEGORIAS_DOCUMENTOS[entidadTipo] || [];
+  const categoriasExtra = [...new Set(documentos.map((d) => d.categoria))].filter(
+    (c) => !categoriasBase.includes(c)
+  );
+  const categorias = [...categoriasBase, ...categoriasExtra];
 
   return (
     <>
@@ -192,10 +198,34 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
             editable={editable}
           />
         ))}
+
+        {editable && (
+          <button
+            onClick={() => setShowNuevo(true)}
+            className="w-full border-2 border-dashed border-slate-200 rounded-2xl px-4 py-3.5 flex items-center gap-3 text-left"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+              <FilePlus2 className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 text-sm">Agregar otro documento</p>
+              <p className="text-xs text-slate-500 mt-0.5">Súbelo con su propio nombre</p>
+            </div>
+          </button>
+        )}
       </div>
 
       <div className="flex-1" />
       <BottomNav variant="detail" onNavigate={onNavigate} />
+
+      {showNuevo && (
+        <NuevaCategoriaDocumentoForm
+          entidadTipo={entidadTipo}
+          entidadId={entidadId}
+          onClose={() => setShowNuevo(false)}
+          onSaved={() => { setShowNuevo(false); cargar(); }}
+        />
+      )}
     </>
   );
 }

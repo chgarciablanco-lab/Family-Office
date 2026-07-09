@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { ArrowLeft, MoreHorizontal, Car, ChevronRight } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Car, ChevronRight, Folder } from "lucide-react";
 import AutoForm from "./AutoForm";
 import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
 import { TIPOS_AUTO } from "../lib/autoTramites";
 import { usePermisos } from "../context/PermisosContext";
 
-export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTramite, onUpdated }) {
+export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTramite, onUpdated, onOpenDocumentos }) {
   const { puedeEditar } = usePermisos();
   const editable = puedeEditar("autos");
   const [showForm, setShowForm] = useState(false);
@@ -43,6 +43,17 @@ export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTra
             <p className="text-sm text-slate-500 mt-0.5">{auto.tipo} · Año {auto.anio}</p>
           </div>
         </div>
+
+        <button
+          onClick={() => onOpenDocumentos(auto)}
+          className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+        >
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+            <Folder className="w-5 h-5 text-slate-500" strokeWidth={1.8} />
+          </div>
+          <p className="flex-1 font-bold text-slate-900 text-sm">Documentos</p>
+          <ChevronRight className="w-5 h-5 text-slate-300" />
+        </button>
 
         {TIPOS_AUTO.map((t) => (
           <button

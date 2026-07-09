@@ -1,10 +1,11 @@
 import React from "react";
 import {
   ArrowLeft, MoreHorizontal, Home as HomeIcon, Users, Car,
-  TrendingUp, ClipboardList, Info, Key, FileText,
+  TrendingUp, ClipboardList, Info, Key, FileText, Folder, ChevronRight,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 import { usePermisos } from "../context/PermisosContext";
+import { PERSONA_DOC_ID } from "../lib/documentos";
 
 const secciones = [
   {
@@ -44,7 +45,7 @@ const secciones = [
   },
 ];
 
-export default function PersonaScreen({ onNavigate }) {
+export default function PersonaScreen({ onNavigate, onOpenDocumentos }) {
   const { puedeVer } = usePermisos();
   const seccionesVisibles = secciones.filter((sec) => puedeVer(sec.modulo));
 
@@ -81,6 +82,17 @@ export default function PersonaScreen({ onNavigate }) {
             </div>
           </button>
         ))}
+
+        <button
+          onClick={() => onOpenDocumentos({ id: PERSONA_DOC_ID, nombre: "Gestión personal" })}
+          className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+        >
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+            <Folder className="w-5 h-5 text-slate-500" strokeWidth={1.8} />
+          </div>
+          <p className="flex-1 font-bold text-slate-900 text-sm">Documentos</p>
+          <ChevronRight className="w-5 h-5 text-slate-300" />
+        </button>
 
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3 mb-2">
           <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" strokeWidth={1.8} />

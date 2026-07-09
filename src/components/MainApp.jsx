@@ -186,7 +186,9 @@ function MainAppInner({ session }) {
           onNavigate={setScreen}
         />
       )}
-      {screen === "persona" && <PersonaScreen onNavigate={setScreen} />}
+      {screen === "persona" && (
+        <PersonaScreen onNavigate={setScreen} onOpenDocumentos={handleOpenDocumentos("persona", "persona")} />
+      )}
       {screen === "perfil" && <PerfilScreen session={session} onNavigate={setScreen} />}
       {screen === "autos" && <AutosScreen onNavigate={setScreen} onSelect={handleSelectAuto} />}
       {screen === "auto-detail" && selectedAuto && (
@@ -196,6 +198,7 @@ function MainAppInner({ session }) {
           onNavigate={setScreen}
           onSelectTramite={handleSelectTramiteAuto}
           onUpdated={() => setScreen("autos")}
+          onOpenDocumentos={handleOpenDocumentos("auto", "auto-detail")}
         />
       )}
       {screen === "auto-tramite" && selectedAuto && selectedTramiteAuto && (

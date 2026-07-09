@@ -6,7 +6,12 @@ export const CATEGORIAS_DOCUMENTOS = {
   propiedad: ["Escritura", "Dominio vigente", "Hipoteca", "Contrato de arriendo", "Comprobantes", "Otros"],
   sociedad: ["Escritura de constitución", "Estatutos", "Modificaciones", "Contratos", "Comprobantes", "Otros"],
   trabajador: ["Contrato", "Liquidaciones", "Otros"],
+  auto: ["Padrón", "Seguro", "Revisión técnica", "Permiso de circulación", "Otros"],
+  persona: ["Cédula de identidad", "Comprobantes", "Otros"],
 };
+
+// Id fijo para la "carpeta" de Documentos de Gestión personal, que no tiene una fila propia en ninguna tabla.
+export const PERSONA_DOC_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function fetchDocumentos(entidadTipo, entidadId) {
   const { data, error } = await supabase
@@ -21,7 +26,8 @@ export async function fetchDocumentos(entidadTipo, entidadId) {
 
 export async function subirDocumento(entidadTipo, entidadId, categoria, file) {
   const nombreSeguro = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `${entidadTipo}/${entidadId}/${categoria}/${Date.now()}-${nombreSeguro}`;
+  const categoriaSegura = categoria.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `${entidadTipo}/${entidadId}/${categoriaSegura}/${Date.now()}-${nombreSeguro}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
     contentType: file.type || "application/octet-stream",

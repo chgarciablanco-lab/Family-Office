@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Plus, FileText, Image as ImageIcon, File as FileIcon, Trash2, X, FilePlus2 } from "lucide-react";
+import { ArrowLeft, Plus, FileText, Image as ImageIcon, File as FileIcon, Trash2, X, FilePlus2, Pencil, Check } from "lucide-react";
 import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
 import NuevaCategoriaDocumentoForm from "./NuevaCategoriaDocumentoForm";
 import { formatFechaCorta } from "../lib/format";
 import {
   CATEGORIAS_DOCUMENTOS, fetchDocumentos, subirDocumento, obtenerUrlPreview, eliminarDocumento, formatTamano,
+  renombrarCategoria,
 } from "../lib/documentos";
 import { usePermisos } from "../context/PermisosContext";
 
@@ -65,6 +66,8 @@ function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onCha
   const [subiendo, setSubiendo] = useState(false);
   const [preview, setPreview] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [renombrando, setRenombrando] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState(categoria);
 
   const docsCategoria = documentos.filter((d) => d.categoria === categoria);
 
@@ -85,16 +88,53 @@ function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onCha
     onChanged();
   };
 
+  const handleRenombrar = async (e) => {
+    e.preventDefault();
+    const nombre = nuevoNombre.trim();
+    if (!nombre || nombre === categoria) {
+      setRenombrando(false);
+      return;
+    }
+    await renombrarCategoria(entidadTipo, entidadId, categoria, nombre);
+    setRenombrando(false);
+    onChanged();
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-slate-900">{categoria}</p>
-        {editable && (
+      <div className="flex items-center justify-between gap-2">
+        {renombrando ? (
+          <form onSubmit={handleRenombrar} className="flex-1 flex items-center gap-1.5">
+            <input
+              autoComplete="off"
+              autoFocus
+              value={nuevoNombre}
+              onChange={(e) => setNuevoNombre(e.target.value)}
+              className="flex-1 h-8 border border-slate-200 rounded-lg px-2 text-sm text-slate-900 outline-none focus:border-violet-400"
+            />
+            <button type="submit" aria-label="Guardar nombre" className="shrink-0">
+              <Check className="w-4 h-4 text-emerald-600" strokeWidth={2.4} />
+            </button>
+            <button type="button" onClick={() => { setNuevoNombre(categoria); setRenombrando(false); }} aria-label="Cancelar" className="shrink-0">
+              <X className="w-4 h-4 text-slate-400" strokeWidth={2.4} />
+            </button>
+          </form>
+        ) : (
+          <div className="flex items-center gap-1.5 min-w-0">
+            <p className="text-sm font-bold text-slate-900 truncate">{categoria}</p>
+            {editable && docsCategoria.length > 0 && (
+              <button onClick={() => { setNuevoNombre(categoria); setRenombrando(true); }} aria-label={`Renombrar ${categoria}`} className="shrink-0">
+                <Pencil className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.8} />
+              </button>
+            )}
+          </div>
+        )}
+        {editable && !renombrando && (
           <button
             onClick={() => inputRef.current?.click()}
             disabled={subiendo}
             aria-label={`Agregar documento a ${categoria}`}
-            className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center disabled:opacity-50"
+            className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center disabled:opacity-50 shrink-0"
           >
             <Plus className="w-4 h-4 text-white" strokeWidth={2.4} />
           </button>

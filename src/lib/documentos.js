@@ -3,11 +3,11 @@ import { supabase } from "./supabaseClient";
 const BUCKET = "documentos";
 
 export const CATEGORIAS_DOCUMENTOS = {
-  propiedad: ["Escritura", "Dominio vigente", "Hipoteca", "Contrato de arriendo", "Comprobantes", "Otros"],
-  sociedad: ["Escritura de constitución", "Estatutos", "Modificaciones", "Contratos", "Comprobantes", "Otros"],
-  trabajador: ["Contrato", "Liquidaciones", "Otros"],
-  auto: ["Padrón", "Seguro", "Revisión técnica", "Permiso de circulación", "Otros"],
-  persona: ["Cédula de identidad", "Comprobantes", "Otros"],
+  propiedad: ["Escritura", "Dominio vigente", "Hipoteca", "Contrato de arriendo", "Comprobantes"],
+  sociedad: ["Escritura de constitución", "Estatutos", "Modificaciones", "Contratos", "Comprobantes"],
+  trabajador: ["Contrato", "Liquidaciones"],
+  auto: ["Padrón", "Seguro", "Revisión técnica", "Permiso de circulación"],
+  persona: ["Cédula de identidad", "Comprobantes"],
 };
 
 // Id fijo para la "carpeta" de Documentos de Gestión personal, que no tiene una fila propia en ninguna tabla.
@@ -55,6 +55,16 @@ export async function obtenerUrlPreview(storagePath) {
 export async function eliminarDocumento(doc) {
   await supabase.storage.from(BUCKET).remove([doc.storage_path]);
   const { error } = await supabase.from("documentos").delete().eq("id", doc.id);
+  return error;
+}
+
+export async function renombrarCategoria(entidadTipo, entidadId, categoriaVieja, categoriaNueva) {
+  const { error } = await supabase
+    .from("documentos")
+    .update({ categoria: categoriaNueva })
+    .eq("entidad_tipo", entidadTipo)
+    .eq("entidad_id", entidadId)
+    .eq("categoria", categoriaVieja);
   return error;
 }
 

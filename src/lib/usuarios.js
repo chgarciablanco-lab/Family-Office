@@ -53,3 +53,7 @@ export async function actualizarPermisos({ profile_id, rol, permisos }) {
 export async function eliminarUsuario(profile_id) {
   return invocar({ accion: "eliminar_usuario", profile_id });
 }
+
+export async function actualizarMiNombre(nombre) {
+  return invocar({ accion: "actualizar_mi_nombre", nombre });
+}

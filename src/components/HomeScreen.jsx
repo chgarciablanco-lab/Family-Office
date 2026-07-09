@@ -7,6 +7,14 @@ import { usePermisos } from "../context/PermisosContext";
 
 const MODULOS_PERSONA = ["propiedades", "autos", "trabajadores", "impuestos", "arriendos", "inversiones", "otros_gastos"];
 
+function saludoSegunHora(hora) {
+  if (hora >= 5 && hora < 7) return "Hola, madrugador";
+  if (hora >= 7 && hora < 12) return "Buenos días";
+  if (hora >= 12 && hora < 19) return "Buenas tardes";
+  if (hora >= 19 && hora < 24) return "Buenas noches";
+  return "Hola, trasnochador";
+}
+
 const menuItems = [
   {
     key: "sociedades-list",
@@ -52,7 +60,9 @@ const menuItems = [
 ];
 
 export default function HomeScreen({ session, onNavigate }) {
-  const { esAdmin, puedeVer } = usePermisos();
+  const { esAdmin, puedeVer, perfil } = usePermisos();
+  const primerNombre = (perfil?.nombre || "").trim().split(" ")[0];
+  const saludo = saludoSegunHora(new Date().getHours());
 
   const itemsVisibles = menuItems.filter((item) => {
     if (item.soloAdmin) return esAdmin;
@@ -102,8 +112,10 @@ export default function HomeScreen({ session, onNavigate }) {
       </div>
 
       <div className="px-5 pt-4 pb-3">
-        <h2 className="text-lg font-bold text-slate-900">¿Qué quieres gestionar hoy?</h2>
-        <p className="text-sm text-slate-500 mt-0.5">Selecciona una opción para comenzar</p>
+        <h2 className="text-lg font-bold text-slate-900">
+          {saludo}{primerNombre ? `, ${primerNombre}` : ""}
+        </h2>
+        <p className="text-sm text-slate-500 mt-0.5">¿Qué quieres gestionar hoy?</p>
       </div>
 
       {totalPendientes > 0 && (

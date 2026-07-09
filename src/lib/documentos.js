@@ -82,6 +82,48 @@ export async function renombrarCategoria(entidadTipo, entidadId, categoriaVieja,
   return error;
 }
 
+export async function fetchTodosLosDocumentos() {
+  const { data, error } = await supabase
+    .from("documentos")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+
+  const idsPorTipo = { propiedad: new Set(), sociedad: new Set(), trabajador: new Set(), auto: new Set() };
+  data.forEach((d) => {
+    if (idsPorTipo[d.entidad_tipo]) idsPorTipo[d.entidad_tipo].add(d.entidad_id);
+  });
+
+  const [propiedades, sociedades, trabajadores, autos] = await Promise.all([
+    idsPorTipo.propiedad.size
+      ? supabase.from("propiedades").select("id, nombre").in("id", [...idsPorTipo.propiedad])
+      : Promise.resolve({ data: [] }),
+    idsPorTipo.sociedad.size
+      ? supabase.from("sociedades").select("id, nombre").in("id", [...idsPorTipo.sociedad])
+      : Promise.resolve({ data: [] }),
+    idsPorTipo.trabajador.size
+      ? supabase.from("trabajadores").select("id, nombre").in("id", [...idsPorTipo.trabajador])
+      : Promise.resolve({ data: [] }),
+    idsPorTipo.auto.size
+      ? supabase.from("autos").select("id, marca, modelo, patente").in("id", [...idsPorTipo.auto])
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const nombreDe = (tipo, id) => {
+    if (tipo === "persona") return "Gestión personal";
+    if (tipo === "propiedad") return propiedades.data?.find((p) => p.id === id)?.nombre ?? "Propiedad";
+    if (tipo === "sociedad") return sociedades.data?.find((s) => s.id === id)?.nombre ?? "Sociedad";
+    if (tipo === "trabajador") return trabajadores.data?.find((t) => t.id === id)?.nombre ?? "Trabajador";
+    if (tipo === "auto") {
+      const a = autos.data?.find((a) => a.id === id);
+      return a ? `${a.marca} ${a.modelo}` : "Auto";
+    }
+    return tipo;
+  };
+
+  return data.map((d) => ({ ...d, entidadNombre: nombreDe(d.entidad_tipo, d.entidad_id) }));
+}
+
 export function formatTamano(bytes) {
   if (!bytes) return "-";
   if (bytes < 1024) return `${bytes} B`;

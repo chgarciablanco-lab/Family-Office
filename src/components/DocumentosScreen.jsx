@@ -1,79 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Plus, FileText, Image as ImageIcon, File as FileIcon, Trash2, X, FilePlus2, Pencil, Check, Download } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, X, FilePlus2, Pencil, Check } from "lucide-react";
 import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
 import NuevaCategoriaDocumentoForm from "./NuevaCategoriaDocumentoForm";
+import DocumentoPreviewModal, { iconoDoc } from "./DocumentoPreviewModal";
 import { formatFechaCorta } from "../lib/format";
 import {
-  CATEGORIAS_DOCUMENTOS, fetchDocumentos, subirDocumento, obtenerUrlPreview, eliminarDocumento, formatTamano,
-  renombrarCategoria, descargarDocumento,
+  CATEGORIAS_DOCUMENTOS, fetchDocumentos, subirDocumento, eliminarDocumento, formatTamano,
+  renombrarCategoria,
 } from "../lib/documentos";
 import { usePermisos } from "../context/PermisosContext";
-
-function iconoDoc(contentType) {
-  if (contentType?.startsWith("image/")) return ImageIcon;
-  if (contentType === "application/pdf") return FileText;
-  return FileIcon;
-}
-
-function PreviewModal({ doc, onClose }) {
-  const [url, setUrl] = useState(null);
-  const [descargando, setDescargando] = useState(false);
-
-  useEffect(() => {
-    let vigente = true;
-    obtenerUrlPreview(doc.storage_path).then((u) => { if (vigente) setUrl(u); });
-    return () => { vigente = false; };
-  }, [doc]);
-
-  const esImagen = doc.content_type?.startsWith("image/");
-  const esPdf = doc.content_type === "application/pdf";
-
-  const handleDescargar = async () => {
-    setDescargando(true);
-    await descargarDocumento(doc);
-    setDescargando(false);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
-        <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-slate-100 shrink-0">
-          <p className="text-sm font-bold text-slate-900 truncate pr-2 flex-1 min-w-0">{doc.nombre}</p>
-          <button
-            onClick={handleDescargar}
-            disabled={descargando}
-            aria-label="Descargar documento"
-            className="shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center disabled:opacity-50"
-          >
-            <Download className="w-4 h-4 text-slate-600" strokeWidth={1.8} />
-          </button>
-          <button onClick={onClose} aria-label="Cerrar" className="shrink-0">
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-auto bg-slate-50 flex items-center justify-center min-h-[200px]">
-          {!url && <p className="text-sm text-slate-400 py-10">Cargando...</p>}
-          {url && esImagen && (
-            <img src={url} alt={doc.nombre} className="max-w-full max-h-[70vh] object-contain" />
-          )}
-          {url && esPdf && (
-            <iframe src={url} title={doc.nombre} className="w-full h-[70vh] border-0" />
-          )}
-          {url && !esImagen && !esPdf && (
-            <button
-              onClick={handleDescargar}
-              disabled={descargando}
-              className="text-violet-600 font-semibold text-sm py-10 disabled:opacity-50"
-            >
-              {descargando ? "Descargando..." : "Descargar documento →"}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onChanged, editable }) {
   const inputRef = useRef(null);
@@ -188,7 +124,7 @@ function CategoriaSection({ entidadTipo, entidadId, categoria, documentos, onCha
         </div>
       )}
 
-      {preview && <PreviewModal doc={preview} onClose={() => setPreview(null)} />}
+      {preview && <DocumentoPreviewModal doc={preview} onClose={() => setPreview(null)} />}
 
       {confirmDelete && (
         <ConfirmDialog

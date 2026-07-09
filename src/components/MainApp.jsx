@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Screen from "./Screen";
 import HomeScreen from "./HomeScreen";
 import PersonaScreen from "./PersonaScreen";
@@ -25,6 +25,7 @@ import UsuariosScreen from "./UsuariosScreen";
 import NotasScreen from "./NotasScreen";
 import NotaDetailScreen from "./NotaDetailScreen";
 import InformesScreen from "./InformesScreen";
+import DocumentosBuscarScreen from "./DocumentosBuscarScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
@@ -65,6 +66,21 @@ function MainAppInner({ session }) {
   const [documentosCtx, setDocumentosCtx] = useState(initialNav.documentosCtx || null);
   const [selectedNota, setSelectedNota] = useState(initialNav.selectedNota || null);
   const [notifCount, setNotifCount] = useState(0);
+
+  const screenHistoryRef = useRef([]);
+  const prevScreenRef = useRef(screen);
+
+  useEffect(() => {
+    if (prevScreenRef.current !== screen) {
+      screenHistoryRef.current.push(prevScreenRef.current);
+      prevScreenRef.current = screen;
+    }
+  }, [screen]);
+
+  const handleSwipeBack = () => {
+    const previo = screenHistoryRef.current.pop();
+    if (previo) setScreen(previo);
+  };
 
   const cargarNotifCount = () => {
     fetchPendientes().then(({ porVencer, vencidos }) => setNotifCount(porVencer.length + vencidos.length));
@@ -154,7 +170,7 @@ function MainAppInner({ session }) {
   }
 
   return (
-    <Screen onNavigate={setScreen} notifCount={notifCount} ocultarCampana={screen === "notificaciones"}>
+    <Screen onNavigate={setScreen} notifCount={notifCount} ocultarCampana={screen === "notificaciones"} onSwipeBack={handleSwipeBack}>
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
       {screen === "notificaciones" && (
         <NotificacionesScreen backTo="home" onNavigate={setScreen} />
@@ -176,6 +192,9 @@ function MainAppInner({ session }) {
       )}
       {screen === "informes" && (
         <InformesScreen backTo="home" onNavigate={setScreen} />
+      )}
+      {screen === "documentos-buscar" && (
+        <DocumentosBuscarScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, ClipboardList, ShieldCheck, StickyNote, FileBarChart } from "lucide-react";
+import { Building2, User, ChevronRight, ClipboardList, ShieldCheck, StickyNote, FileBarChart, FolderSearch } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -57,6 +57,14 @@ const menuItems = [
     fg: "text-indigo-600",
   },
   {
+    key: "documentos-buscar",
+    title: "Documentos",
+    subtitle: "Busca cualquier archivo\nguardado en la app",
+    icon: FolderSearch,
+    bg: "bg-teal-100",
+    fg: "text-teal-600",
+  },
+  {
     key: "usuarios",
     title: "Usuarios",
     subtitle: "Crea usuarios y decide qué\npuede ver y editar cada uno",
@@ -79,6 +87,7 @@ export default function HomeScreen({ session, onNavigate }) {
     if (item.key === "tareas") return puedeVer("calendario_tareas");
     if (item.key === "notas") return puedeVer("notas");
     if (item.key === "informes") return puedeVer("informes");
+    if (item.key === "documentos-buscar") return puedeVer("documentos");
     return true;
   });
 

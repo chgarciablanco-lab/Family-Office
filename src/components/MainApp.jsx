@@ -24,6 +24,7 @@ import TareasScreen from "./TareasScreen";
 import UsuariosScreen from "./UsuariosScreen";
 import NotasScreen from "./NotasScreen";
 import NotaDetailScreen from "./NotaDetailScreen";
+import InformesScreen from "./InformesScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
@@ -172,6 +173,9 @@ function MainAppInner({ session }) {
       )}
       {screen === "nota-detail" && selectedNota && (
         <NotaDetailScreen nota={selectedNota} backTo="notas" onNavigate={setScreen} />
+      )}
+      {screen === "informes" && (
+        <InformesScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

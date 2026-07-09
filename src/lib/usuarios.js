@@ -12,6 +12,7 @@ export const MODULOS = [
   { key: "documentos", label: "Documentos" },
   { key: "calendario_tareas", label: "Calendario y tareas" },
   { key: "notas", label: "Notas" },
+  { key: "informes", label: "Informes" },
 ];
 
 export async function fetchProfiles() {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, ClipboardList, ShieldCheck, StickyNote } from "lucide-react";
+import { Building2, User, ChevronRight, ClipboardList, ShieldCheck, StickyNote, FileBarChart } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -49,6 +49,14 @@ const menuItems = [
     fg: "text-rose-500",
   },
   {
+    key: "informes",
+    title: "Informes",
+    subtitle: "Gastos e ingresos del mes\npor sociedad y gestión personal",
+    icon: FileBarChart,
+    bg: "bg-indigo-100",
+    fg: "text-indigo-600",
+  },
+  {
     key: "usuarios",
     title: "Usuarios",
     subtitle: "Crea usuarios y decide qué\npuede ver y editar cada uno",
@@ -70,6 +78,7 @@ export default function HomeScreen({ session, onNavigate }) {
     if (item.key === "persona") return MODULOS_PERSONA.some((m) => puedeVer(m));
     if (item.key === "tareas") return puedeVer("calendario_tareas");
     if (item.key === "notas") return puedeVer("notas");
+    if (item.key === "informes") return puedeVer("informes");
     return true;
   });
 

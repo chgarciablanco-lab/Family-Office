@@ -52,6 +52,20 @@ export async function obtenerUrlPreview(storagePath) {
   return data.signedUrl;
 }
 
+export async function descargarDocumento(doc) {
+  const { data, error } = await supabase.storage.from(BUCKET).download(doc.storage_path);
+  if (error || !data) return { error };
+  const url = URL.createObjectURL(data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = doc.nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  return { error: null };
+}
+
 export async function eliminarDocumento(doc) {
   await supabase.storage.from(BUCKET).remove([doc.storage_path]);
   const { error } = await supabase.from("documentos").delete().eq("id", doc.id);

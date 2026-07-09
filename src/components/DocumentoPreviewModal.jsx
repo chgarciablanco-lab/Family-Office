@@ -11,66 +11,79 @@ export function iconoDoc(contentType) {
 function ZoomableImage({ src, alt }) {
   const containerRef = useRef(null);
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
+  const [gestureActive, setGestureActive] = useState(false);
   const transformRef = useRef(transform);
   transformRef.current = transform;
-  const gestureRef = useRef({});
+  const gestureRef = useRef({ touchCount: 0 });
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
     const dist = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+    const midpoint = (touches) =>
+      touches.length === 2
+        ? { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 }
+        : { x: touches[0].clientX, y: touches[0].clientY };
+
+    // Recalcula el punto de partida del gesto: se llama al iniciar un toque y también
+    // cada vez que cambia la cantidad de dedos a mitad de gesto (p.ej. de 2 a 1), para
+    // que no se "congele" el zoom al soltar un dedo antes que el otro.
+    const rebaseline = (touches) => {
+      gestureRef.current = {
+        touchCount: touches.length,
+        dist: touches.length === 2 ? dist(touches) : null,
+        scale: transformRef.current.scale,
+        x: transformRef.current.x,
+        y: transformRef.current.y,
+        mid: midpoint(touches),
+      };
+    };
 
     const onTouchStart = (e) => {
-      if (e.touches.length === 2) {
-        gestureRef.current = {
-          type: "pinch",
-          startDist: dist(e.touches),
-          startScale: transformRef.current.scale,
-          startX: transformRef.current.x,
-          startY: transformRef.current.y,
-        };
-      } else if (e.touches.length === 1 && transformRef.current.scale > 1.01) {
-        gestureRef.current = {
-          type: "pan",
-          startTouchX: e.touches[0].clientX,
-          startTouchY: e.touches[0].clientY,
-          startX: transformRef.current.x,
-          startY: transformRef.current.y,
-        };
-      } else {
-        gestureRef.current = {};
-      }
+      rebaseline(e.touches);
+      setGestureActive(true);
     };
 
     const onTouchMove = (e) => {
-      if (gestureRef.current.type === "pinch" && e.touches.length === 2) {
+      if (e.touches.length !== gestureRef.current.touchCount) {
+        rebaseline(e.touches);
+        return;
+      }
+      if (e.touches.length === 2) {
         e.preventDefault();
         const newDist = dist(e.touches);
-        const newScale = Math.min(4, Math.max(1, gestureRef.current.startScale * (newDist / gestureRef.current.startDist)));
-        setTransform({ scale: newScale, x: gestureRef.current.startX, y: gestureRef.current.startY });
-      } else if (gestureRef.current.type === "pan" && e.touches.length === 1) {
+        const ratio = newDist / gestureRef.current.dist;
+        const newScale = Math.min(4, Math.max(1, gestureRef.current.scale * ratio));
+        setTransform({ scale: newScale, x: gestureRef.current.x, y: gestureRef.current.y });
+      } else if (e.touches.length === 1 && transformRef.current.scale > 1.01) {
         e.preventDefault();
-        const dx = e.touches[0].clientX - gestureRef.current.startTouchX;
-        const dy = e.touches[0].clientY - gestureRef.current.startTouchY;
-        setTransform((t) => ({ ...t, x: gestureRef.current.startX + dx, y: gestureRef.current.startY + dy }));
+        const mid = midpoint(e.touches);
+        const dx = mid.x - gestureRef.current.mid.x;
+        const dy = mid.y - gestureRef.current.mid.y;
+        setTransform((t) => ({ ...t, x: gestureRef.current.x + dx, y: gestureRef.current.y + dy }));
       }
     };
 
     const onTouchEnd = (e) => {
-      if (e.touches.length === 0) {
-        gestureRef.current = {};
-        setTransform((t) => (t.scale <= 1.02 ? { scale: 1, x: 0, y: 0 } : t));
+      if (e.touches.length > 0) {
+        rebaseline(e.touches);
+        return;
       }
+      gestureRef.current = { touchCount: 0 };
+      setGestureActive(false);
+      setTransform((t) => (t.scale <= 1.02 ? { scale: 1, x: 0, y: 0 } : t));
     };
 
     el.addEventListener("touchstart", onTouchStart, { passive: true });
     el.addEventListener("touchmove", onTouchMove, { passive: false });
     el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
     return () => {
       el.removeEventListener("touchstart", onTouchStart);
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
     };
   }, []);
 
@@ -82,7 +95,7 @@ function ZoomableImage({ src, alt }) {
     <div
       ref={containerRef}
       className="w-full h-full flex items-center justify-center overflow-hidden"
-      style={{ touchAction: transform.scale > 1 ? "none" : "pan-y" }}
+      style={{ touchAction: "none" }}
       onDoubleClick={handleDoubleClick}
     >
       <img
@@ -91,8 +104,9 @@ function ZoomableImage({ src, alt }) {
         draggable={false}
         className="max-w-full max-h-[70vh] object-contain select-none"
         style={{
+          touchAction: "none",
           transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-          transition: gestureRef.current.type ? "none" : "transform 0.15s ease-out",
+          transition: gestureActive ? "none" : "transform 0.15s ease-out",
         }}
       />
     </div>
@@ -135,7 +149,9 @@ export default function DocumentoPreviewModal({ doc, onClose }) {
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
-        <div className="flex-1 overflow-auto bg-slate-50 flex items-center justify-center min-h-[200px]">
+        <div
+          className={`flex-1 bg-slate-50 flex items-center justify-center min-h-[200px] ${esImagen ? "" : "overflow-auto"}`}
+        >
           {!url && <p className="text-sm text-slate-400 py-10">Cargando...</p>}
           {url && esImagen && <ZoomableImage src={url} alt={doc.nombre} />}
           {url && esPdf && (

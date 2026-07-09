@@ -72,7 +72,14 @@ function MainAppInner({ session }) {
 
   useEffect(() => {
     if (prevScreenRef.current !== screen) {
-      screenHistoryRef.current.push(prevScreenRef.current);
+      const historial = screenHistoryRef.current;
+      if (historial[historial.length - 1] === screen) {
+        // Navegamos justo a la pantalla que ya está en el tope del historial (típicamente
+        // un botón "volver" en pantalla): lo tratamos como retroceder, no como avanzar.
+        historial.pop();
+      } else {
+        historial.push(prevScreenRef.current);
+      }
       prevScreenRef.current = screen;
     }
   }, [screen]);

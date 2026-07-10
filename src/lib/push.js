@@ -32,37 +32,41 @@ export async function activarNotificacionesPush() {
     return { error: "Este navegador no soporta notificaciones push." };
   }
 
-  const permiso = await Notification.requestPermission();
-  if (permiso !== "granted") {
-    return { error: "No diste permiso para recibir notificaciones." };
+  try {
+    const permiso = await Notification.requestPermission();
+    if (permiso !== "granted") {
+      return { error: "No diste permiso para recibir notificaciones." };
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    if (!userId) return { error: "No se pudo identificar tu sesión." };
+
+    const raw = subscription.toJSON();
+    const { error } = await supabase.from("push_subscriptions").upsert(
+      {
+        user_id: userId,
+        endpoint: raw.endpoint,
+        p256dh: raw.keys.p256dh,
+        auth_key: raw.keys.auth,
+      },
+      { onConflict: "endpoint" }
+    );
+
+    if (error) return { error: error.message };
+    return { data: true };
+  } catch (err) {
+    return { error: err?.message || "No se pudo activar las notificaciones." };
   }
-
-  const registration = await navigator.serviceWorker.ready;
-  let subscription = await registration.pushManager.getSubscription();
-  if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
-  }
-
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData?.user?.id;
-  if (!userId) return { error: "No se pudo identificar tu sesión." };
-
-  const raw = subscription.toJSON();
-  const { error } = await supabase.from("push_subscriptions").upsert(
-    {
-      user_id: userId,
-      endpoint: raw.endpoint,
-      p256dh: raw.keys.p256dh,
-      auth_key: raw.keys.auth,
-    },
-    { onConflict: "endpoint" }
-  );
-
-  if (error) return { error: error.message };
-  return { data: true };
 }
 
 export async function desactivarNotificacionesPush() {

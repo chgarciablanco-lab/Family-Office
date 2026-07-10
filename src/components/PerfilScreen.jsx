@@ -31,25 +31,30 @@ export default function PerfilScreen({ session, onNavigate }) {
       setPushLoading(false);
       return;
     }
-    obtenerSuscripcionActual().then((sub) => {
-      setPushActivo(Boolean(sub));
-      setPushLoading(false);
-    });
+    obtenerSuscripcionActual()
+      .then((sub) => setPushActivo(Boolean(sub)))
+      .catch(() => {})
+      .finally(() => setPushLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleTogglePush = async () => {
     setPushError("");
     setPushLoading(true);
-    if (pushActivo) {
-      await desactivarNotificacionesPush();
-      setPushActivo(false);
-    } else {
-      const { error } = await activarNotificacionesPush();
-      if (error) setPushError(error);
-      else setPushActivo(true);
+    try {
+      if (pushActivo) {
+        await desactivarNotificacionesPush();
+        setPushActivo(false);
+      } else {
+        const { error } = await activarNotificacionesPush();
+        if (error) setPushError(error);
+        else setPushActivo(true);
+      }
+    } catch (err) {
+      setPushError(err?.message || "No se pudo cambiar el estado de las notificaciones.");
+    } finally {
+      setPushLoading(false);
     }
-    setPushLoading(false);
   };
 
   const handleGuardar = async (e) => {
@@ -140,7 +145,7 @@ export default function PerfilScreen({ session, onNavigate }) {
                 {pushSoportado ? "Recibe avisos en tu teléfono" : "No disponible en este navegador"}
               </p>
             </div>
-            {pushSoportado && (esIOS ? !esStandalone : true) && (
+            {pushSoportado && (!esIOS || esStandalone) && (
               <button
                 onClick={handleTogglePush}
                 disabled={pushLoading}

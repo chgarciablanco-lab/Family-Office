@@ -1,10 +1,18 @@
-import React, { useState } from "react";
-import { ArrowLeft, User, LogOut, Pencil, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, User, LogOut, Pencil, X, Bell } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { usePermisos } from "../context/PermisosContext";
 import { actualizarMiNombre } from "../lib/usuarios";
 import { Field, inputClass } from "./TramiteSection";
+import {
+  soportaNotificacionesPush, obtenerSuscripcionActual, activarNotificacionesPush, desactivarNotificacionesPush,
+} from "../lib/push";
+
+const esIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+const esStandalone =
+  typeof window !== "undefined" &&
+  (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true);
 
 export default function PerfilScreen({ session, onNavigate }) {
   const { esAdmin, perfil, recargar } = usePermisos();
@@ -12,6 +20,37 @@ export default function PerfilScreen({ session, onNavigate }) {
   const [nombre, setNombre] = useState(perfil?.nombre || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const pushSoportado = soportaNotificacionesPush();
+  const [pushActivo, setPushActivo] = useState(false);
+  const [pushLoading, setPushLoading] = useState(true);
+  const [pushError, setPushError] = useState("");
+
+  useEffect(() => {
+    if (!pushSoportado) {
+      setPushLoading(false);
+      return;
+    }
+    obtenerSuscripcionActual().then((sub) => {
+      setPushActivo(Boolean(sub));
+      setPushLoading(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleTogglePush = async () => {
+    setPushError("");
+    setPushLoading(true);
+    if (pushActivo) {
+      await desactivarNotificacionesPush();
+      setPushActivo(false);
+    } else {
+      const { error } = await activarNotificacionesPush();
+      if (error) setPushError(error);
+      else setPushActivo(true);
+    }
+    setPushLoading(false);
+  };
 
   const handleGuardar = async (e) => {
     e.preventDefault();
@@ -88,6 +127,38 @@ export default function PerfilScreen({ session, onNavigate }) {
               </div>
             </form>
           )}
+        </div>
+
+        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+              <Bell className="w-5 h-5 text-blue-600" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-900 text-sm">Notificaciones push</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {pushSoportado ? "Recibe avisos en tu teléfono" : "No disponible en este navegador"}
+              </p>
+            </div>
+            {pushSoportado && (esIOS ? !esStandalone : true) && (
+              <button
+                onClick={handleTogglePush}
+                disabled={pushLoading}
+                aria-label={pushActivo ? "Desactivar notificaciones" : "Activar notificaciones"}
+                className={`shrink-0 w-11 h-6 rounded-full relative transition-colors ${pushActivo ? "bg-emerald-500" : "bg-slate-200"} disabled:opacity-50`}
+              >
+                <span
+                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${pushActivo ? "translate-x-[22px]" : "translate-x-0.5"}`}
+                />
+              </button>
+            )}
+          </div>
+          {pushSoportado && esIOS && !esStandalone && (
+            <p className="text-xs text-amber-600 mt-3 pt-3 border-t border-slate-100">
+              En iPhone primero debes instalar la app: toca Compartir → "Agregar a pantalla de inicio". Luego podrás activar las notificaciones desde aquí.
+            </p>
+          )}
+          {pushError && <p className="text-xs text-red-500 mt-3 pt-3 border-t border-slate-100">{pushError}</p>}
         </div>
 
         <button

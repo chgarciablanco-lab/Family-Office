@@ -52,6 +52,13 @@ export async function obtenerUrlPreview(storagePath) {
   return data.signedUrl;
 }
 
+export async function obtenerUrlCompartir(storagePath) {
+  // 7 días: suficiente para que la otra persona lo abra sin dejar el link activo indefinidamente.
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60 * 24 * 7);
+  if (error) return null;
+  return data.signedUrl;
+}
+
 export async function descargarDocumento(doc) {
   const { data, error } = await supabase.storage.from(BUCKET).download(doc.storage_path);
   if (error || !data) return { error };

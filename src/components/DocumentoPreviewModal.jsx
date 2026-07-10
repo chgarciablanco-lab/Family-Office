@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Download, X, FileText, Image as ImageIcon, File as FileIcon } from "lucide-react";
-import { obtenerUrlPreview, descargarDocumento } from "../lib/documentos";
+import { Download, X, FileText, Image as ImageIcon, File as FileIcon, Share2, Check } from "lucide-react";
+import { obtenerUrlPreview, obtenerUrlCompartir, descargarDocumento } from "../lib/documentos";
 
 export function iconoDoc(contentType) {
   if (contentType?.startsWith("image/")) return ImageIcon;
@@ -134,6 +134,8 @@ function ZoomableImage({ src, alt }) {
 export default function DocumentoPreviewModal({ doc, onClose }) {
   const [url, setUrl] = useState(null);
   const [descargando, setDescargando] = useState(false);
+  const [compartiendo, setCompartiendo] = useState(false);
+  const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
     let vigente = true;
@@ -150,11 +152,45 @@ export default function DocumentoPreviewModal({ doc, onClose }) {
     setDescargando(false);
   };
 
+  const handleCompartir = async () => {
+    setCompartiendo(true);
+    const urlCompartir = await obtenerUrlCompartir(doc.storage_path);
+    setCompartiendo(false);
+    if (!urlCompartir) return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: doc.nombre, url: urlCompartir });
+      } catch {
+        // el usuario canceló el share sheet, no hacemos nada
+      }
+      return;
+    }
+
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(urlCompartir);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-slate-100 shrink-0">
           <p className="text-sm font-bold text-slate-900 truncate pr-2 flex-1 min-w-0">{doc.nombre}</p>
+          <button
+            onClick={handleCompartir}
+            disabled={compartiendo}
+            aria-label="Compartir documento"
+            className="shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center disabled:opacity-50"
+          >
+            {copiado ? (
+              <Check className="w-4 h-4 text-emerald-600" strokeWidth={2} />
+            ) : (
+              <Share2 className="w-4 h-4 text-slate-600" strokeWidth={1.8} />
+            )}
+          </button>
           <button
             onClick={handleDescargar}
             disabled={descargando}
@@ -167,6 +203,9 @@ export default function DocumentoPreviewModal({ doc, onClose }) {
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
+        {copiado && (
+          <p className="text-center text-[11px] text-emerald-600 font-semibold pt-2">Link copiado (válido por 7 días)</p>
+        )}
         <div
           className={`flex-1 bg-slate-50 flex items-center justify-center min-h-[200px] ${esImagen ? "" : "overflow-auto"}`}
         >

@@ -14,76 +14,92 @@ function ZoomableImage({ src, alt }) {
   const [gestureActive, setGestureActive] = useState(false);
   const transformRef = useRef(transform);
   transformRef.current = transform;
-  const gestureRef = useRef({ touchCount: 0 });
+  const pointersRef = useRef(new Map());
+  const gestureRef = useRef(null);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    const dist = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-    const midpoint = (touches) =>
-      touches.length === 2
-        ? { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 }
-        : { x: touches[0].clientX, y: touches[0].clientY };
+    const puntos = () => Array.from(pointersRef.current.values());
+    const dist = (pts) => Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    const midpoint = (pts) =>
+      pts.length === 2
+        ? { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+        : { x: pts[0].x, y: pts[0].y };
 
-    // Recalcula el punto de partida del gesto: se llama al iniciar un toque y también
-    // cada vez que cambia la cantidad de dedos a mitad de gesto (p.ej. de 2 a 1), para
-    // que no se "congele" el zoom al soltar un dedo antes que el otro.
-    const rebaseline = (touches) => {
+    // Recalcula el punto de partida del gesto: al iniciar un toque y también cada vez
+    // que cambia la cantidad de dedos a mitad de gesto (p.ej. de 2 a 1), para que no se
+    // "congele" el zoom al soltar un dedo antes que el otro.
+    const rebaseline = () => {
+      const pts = puntos();
+      if (pts.length === 0) {
+        gestureRef.current = null;
+        return;
+      }
       gestureRef.current = {
-        touchCount: touches.length,
-        dist: touches.length === 2 ? dist(touches) : null,
+        count: pts.length,
+        dist: pts.length === 2 ? dist(pts) : null,
         scale: transformRef.current.scale,
         x: transformRef.current.x,
         y: transformRef.current.y,
-        mid: midpoint(touches),
+        mid: midpoint(pts),
       };
     };
 
-    const onTouchStart = (e) => {
-      rebaseline(e.touches);
+    const onPointerDown = (e) => {
+      el.setPointerCapture?.(e.pointerId);
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      rebaseline();
       setGestureActive(true);
     };
 
-    const onTouchMove = (e) => {
-      if (e.touches.length !== gestureRef.current.touchCount) {
-        rebaseline(e.touches);
+    const onPointerMove = (e) => {
+      if (!pointersRef.current.has(e.pointerId)) return;
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const pts = puntos();
+      if (!gestureRef.current || gestureRef.current.count !== pts.length) {
+        rebaseline();
         return;
       }
-      if (e.touches.length === 2) {
+      if (pts.length === 2) {
         e.preventDefault();
-        const newDist = dist(e.touches);
+        const newDist = dist(pts);
         const ratio = newDist / gestureRef.current.dist;
         const newScale = Math.min(4, Math.max(1, gestureRef.current.scale * ratio));
         setTransform({ scale: newScale, x: gestureRef.current.x, y: gestureRef.current.y });
-      } else if (e.touches.length === 1 && transformRef.current.scale > 1.01) {
+      } else if (pts.length === 1 && transformRef.current.scale > 1.01) {
         e.preventDefault();
-        const mid = midpoint(e.touches);
+        const mid = midpoint(pts);
         const dx = mid.x - gestureRef.current.mid.x;
         const dy = mid.y - gestureRef.current.mid.y;
         setTransform((t) => ({ ...t, x: gestureRef.current.x + dx, y: gestureRef.current.y + dy }));
       }
     };
 
-    const onTouchEnd = (e) => {
-      if (e.touches.length > 0) {
-        rebaseline(e.touches);
+    const onPointerUp = (e) => {
+      if (!pointersRef.current.has(e.pointerId)) return;
+      pointersRef.current.delete(e.pointerId);
+      if (pointersRef.current.size > 0) {
+        rebaseline();
         return;
       }
-      gestureRef.current = { touchCount: 0 };
+      gestureRef.current = null;
       setGestureActive(false);
       setTransform((t) => (t.scale <= 1.02 ? { scale: 1, x: 0, y: 0 } : t));
     };
 
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
-    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove, { passive: false });
+    el.addEventListener("pointerup", onPointerUp);
+    el.addEventListener("pointercancel", onPointerUp);
+    el.addEventListener("pointerleave", onPointerUp);
     return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-      el.removeEventListener("touchcancel", onTouchEnd);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", onPointerUp);
+      el.removeEventListener("pointercancel", onPointerUp);
+      el.removeEventListener("pointerleave", onPointerUp);
     };
   }, []);
 
@@ -105,6 +121,8 @@ function ZoomableImage({ src, alt }) {
         className="max-w-full max-h-[70vh] object-contain select-none"
         style={{
           touchAction: "none",
+          WebkitUserSelect: "none",
+          WebkitTouchCallout: "none",
           transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
           transition: gestureActive ? "none" : "transform 0.15s ease-out",
         }}

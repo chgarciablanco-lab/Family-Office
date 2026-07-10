@@ -69,16 +69,24 @@ function MainAppInner({ session }) {
 
   const screenHistoryRef = useRef([]);
   const prevScreenRef = useRef(screen);
+  const retrocesoPorGestoRef = useRef(false);
 
   useEffect(() => {
     if (prevScreenRef.current !== screen) {
-      const historial = screenHistoryRef.current;
-      if (historial[historial.length - 1] === screen) {
-        // Navegamos justo a la pantalla que ya está en el tope del historial (típicamente
-        // un botón "volver" en pantalla): lo tratamos como retroceder, no como avanzar.
-        historial.pop();
+      if (retrocesoPorGestoRef.current) {
+        // handleSwipeBack ya sacó la pantalla anterior del historial antes de llamar
+        // setScreen; no lo volvamos a tocar acá o se reinsertaría la pantalla de la que
+        // acabamos de salir.
+        retrocesoPorGestoRef.current = false;
       } else {
-        historial.push(prevScreenRef.current);
+        const historial = screenHistoryRef.current;
+        if (historial[historial.length - 1] === screen) {
+          // Navegamos justo a la pantalla que ya está en el tope del historial (típicamente
+          // un botón "volver" en pantalla): lo tratamos como retroceder, no como avanzar.
+          historial.pop();
+        } else {
+          historial.push(prevScreenRef.current);
+        }
       }
       prevScreenRef.current = screen;
     }
@@ -86,7 +94,10 @@ function MainAppInner({ session }) {
 
   const handleSwipeBack = () => {
     const previo = screenHistoryRef.current.pop();
-    if (previo) setScreen(previo);
+    if (previo) {
+      retrocesoPorGestoRef.current = true;
+      setScreen(previo);
+    }
   };
 
   const cargarNotifCount = () => {

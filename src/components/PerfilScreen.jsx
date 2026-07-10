@@ -147,13 +147,15 @@ export default function PerfilScreen({ session, onNavigate }) {
             </div>
             {pushSoportado && (!esIOS || esStandalone) && (
               <button
+                type="button"
                 onClick={handleTogglePush}
                 disabled={pushLoading}
                 aria-label={pushActivo ? "Desactivar notificaciones" : "Activar notificaciones"}
-                className={`shrink-0 w-11 h-6 rounded-full relative transition-colors ${pushActivo ? "bg-emerald-500" : "bg-slate-200"} disabled:opacity-50`}
+                className={`shrink-0 w-11 h-6 p-0 border-0 appearance-none rounded-full relative transition-colors ${pushActivo ? "bg-emerald-500" : "bg-slate-200"} disabled:opacity-50`}
+                style={{ WebkitAppearance: "none" }}
               >
                 <span
-                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${pushActivo ? "translate-x-[22px]" : "translate-x-0.5"}`}
+                  className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${pushActivo ? "translate-x-5" : "translate-x-0"}`}
                 />
               </button>
             )}

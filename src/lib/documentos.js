@@ -131,6 +131,48 @@ export async function fetchTodosLosDocumentos() {
   return data.map((d) => ({ ...d, entidadNombre: nombreDe(d.entidad_tipo, d.entidad_id) }));
 }
 
+export async function buscarEntidadPorNombre(entidadTipo, nombre) {
+  const q = (nombre || "").trim();
+  if (!q) return null;
+  if (entidadTipo === "persona") return { id: PERSONA_DOC_ID, nombre: "Gestión personal" };
+  if (entidadTipo === "sociedad") {
+    const { data } = await supabase.from("sociedades").select("id, nombre").ilike("nombre", `%${q}%`).limit(1);
+    return data?.[0] ? { id: data[0].id, nombre: data[0].nombre } : null;
+  }
+  if (entidadTipo === "propiedad") {
+    const { data } = await supabase.from("propiedades").select("id, nombre").ilike("nombre", `%${q}%`).limit(1);
+    return data?.[0] ? { id: data[0].id, nombre: data[0].nombre } : null;
+  }
+  if (entidadTipo === "trabajador") {
+    const { data } = await supabase.from("trabajadores").select("id, nombre").ilike("nombre", `%${q}%`).limit(1);
+    return data?.[0] ? { id: data[0].id, nombre: data[0].nombre } : null;
+  }
+  if (entidadTipo === "auto") {
+    const { data } = await supabase
+      .from("autos")
+      .select("id, marca, modelo, patente")
+      .or(`marca.ilike.%${q}%,modelo.ilike.%${q}%,patente.ilike.%${q}%`)
+      .limit(1);
+    return data?.[0] ? { id: data[0].id, nombre: `${data[0].marca} ${data[0].modelo}` } : null;
+  }
+  return null;
+}
+
+// Manda el PDF escaneado a un modelo con visión para identificar de qué se trata.
+// Devuelve null si la función aún no está configurada (sin API key) o si algo falla,
+// para que quien la llama pueda caer de vuelta al flujo manual sin mostrar un error.
+export async function clasificarDocumento(pdfBase64) {
+  try {
+    const { data, error } = await supabase.functions.invoke("clasificar-documento", {
+      body: { pdf: pdfBase64 },
+    });
+    if (error || !data || data.error) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 export function formatTamano(bytes) {
   if (!bytes) return "-";
   if (bytes < 1024) return `${bytes} B`;

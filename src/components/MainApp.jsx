@@ -26,6 +26,7 @@ import NotasScreen from "./NotasScreen";
 import NotaDetailScreen from "./NotaDetailScreen";
 import InformesScreen from "./InformesScreen";
 import DocumentosBuscarScreen from "./DocumentosBuscarScreen";
+import EscanearDocumentoScreen from "./EscanearDocumentoScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
@@ -213,6 +214,9 @@ function MainAppInner({ session }) {
       )}
       {screen === "documentos-buscar" && (
         <DocumentosBuscarScreen backTo="home" onNavigate={setScreen} />
+      )}
+      {screen === "escanear-documento" && (
+        <EscanearDocumentoScreen backTo="home" onNavigate={setScreen} />
       )}
       {screen === "documentos" && documentosCtx && (
         <DocumentosScreen

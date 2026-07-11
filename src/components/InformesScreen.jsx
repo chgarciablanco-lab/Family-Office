@@ -15,12 +15,13 @@ export default function InformesScreen({ backTo, onNavigate, embedded = false })
   const [loading, setLoading] = useState(true);
   const [descargando, setDescargando] = useState(false);
   const [errorDescarga, setErrorDescarga] = useState("");
+  const [descargarTodos, setDescargarTodos] = useState(false);
 
   const handleDescargar = async () => {
     setDescargando(true);
     setErrorDescarga("");
     try {
-      await descargarConsolidadoExcel();
+      await descargarConsolidadoExcel(descargarTodos ? null : anio, descargarTodos ? null : mes);
     } catch (err) {
       setErrorDescarga(err?.message || "No se pudo generar el Excel.");
     } finally {
@@ -65,19 +66,28 @@ export default function InformesScreen({ backTo, onNavigate, embedded = false })
       )}
 
       <div className={`px-5 flex flex-col gap-3 pb-4 ${embedded ? "pt-1" : ""}`}>
-        <button
-          onClick={handleDescargar}
-          disabled={descargando}
-          className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform disabled:opacity-60"
-        >
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-            <Download className="w-4.5 h-4.5 text-emerald-600" strokeWidth={1.8} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-900 text-sm">{descargando ? "Generando..." : "Descargar consolidado"}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Excel con todos los pagos: propiedad, N° cliente, vencimiento, fecha de pago y valor</p>
-          </div>
-        </button>
+        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5">
+          <button onClick={handleDescargar} disabled={descargando} className="w-full flex items-center gap-3 text-left active:scale-[0.98] transition-transform disabled:opacity-60">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+              <Download className="w-4.5 h-4.5 text-emerald-600" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-900 text-sm">
+                {descargando ? "Generando..." : descargarTodos ? "Descargar historial completo" : `Descargar ${MESES[mes - 1]} ${anio}`}
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">Excel ordenado por propiedad/sociedad, con subtotales y listo para imprimir</p>
+            </div>
+          </button>
+          <label className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+            <input
+              type="checkbox"
+              checked={descargarTodos}
+              onChange={(e) => setDescargarTodos(e.target.checked)}
+              className="w-4 h-4 accent-violet-600"
+            />
+            <span className="text-xs text-slate-600">Descargar todos los meses (historial completo) en vez del mes elegido abajo</span>
+          </label>
+        </div>
         {errorDescarga && <p className="text-xs text-red-500 -mt-1">{errorDescarga}</p>}
 
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center justify-between">

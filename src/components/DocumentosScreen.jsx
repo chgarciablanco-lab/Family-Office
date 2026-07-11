@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Trash2, X, FolderPlus, Upload, Pencil, Check, Folder, ChevronRight } from "lucide-react";
+import { ArrowLeft, Trash2, X, FolderPlus, Upload, Pencil, Check, Folder, ChevronRight, Move } from "lucide-react";
 import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
 import NuevaCarpetaForm from "./NuevaCarpetaForm";
+import SeleccionarCarpetaModal from "./SeleccionarCarpetaModal";
 import DocumentoPreviewModal, { iconoDoc } from "./DocumentoPreviewModal";
 import { formatFechaCorta } from "../lib/format";
 import {
   fetchCarpetas, fetchDocumentos, subirDocumento, eliminarDocumento, formatTamano,
-  renombrarCarpeta, eliminarCarpeta,
+  renombrarCarpeta, eliminarCarpeta, fetchDescendientesCarpeta, moverCarpeta, moverDocumento,
 } from "../lib/documentos";
 import { usePermisos } from "../context/PermisosContext";
 
-function CarpetaRow({ carpeta, editable, onOpen, onCambiada }) {
+function CarpetaRow({ carpeta, editable, onOpen, onCambiada, onMover }) {
   const [renombrando, setRenombrando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState(carpeta.nombre);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -79,6 +80,11 @@ function CarpetaRow({ carpeta, editable, onOpen, onCambiada }) {
           </button>
         )}
         {editable && (
+          <button onClick={() => onMover(carpeta)} aria-label={`Mover ${carpeta.nombre}`} className="shrink-0">
+            <Move className="w-4 h-4 text-slate-400" strokeWidth={1.8} />
+          </button>
+        )}
+        {editable && (
           <button onClick={() => setConfirmDelete(true)} aria-label={`Eliminar ${carpeta.nombre}`} className="shrink-0">
             <Trash2 className="w-4 h-4 text-red-400" />
           </button>
@@ -109,9 +115,11 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subiendo, setSubiendo] = useState(false);
+  const [subiendoProgreso, setSubiendoProgreso] = useState(null);
   const [showNuevaCarpeta, setShowNuevaCarpeta] = useState(false);
   const [preview, setPreview] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [moviendo, setMoviendo] = useState(null); // { tipo: "carpeta" | "documento", item, excluir }
 
   const carpetaActual = path[path.length - 1] || null;
 
@@ -132,12 +140,16 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
   }, [entidadTipo, entidadId, carpetaActual?.id]);
 
   const handleFile = async (e) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     e.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
     setSubiendo(true);
-    await subirDocumento(entidadTipo, entidadId, carpetaActual?.id, file);
+    for (let i = 0; i < files.length; i++) {
+      setSubiendoProgreso({ actual: i + 1, total: files.length });
+      await subirDocumento(entidadTipo, entidadId, carpetaActual?.id, files[i]);
+    }
     setSubiendo(false);
+    setSubiendoProgreso(null);
     cargar();
   };
 
@@ -145,6 +157,23 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
     const doc = confirmDelete;
     setConfirmDelete(null);
     await eliminarDocumento(doc);
+    cargar();
+  };
+
+  const handleAbrirMoverCarpeta = async (carpeta) => {
+    const excluir = await fetchDescendientesCarpeta(carpeta.id);
+    setMoviendo({ tipo: "carpeta", item: carpeta, excluir });
+  };
+
+  const handleAbrirMoverDoc = (doc) => {
+    setMoviendo({ tipo: "documento", item: doc, excluir: null });
+  };
+
+  const handleMoverConfirmado = async (destinoId) => {
+    if (!moviendo) return;
+    if (moviendo.tipo === "carpeta") await moverCarpeta(moviendo.item.id, destinoId);
+    else await moverDocumento(moviendo.item.id, destinoId);
+    setMoviendo(null);
     cargar();
   };
 
@@ -185,9 +214,13 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
               className="flex-1 border-2 border-dashed border-slate-200 rounded-2xl px-3 py-3 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Upload className="w-4 h-4 text-violet-600" strokeWidth={1.8} />
-              <span className="text-sm font-semibold text-slate-700">{subiendo ? "Subiendo..." : "Subir archivo"}</span>
+              <span className="text-sm font-semibold text-slate-700">
+                {subiendo
+                  ? `Subiendo ${subiendoProgreso ? `${subiendoProgreso.actual}/${subiendoProgreso.total}` : "..."}`
+                  : "Subir archivos"}
+              </span>
             </button>
-            <input ref={inputRef} type="file" className="hidden" onChange={handleFile} accept="image/*,application/pdf" />
+            <input ref={inputRef} type="file" multiple className="hidden" onChange={handleFile} accept="image/*,application/pdf" />
           </div>
         )}
 
@@ -200,6 +233,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
             editable={editable}
             onOpen={() => setPath((p) => [...p, { id: c.id, nombre: c.nombre }])}
             onCambiada={cargar}
+            onMover={handleAbrirMoverCarpeta}
           />
         ))}
 
@@ -219,6 +253,11 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
                         {formatTamano(doc.tamano_bytes)} · {formatFechaCorta(doc.created_at.slice(0, 10))}
                       </p>
                     </button>
+                    {editable && (
+                      <button onClick={() => handleAbrirMoverDoc(doc)} aria-label="Mover documento" className="shrink-0">
+                        <Move className="w-4 h-4 text-slate-400" strokeWidth={1.8} />
+                      </button>
+                    )}
                     {editable && (
                       <button onClick={() => setConfirmDelete(doc)} aria-label="Eliminar documento" className="shrink-0">
                         <Trash2 className="w-4 h-4 text-red-400" />
@@ -259,6 +298,17 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
           message="Esta acción no se puede deshacer."
           onConfirm={handleDeleteDoc}
           onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {moviendo && (
+        <SeleccionarCarpetaModal
+          entidadTipo={entidadTipo}
+          entidadId={entidadId}
+          entidadNombre={entidadNombre}
+          excluir={moviendo.excluir}
+          onSeleccionar={handleMoverConfirmado}
+          onClose={() => setMoviendo(null)}
         />
       )}
     </>

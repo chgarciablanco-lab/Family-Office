@@ -49,6 +49,30 @@ export async function eliminarCarpeta(carpetaId) {
   return { error };
 }
 
+export async function moverCarpeta(carpetaId, nuevaCarpetaPadreId) {
+  const { error } = await supabase.from("carpetas").update({ carpeta_padre_id: nuevaCarpetaPadreId || null }).eq("id", carpetaId);
+  return { error };
+}
+
+export async function moverDocumento(docId, nuevaCarpetaId) {
+  const { error } = await supabase.from("documentos").update({ carpeta_id: nuevaCarpetaId || null }).eq("id", docId);
+  return { error };
+}
+
+// Junta los ids de una carpeta y todas sus descendientes, para no dejar moverla dentro de
+// sí misma (lo que crearía un ciclo en el árbol).
+export async function fetchDescendientesCarpeta(carpetaId) {
+  const ids = new Set([carpetaId]);
+  let frontier = [carpetaId];
+  while (frontier.length > 0) {
+    const { data } = await supabase.from("carpetas").select("id").in("carpeta_padre_id", frontier);
+    const nuevos = (data || []).map((c) => c.id).filter((id) => !ids.has(id));
+    nuevos.forEach((id) => ids.add(id));
+    frontier = nuevos;
+  }
+  return ids;
+}
+
 export async function fetchDocumentos(entidadTipo, entidadId, carpetaId) {
   let q = supabase
     .from("documentos")
@@ -64,7 +88,8 @@ export async function fetchDocumentos(entidadTipo, entidadId, carpetaId) {
 
 export async function subirDocumento(entidadTipo, entidadId, carpetaId, file) {
   const nombreSeguro = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `${entidadTipo}/${entidadId}/${carpetaId || "raiz"}/${Date.now()}-${nombreSeguro}`;
+  const sufijo = Math.random().toString(36).slice(2, 8);
+  const path = `${entidadTipo}/${entidadId}/${carpetaId || "raiz"}/${Date.now()}-${sufijo}-${nombreSeguro}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
     contentType: file.type || "application/octet-stream",

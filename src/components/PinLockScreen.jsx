@@ -47,9 +47,9 @@ export default function PinLockScreen({ onUnlock }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-8">
-      <img src="/logo.png" alt="García Blanco Family Office" className="w-20 h-20 object-contain mb-3" />
-      <p className="text-base font-bold text-slate-900">Ingresa tu PIN</p>
-      <p className="text-sm text-slate-500 mt-1 mb-6">García Blanco Family Office</p>
+      <img src="/logo.png" alt="García Blanco Family Office" className="w-32 h-32 object-contain mb-3" />
+      <p className="text-sm text-slate-500">García Blanco Family Office</p>
+      <p className="text-base font-bold text-slate-900 mt-1 mb-6">Ingresa tu PIN</p>
 
       <div className="flex gap-3 mb-2">
         {[0, 1, 2, 3].map((i) => (

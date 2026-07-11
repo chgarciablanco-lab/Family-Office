@@ -1,4 +1,9 @@
 const STORAGE_KEY = "familyOfficePin";
+const ACTIVIDAD_KEY = "familyOfficePinActividad";
+
+// Cuánto tiempo puede pasar sin actividad confirmada (app oculta, o recién recargada)
+// antes de que la próxima vez que se abra pida el PIN de nuevo.
+export const UMBRAL_BLOQUEO_MS = 2 * 60 * 1000;
 
 function bufferAHex(buffer) {
   return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -36,4 +41,19 @@ export async function verificarPin(pin) {
 
 export function quitarPin() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(ACTIVIDAD_KEY);
+}
+
+// Se llama cada vez que confirmamos que la app sigue siendo usada activamente (justo
+// después de desbloquear, al recuperar el foco a tiempo, o justo antes de recargar la
+// página), para que el próximo chequeo mida el tiempo desde este momento.
+export function marcarActividad() {
+  localStorage.setItem(ACTIVIDAD_KEY, String(Date.now()));
+}
+
+export function necesitaPin() {
+  if (!tienePin()) return false;
+  const ultima = Number(localStorage.getItem(ACTIVIDAD_KEY) || 0);
+  if (!ultima) return true;
+  return Date.now() - ultima > UMBRAL_BLOQUEO_MS;
 }

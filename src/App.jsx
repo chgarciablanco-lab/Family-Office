@@ -1,15 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 import LoginScreen from "./components/LoginScreen";
 import MainApp from "./components/MainApp";
 import ResetPasswordScreen from "./components/ResetPasswordScreen";
 import PinLockScreen from "./components/PinLockScreen";
-import { tienePin } from "./lib/pinLock";
-
-// Si la app estuvo oculta (segundo plano, pantalla apagada) más de esto, se vuelve a pedir
-// el PIN al volver. Un umbral bajo evitaría que abrir el selector de archivos/cámara (que
-// también oculta la página un instante) bloquee la app de inmediato.
-const REBLOQUEO_MS = 30000;
+import { tienePin, necesitaPin, marcarActividad } from "./lib/pinLock";
 
 function isRecoveryLink() {
   if (typeof window === "undefined") return false;
@@ -22,8 +17,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(isRecoveryLink);
-  const [bloqueado, setBloqueado] = useState(tienePin);
-  const ocultoDesdeRef = useRef(null);
+  const [bloqueado, setBloqueado] = useState(necesitaPin);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,19 +35,30 @@ export default function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // Si al montar (carga en frío o recarga manual) no hace falta pedir el PIN, confirmamos
+  // la actividad para que el próximo chequeo mida el tiempo desde ahora.
+  useEffect(() => {
+    if (!bloqueado) marcarActividad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const onVisibility = () => {
-      if (document.hidden) {
-        ocultoDesdeRef.current = Date.now();
-        return;
-      }
-      if (ocultoDesdeRef.current && tienePin() && Date.now() - ocultoDesdeRef.current > REBLOQUEO_MS) {
-        setBloqueado(true);
-      }
-      ocultoDesdeRef.current = null;
+      if (document.hidden) return;
+      if (necesitaPin()) setBloqueado(true);
+      else marcarActividad();
     };
+    // Se marca actividad justo antes de que la página se recargue o se navegue fuera
+    // (incluye el gesto de "deslizar para actualizar"), para que la próxima carga no
+    // pida el PIN si la recarga fue mientras la app se estaba usando activamente.
+    const onPageHide = () => marcarActividad();
+
     document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onPageHide);
+    };
   }, []);
 
   if (loading) {
@@ -78,7 +83,7 @@ export default function App() {
   if (!session) return <LoginScreen />;
 
   if (bloqueado && tienePin()) {
-    return <PinLockScreen onUnlock={() => setBloqueado(false)} />;
+    return <PinLockScreen onUnlock={() => { marcarActividad(); setBloqueado(false); }} />;
   }
 
   return <MainApp session={session} />;

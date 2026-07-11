@@ -1,58 +1,24 @@
 import React, { useEffect, useState } from "react";
-import {
-  ArrowLeft, Settings, Home as HomeIcon, Users, Car,
-  TrendingUp, ClipboardList, Info, Key, FileText, Folder, ChevronRight,
-} from "lucide-react";
+import { ArrowLeft, Settings, Info, Folder, ChevronRight } from "lucide-react";
 import BottomNav from "./BottomNav";
 import { supabase } from "../lib/supabaseClient";
 import { usePermisos } from "../context/PermisosContext";
 import { PERSONA_DOC_ID } from "../lib/documentos";
 import { ICONOS_ETIQUETA } from "../lib/etiquetas";
 import { colorClasses } from "../lib/format";
+import { SECCIONES_FIJAS } from "../lib/seccionesFijas";
 
-const secciones = [
-  {
-    key: "propiedades", title: "Propiedades", modulo: "propiedades",
-    subtitle: "Controla tus propiedades\ny obligaciones.",
-    icon: HomeIcon, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
-  },
-  {
-    key: "arriendos-persona", title: "Arriendos", modulo: "arriendos",
-    subtitle: "Administra contratos de arriendo\ny pagos asociados.",
-    icon: Key, bg: "bg-orange-100", fg: "text-orange-500", disponible: true,
-  },
-  {
-    key: "trabajadores-persona", title: "Trabajadores", modulo: "trabajadores",
-    subtitle: "Gestiona tu equipo\ny documentación.",
-    icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600", disponible: true,
-  },
-  {
-    key: "impuestos-persona", title: "Impuestos", modulo: "impuestos",
-    subtitle: "Revisa y gestiona tus impuestos\ny declaraciones.",
-    icon: FileText, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
-  },
-  {
-    key: "autos", title: "Autos", modulo: "autos",
-    subtitle: "Administra tus vehículos\ny vencimientos.",
-    icon: Car, bg: "bg-emerald-100", fg: "text-emerald-600", disponible: true,
-  },
-  {
-    key: "inversiones", title: "Inversiones", modulo: "inversiones",
-    subtitle: "Controla tus inversiones\ny plazos.",
-    icon: TrendingUp, bg: "bg-violet-100", fg: "text-violet-600", disponible: true,
-  },
-  {
-    key: "otros-gastos-persona", title: "Otros gastos", modulo: "otros_gastos",
-    subtitle: "Registra y controla tus\ngastos diarios.",
-    icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500", disponible: true,
-  },
-];
+const secciones = SECCIONES_FIJAS;
 
 export default function PersonaScreen({ onNavigate, onOpenDocumentos, onSelectEtiqueta, ownerUserId = null }) {
   const { puedeVer, esAdmin } = usePermisos();
   const esPersonal = Boolean(ownerUserId);
-  const seccionesVisibles = esPersonal ? secciones : secciones.filter((sec) => puedeVer(sec.modulo));
   const [etiquetas, setEtiquetas] = useState([]);
+  const [visibilidad, setVisibilidad] = useState({});
+
+  const seccionesVisibles = secciones
+    .filter((sec) => esPersonal || puedeVer(sec.modulo))
+    .filter((sec) => visibilidad[sec.modulo] !== false);
 
   useEffect(() => {
     supabase
@@ -61,6 +27,16 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos, onSelectEt
       .order("orden", { ascending: true })
       .order("created_at", { ascending: true })
       .then(({ data, error }) => { if (!error) setEtiquetas(data || []); });
+
+    supabase
+      .from("secciones_config")
+      .select("*")
+      .then(({ data, error }) => {
+        if (error) return;
+        const mapa = {};
+        (data || []).forEach((s) => { mapa[s.modulo] = s.visible; });
+        setVisibilidad(mapa);
+      });
   }, []);
 
   return (
@@ -71,7 +47,7 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos, onSelectEt
         </button>
         <h1 className="text-xl font-bold text-slate-900">{esPersonal ? "Mis gastos personales" : "Gestión familiar"}</h1>
         {!esPersonal && esAdmin ? (
-          <button onClick={() => onNavigate("etiquetas-config")} aria-label="Configurar etiquetas">
+          <button onClick={() => onNavigate("etiquetas-config")} aria-label="Configurar pantalla">
             <Settings className="w-6 h-6 text-blue-600" strokeWidth={2} />
           </button>
         ) : (

@@ -5,9 +5,11 @@ import EtiquetaConfigForm from "./EtiquetaConfigForm";
 import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
 import { ICONOS_ETIQUETA } from "../lib/etiquetas";
+import { SECCIONES_FIJAS } from "../lib/seccionesFijas";
 
 export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }) {
   const [etiquetas, setEtiquetas] = useState([]);
+  const [visibilidad, setVisibilidad] = useState({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -23,9 +25,24 @@ export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }
     setLoading(false);
   };
 
+  const fetchVisibilidad = async () => {
+    const { data, error } = await supabase.from("secciones_config").select("*");
+    if (error) return;
+    const mapa = {};
+    (data || []).forEach((s) => { mapa[s.modulo] = s.visible; });
+    setVisibilidad(mapa);
+  };
+
   useEffect(() => {
     fetchEtiquetas();
+    fetchVisibilidad();
   }, []);
+
+  const toggleSeccionFija = async (modulo) => {
+    const actual = visibilidad[modulo] !== false;
+    setVisibilidad((prev) => ({ ...prev, [modulo]: !actual }));
+    await supabase.from("secciones_config").update({ visible: !actual }).eq("modulo", modulo);
+  };
 
   const handleSaved = () => {
     setShowForm(false);
@@ -39,7 +56,7 @@ export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }
         <button onClick={() => onNavigate(backTo)} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">Configurar etiquetas</h1>
+        <h1 className="text-xl font-bold text-slate-900">Configurar pantalla</h1>
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
           className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
@@ -50,6 +67,33 @@ export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Secciones predeterminadas</p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-100 overflow-hidden">
+          {SECCIONES_FIJAS.map((sec) => {
+            const visible = visibilidad[sec.modulo] !== false;
+            return (
+              <div key={sec.modulo} className="flex items-center gap-3 px-4 py-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${sec.bg}`}>
+                  <sec.icon className={`w-5 h-5 ${sec.fg}`} strokeWidth={1.8} />
+                </div>
+                <p className="flex-1 font-semibold text-slate-800 text-sm">{sec.title}</p>
+                <button
+                  type="button"
+                  onClick={() => toggleSeccionFija(sec.modulo)}
+                  aria-label={visible ? `Ocultar ${sec.title}` : `Mostrar ${sec.title}`}
+                  className={`shrink-0 w-11 h-6 p-0 border-0 appearance-none rounded-full relative transition-colors ${visible ? "bg-emerald-500" : "bg-slate-200"}`}
+                  style={{ WebkitAppearance: "none" }}
+                >
+                  <span
+                    className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${visible ? "translate-x-5" : "translate-x-0"}`}
+                  />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-2">Etiquetas personalizadas</p>
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
         {!loading && etiquetas.length === 0 && (
@@ -82,9 +126,9 @@ export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3">
           <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
-            <p className="font-bold text-slate-900 text-sm">Etiquetas para todos</p>
+            <p className="font-bold text-slate-900 text-sm">Se aplica para todos</p>
             <p className="text-sm text-slate-500 mt-0.5">
-              Las etiquetas que crees aquí aparecerán tanto en Gestión familiar como en Mis gastos personales de cada usuario.
+              Ocultar una sección predeterminada o crear una etiqueta nueva se refleja tanto en Gestión familiar como en Mis gastos personales de cada usuario. Ocultar no borra la información existente.
             </p>
           </div>
         </div>

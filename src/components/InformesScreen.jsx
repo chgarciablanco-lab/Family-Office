@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Scale } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Scale, Download } from "lucide-react";
 import BottomNav from "./BottomNav";
 import { fetchInformeMes } from "../lib/informes";
+import { descargarConsolidadoExcel } from "../lib/consolidado";
 import { formatCLP } from "../lib/format";
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -12,6 +13,20 @@ export default function InformesScreen({ backTo, onNavigate, embedded = false })
   const [mes, setMes] = useState(hoy.getMonth() + 1);
   const [grupos, setGrupos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [descargando, setDescargando] = useState(false);
+  const [errorDescarga, setErrorDescarga] = useState("");
+
+  const handleDescargar = async () => {
+    setDescargando(true);
+    setErrorDescarga("");
+    try {
+      await descargarConsolidadoExcel();
+    } catch (err) {
+      setErrorDescarga(err?.message || "No se pudo generar el Excel.");
+    } finally {
+      setDescargando(false);
+    }
+  };
 
   const cargar = async () => {
     setLoading(true);
@@ -50,6 +65,21 @@ export default function InformesScreen({ backTo, onNavigate, embedded = false })
       )}
 
       <div className={`px-5 flex flex-col gap-3 pb-4 ${embedded ? "pt-1" : ""}`}>
+        <button
+          onClick={handleDescargar}
+          disabled={descargando}
+          className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform disabled:opacity-60"
+        >
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+            <Download className="w-4.5 h-4.5 text-emerald-600" strokeWidth={1.8} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-slate-900 text-sm">{descargando ? "Generando..." : "Descargar consolidado"}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Excel con todos los pagos: propiedad, N° cliente, vencimiento, fecha de pago y valor</p>
+          </div>
+        </button>
+        {errorDescarga && <p className="text-xs text-red-500 -mt-1">{errorDescarga}</p>}
+
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center justify-between">
           <button onClick={() => cambiarMes(-1)} aria-label="Mes anterior">
             <ChevronLeft className="w-5 h-5 text-slate-500" />

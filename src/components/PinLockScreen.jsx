@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Lock } from "lucide-react";
 import PinPad from "./PinPad";
 import { verificarPin, quitarPin } from "../lib/pinLock";
 import { supabase } from "../lib/supabaseClient";
@@ -48,9 +47,7 @@ export default function PinLockScreen({ onUnlock }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-8">
-      <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center mb-4">
-        <Lock className="w-6 h-6 text-violet-600" strokeWidth={1.8} />
-      </div>
+      <img src="/logo.png" alt="García Blanco Family Office" className="w-20 h-20 object-contain mb-3" />
       <p className="text-base font-bold text-slate-900">Ingresa tu PIN</p>
       <p className="text-sm text-slate-500 mt-1 mb-6">García Blanco Family Office</p>
 

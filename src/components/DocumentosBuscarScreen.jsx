@@ -27,7 +27,7 @@ function FolderRow({ icono: Icon, titulo, subtitulo, onClick }) {
   );
 }
 
-export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSeleccion = false, onSeleccionarDestino }) {
+export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
@@ -98,16 +98,6 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
     else onNavigate(backTo);
   };
 
-  // En modo selección (p.ej. al guardar un documento escaneado) no navegamos hasta la
-  // pantalla de Documentos de la entidad, avisamos al padre cuál se eligió.
-  const irADocumentos = (entidadTipo, entidadId, entidadNombre) => {
-    if (modoSeleccion) {
-      onSeleccionarDestino?.(entidadTipo, entidadId, entidadNombre);
-    } else {
-      setPath((p) => [...p, { tipo: "documentos", entidadTipo, entidadId, entidadNombre }]);
-    }
-  };
-
   // Última parada: mostramos directamente la pantalla de Documentos de esa entidad.
   if (paso?.tipo === "documentos") {
     return (
@@ -121,7 +111,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
     );
   }
 
-  const titulo = paso?.entidadNombre || (modoSeleccion ? "Elegir destino" : "Documentos");
+  const titulo = paso?.entidadNombre || "Documentos";
 
   return (
     <>
@@ -134,7 +124,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">
-        {path.length === 0 && !modoSeleccion && (
+        {path.length === 0 && (
           <div className="bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-400" strokeWidth={2} />
             <input
@@ -147,7 +137,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
           </div>
         )}
 
-        {!modoSeleccion && busqueda.trim() ? (
+        {busqueda.trim() ? (
           <>
             <p className="text-xs text-slate-400 -mt-1">
               {filtrados.length} resultado{filtrados.length === 1 ? "" : "s"}
@@ -221,7 +211,9 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
                   icono={Folder}
                   titulo="Documentos generales"
                   subtitulo={`${contarDocs("persona", PERSONA_DOC_ID)} documento(s)`}
-                  onClick={() => irADocumentos("persona", PERSONA_DOC_ID, "Gestión personal")}
+                  onClick={() => setPath((p) => [...p, {
+                    tipo: "documentos", entidadTipo: "persona", entidadId: PERSONA_DOC_ID, entidadNombre: "Gestión personal",
+                  }])}
                 />
               </>
             )}
@@ -261,7 +253,9 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
                   icono={Folder}
                   titulo="Documentos generales"
                   subtitulo={`${contarDocs("sociedad", paso.sociedadId)} documento(s)`}
-                  onClick={() => irADocumentos("sociedad", paso.sociedadId, paso.entidadNombre)}
+                  onClick={() => setPath((p) => [...p, {
+                    tipo: "documentos", entidadTipo: "sociedad", entidadId: paso.sociedadId, entidadNombre: paso.entidadNombre,
+                  }])}
                 />
               </>
             )}
@@ -280,7 +274,9 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
                     icono={HomeIcon}
                     titulo={p.nombre}
                     subtitulo={p.comuna}
-                    onClick={() => irADocumentos("propiedad", p.id, p.nombre)}
+                    onClick={() => setPath((prev) => [...prev, {
+                      tipo: "documentos", entidadTipo: "propiedad", entidadId: p.id, entidadNombre: p.nombre,
+                    }])}
                   />
                 ))}
               </>
@@ -300,7 +296,9 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
                     icono={Users}
                     titulo={t.nombre}
                     subtitulo={t.cargo}
-                    onClick={() => irADocumentos("trabajador", t.id, t.nombre)}
+                    onClick={() => setPath((prev) => [...prev, {
+                      tipo: "documentos", entidadTipo: "trabajador", entidadId: t.id, entidadNombre: t.nombre,
+                    }])}
                   />
                 ))}
               </>
@@ -320,7 +318,9 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
                     icono={Car}
                     titulo={`${a.marca} ${a.modelo}`}
                     subtitulo={a.patente}
-                    onClick={() => irADocumentos("auto", a.id, `${a.marca} ${a.modelo}`)}
+                    onClick={() => setPath((prev) => [...prev, {
+                      tipo: "documentos", entidadTipo: "auto", entidadId: a.id, entidadNombre: `${a.marca} ${a.modelo}`,
+                    }])}
                   />
                 ))}
               </>
@@ -330,7 +330,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate, modoSelecci
       </div>
 
       <div className="flex-1" />
-      {!modoSeleccion && <BottomNav onNavigate={onNavigate} />}
+      <BottomNav onNavigate={onNavigate} />
 
       {preview && <DocumentoPreviewModal doc={preview} onClose={() => setPreview(null)} />}
     </>

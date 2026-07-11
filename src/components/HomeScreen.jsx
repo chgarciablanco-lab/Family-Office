@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, ClipboardList, ShieldCheck, StickyNote, FileBarChart, FolderSearch, ScanLine } from "lucide-react";
+import { Building2, User, ChevronRight, ClipboardList, ShieldCheck, StickyNote, FileBarChart, FolderSearch } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -65,14 +65,6 @@ const menuItems = [
     fg: "text-teal-600",
   },
   {
-    key: "escanear-documento",
-    title: "Escanear documento",
-    subtitle: "Toma fotos, compílalas en un PDF\ny guárdalo en la carpeta correcta",
-    icon: ScanLine,
-    bg: "bg-cyan-100",
-    fg: "text-cyan-600",
-  },
-  {
     key: "usuarios",
     title: "Usuarios",
     subtitle: "Crea usuarios y decide qué\npuede ver y editar cada uno",
@@ -96,7 +88,6 @@ export default function HomeScreen({ session, onNavigate }) {
     if (item.key === "notas") return puedeVer("notas");
     if (item.key === "informes") return puedeVer("informes");
     if (item.key === "documentos-buscar") return puedeVer("documentos");
-    if (item.key === "escanear-documento") return puedeVer("documentos");
     return true;
   });
 

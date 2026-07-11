@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, User, LogOut, Pencil, X, Bell } from "lucide-react";
+import { ArrowLeft, User, LogOut, Pencil, X, Bell, Lock } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
+import ConfigurarPinForm from "./ConfigurarPinForm";
 import { usePermisos } from "../context/PermisosContext";
 import { actualizarMiNombre } from "../lib/usuarios";
 import { Field, inputClass } from "./TramiteSection";
+import { tienePin, quitarPin } from "../lib/pinLock";
 import {
   soportaNotificacionesPush, obtenerSuscripcionActual, activarNotificacionesPush, desactivarNotificacionesPush,
 } from "../lib/push";
@@ -25,6 +27,14 @@ export default function PerfilScreen({ session, onNavigate }) {
   const [pushActivo, setPushActivo] = useState(false);
   const [pushLoading, setPushLoading] = useState(true);
   const [pushError, setPushError] = useState("");
+
+  const [pinActivo, setPinActivo] = useState(tienePin());
+  const [showConfigurarPin, setShowConfigurarPin] = useState(false);
+
+  const handleDesactivarPin = () => {
+    quitarPin();
+    setPinActivo(false);
+  };
 
   useEffect(() => {
     if (!pushSoportado) {
@@ -168,6 +178,36 @@ export default function PerfilScreen({ session, onNavigate }) {
           {pushError && <p className="text-xs text-red-500 mt-3 pt-3 border-t border-slate-100">{pushError}</p>}
         </div>
 
+        <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-900 text-sm">Bloqueo con PIN</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {pinActivo ? "Pide tu PIN al abrir la app" : "Protege la app con un código de 4 dígitos"}
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+            <button
+              onClick={() => setShowConfigurarPin(true)}
+              className="flex-1 bg-violet-600 text-white font-semibold text-xs rounded-xl py-2.5"
+            >
+              {pinActivo ? "Cambiar PIN" : "Configurar PIN"}
+            </button>
+            {pinActivo && (
+              <button
+                onClick={handleDesactivarPin}
+                className="flex-1 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl py-2.5"
+              >
+                Desactivar
+              </button>
+            )}
+          </div>
+        </div>
+
         <button
           onClick={() => supabase.auth.signOut()}
           className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
@@ -181,6 +221,13 @@ export default function PerfilScreen({ session, onNavigate }) {
 
       <div className="flex-1" />
       <BottomNav variant="home" onNavigate={onNavigate} />
+
+      {showConfigurarPin && (
+        <ConfigurarPinForm
+          onClose={() => setShowConfigurarPin(false)}
+          onSaved={() => { setShowConfigurarPin(false); setPinActivo(true); }}
+        />
+      )}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, ClipboardList, ShieldCheck, StickyNote, FileBarChart, FolderSearch } from "lucide-react";
+import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -33,28 +33,12 @@ const menuItems = [
     fg: "text-violet-600",
   },
   {
-    key: "tareas",
-    title: "Tareas",
-    subtitle: "Asigna tareas a otras personas\ny avísales por correo",
-    icon: ClipboardList,
+    key: "herramientas",
+    title: "Herramientas",
+    subtitle: "Tareas, notas e informes\nen un mismo lugar",
+    icon: LayoutGrid,
     bg: "bg-emerald-100",
     fg: "text-emerald-600",
-  },
-  {
-    key: "notas",
-    title: "Notas",
-    subtitle: "Apuntes rápidos compartidos\ncon tu familia",
-    icon: StickyNote,
-    bg: "bg-rose-100",
-    fg: "text-rose-500",
-  },
-  {
-    key: "informes",
-    title: "Informes",
-    subtitle: "Gastos e ingresos del mes\npor sociedad y gestión personal",
-    icon: FileBarChart,
-    bg: "bg-indigo-100",
-    fg: "text-indigo-600",
   },
   {
     key: "documentos-buscar",
@@ -84,9 +68,9 @@ export default function HomeScreen({ session, onNavigate }) {
     if (item.soloAdmin) return esAdmin;
     if (item.key === "sociedades") return puedeVer("sociedades");
     if (item.key === "persona") return MODULOS_PERSONA.some((m) => puedeVer(m));
-    if (item.key === "tareas") return puedeVer("calendario_tareas");
-    if (item.key === "notas") return puedeVer("notas");
-    if (item.key === "informes") return puedeVer("informes");
+    if (item.key === "herramientas") {
+      return puedeVer("calendario_tareas") || puedeVer("notas") || puedeVer("informes");
+    }
     if (item.key === "documentos-buscar") return puedeVer("documentos");
     return true;
   });

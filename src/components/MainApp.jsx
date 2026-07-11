@@ -20,11 +20,9 @@ import PatenteSociedadScreen from "./PatenteSociedadScreen";
 import NotificacionesScreen from "./NotificacionesScreen";
 import DocumentosScreen from "./DocumentosScreen";
 import CalendarioScreen from "./CalendarioScreen";
-import TareasScreen from "./TareasScreen";
 import UsuariosScreen from "./UsuariosScreen";
-import NotasScreen from "./NotasScreen";
 import NotaDetailScreen from "./NotaDetailScreen";
-import InformesScreen from "./InformesScreen";
+import HerramientasScreen from "./HerramientasScreen";
 import DocumentosBuscarScreen from "./DocumentosBuscarScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
@@ -65,6 +63,7 @@ function MainAppInner({ session }) {
   const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(initialNav.selectedTramiteAuto || null);
   const [documentosCtx, setDocumentosCtx] = useState(initialNav.documentosCtx || null);
   const [selectedNota, setSelectedNota] = useState(initialNav.selectedNota || null);
+  const [herramientasTab, setHerramientasTab] = useState(initialNav.herramientasTab || "tareas");
   const [notifCount, setNotifCount] = useState(0);
 
   const screenHistoryRef = useRef([]);
@@ -122,13 +121,13 @@ function MainAppInner({ session }) {
       JSON.stringify({
         screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
         selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
-        documentosCtx, selectedNota,
+        documentosCtx, selectedNota, herramientasTab,
       })
     );
   }, [
     screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
     selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
-    documentosCtx, selectedNota,
+    documentosCtx, selectedNota, herramientasTab,
   ]);
 
   const handleSelectSociedad = (s) => {
@@ -196,20 +195,20 @@ function MainAppInner({ session }) {
       {screen === "calendario" && (
         <CalendarioScreen backTo="home" onNavigate={setScreen} />
       )}
-      {screen === "tareas" && (
-        <TareasScreen backTo="home" onNavigate={setScreen} />
-      )}
       {screen === "usuarios" && (
         <UsuariosScreen backTo="home" onNavigate={setScreen} />
       )}
-      {screen === "notas" && (
-        <NotasScreen backTo="home" onNavigate={setScreen} onSelect={handleSelectNota} />
+      {screen === "herramientas" && (
+        <HerramientasScreen
+          tab={herramientasTab}
+          onTabChange={setHerramientasTab}
+          backTo="home"
+          onNavigate={setScreen}
+          onSelectNota={handleSelectNota}
+        />
       )}
       {screen === "nota-detail" && selectedNota && (
-        <NotaDetailScreen nota={selectedNota} backTo="notas" onNavigate={setScreen} />
-      )}
-      {screen === "informes" && (
-        <InformesScreen backTo="home" onNavigate={setScreen} />
+        <NotaDetailScreen nota={selectedNota} backTo="herramientas" onNavigate={setScreen} />
       )}
       {screen === "documentos-buscar" && (
         <DocumentosBuscarScreen backTo="home" onNavigate={setScreen} />

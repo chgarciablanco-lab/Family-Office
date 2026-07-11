@@ -6,7 +6,7 @@ import { fetchNotas } from "../lib/notas";
 import { colorClasses, formatFechaCorta } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
 
-export default function NotasScreen({ backTo, onNavigate, onSelect }) {
+export default function NotasScreen({ backTo, onNavigate, onSelect, embedded = false }) {
   const { puedeEditar } = usePermisos();
   const editable = puedeEditar("notas");
   const [notas, setNotas] = useState([]);
@@ -30,25 +30,39 @@ export default function NotasScreen({ backTo, onNavigate, onSelect }) {
 
   return (
     <>
-      <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <button onClick={() => onNavigate(backTo)} aria-label="Volver">
-          <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
-        </button>
-        <h1 className="text-xl font-bold text-slate-900">Notas</h1>
-        {editable ? (
-          <button
-            onClick={() => setShowForm(true)}
-            className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
-            aria-label="Agregar nota"
-          >
-            <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+      {embedded ? (
+        editable && (
+          <div className="px-5 pt-1 pb-2 flex justify-end">
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+              aria-label="Agregar nota"
+            >
+              <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+            </button>
+          </div>
+        )
+      ) : (
+        <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+          <button onClick={() => onNavigate(backTo)} aria-label="Volver">
+            <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
           </button>
-        ) : (
-          <div className="w-8" />
-        )}
-      </div>
+          <h1 className="text-xl font-bold text-slate-900">Notas</h1>
+          {editable ? (
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center"
+              aria-label="Agregar nota"
+            >
+              <Plus className="w-5 h-5 text-white" strokeWidth={2.4} />
+            </button>
+          ) : (
+            <div className="w-8" />
+          )}
+        </div>
+      )}
 
-      <div className="px-5 flex flex-col gap-3 pb-4">
+      <div className={`px-5 flex flex-col gap-3 pb-4 ${embedded && !editable ? "pt-1" : ""}`}>
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
         {!loading && notas.length === 0 && (
@@ -81,8 +95,12 @@ export default function NotasScreen({ backTo, onNavigate, onSelect }) {
         })}
       </div>
 
-      <div className="flex-1" />
-      <BottomNav onNavigate={onNavigate} />
+      {!embedded && (
+        <>
+          <div className="flex-1" />
+          <BottomNav onNavigate={onNavigate} />
+        </>
+      )}
 
       {showForm && (
         <NotaForm

@@ -6,7 +6,7 @@ import { formatCLP } from "../lib/format";
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-export default function InformesScreen({ backTo, onNavigate }) {
+export default function InformesScreen({ backTo, onNavigate, embedded = false }) {
   const hoy = new Date();
   const [anio, setAnio] = useState(hoy.getFullYear());
   const [mes, setMes] = useState(hoy.getMonth() + 1);
@@ -39,15 +39,17 @@ export default function InformesScreen({ backTo, onNavigate }) {
 
   return (
     <>
-      <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <button onClick={() => onNavigate(backTo)} aria-label="Volver">
-          <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
-        </button>
-        <h1 className="text-xl font-bold text-slate-900">Informes</h1>
-        <div className="w-6" />
-      </div>
+      {!embedded && (
+        <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+          <button onClick={() => onNavigate(backTo)} aria-label="Volver">
+            <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
+          </button>
+          <h1 className="text-xl font-bold text-slate-900">Informes</h1>
+          <div className="w-6" />
+        </div>
+      )}
 
-      <div className="px-5 flex flex-col gap-3 pb-4">
+      <div className={`px-5 flex flex-col gap-3 pb-4 ${embedded ? "pt-1" : ""}`}>
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center justify-between">
           <button onClick={() => cambiarMes(-1)} aria-label="Mes anterior">
             <ChevronLeft className="w-5 h-5 text-slate-500" />
@@ -113,8 +115,12 @@ export default function InformesScreen({ backTo, onNavigate }) {
         )}
       </div>
 
-      <div className="flex-1" />
-      <BottomNav onNavigate={onNavigate} />
+      {!embedded && (
+        <>
+          <div className="flex-1" />
+          <BottomNav onNavigate={onNavigate} />
+        </>
+      )}
     </>
   );
 }

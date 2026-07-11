@@ -16,7 +16,7 @@ export async function fetchInformeMes(anio, mes) {
   const { data: sociedades } = await supabase.from("sociedades").select("id, nombre").order("nombre");
 
   const grupos = new Map();
-  grupos.set(null, { sociedadId: null, nombre: "Gestión personal", gastos: 0, ingresos: 0 });
+  grupos.set(null, { sociedadId: null, nombre: "Gestión familiar", gastos: 0, ingresos: 0 });
   (sociedades || []).forEach((s) => grupos.set(s.id, { sociedadId: s.id, nombre: s.nombre, gastos: 0, ingresos: 0 }));
 
   const addGasto = (sociedadId, monto) => {

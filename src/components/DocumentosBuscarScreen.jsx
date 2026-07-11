@@ -179,9 +179,9 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
               <>
                 <FolderRow
                   icono={User}
-                  titulo="Gestión personal"
+                  titulo="Gestión familiar"
                   subtitulo="Propiedades, autos y trabajadores personales"
-                  onClick={() => setPath([{ tipo: "gestion", entidadNombre: "Gestión personal" }])}
+                  onClick={() => setPath([{ tipo: "gestion", entidadNombre: "Gestión familiar" }])}
                 />
                 <FolderRow
                   icono={Building2}
@@ -214,7 +214,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
                   titulo="Documentos generales"
                   subtitulo={`${contarDocs("persona", PERSONA_DOC_ID)} documento(s)`}
                   onClick={() => setPath((p) => [...p, {
-                    tipo: "documentos", entidadTipo: "persona", entidadId: PERSONA_DOC_ID, entidadNombre: "Gestión personal",
+                    tipo: "documentos", entidadTipo: "persona", entidadId: PERSONA_DOC_ID, entidadNombre: "Gestión familiar",
                   }])}
                 />
               </>

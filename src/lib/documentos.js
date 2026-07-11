@@ -2,7 +2,7 @@ import { supabase } from "./supabaseClient";
 
 const BUCKET = "documentos";
 
-// Id fijo para la "carpeta" de Documentos de Gestión personal, que no tiene una fila propia en ninguna tabla.
+// Id fijo para la "carpeta" de Documentos de Gestión familiar, que no tiene una fila propia en ninguna tabla.
 export const PERSONA_DOC_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function fetchCarpetas(entidadTipo, entidadId, carpetaPadreId) {
@@ -207,7 +207,7 @@ export async function fetchTodosLosDocumentos() {
   ]);
 
   const nombreDe = (tipo, id) => {
-    if (tipo === "persona") return id === PERSONA_DOC_ID ? "Gestión personal" : "Mis gastos personales";
+    if (tipo === "persona") return id === PERSONA_DOC_ID ? "Gestión familiar" : "Mis gastos personales";
     if (tipo === "propiedad") return propiedades.data?.find((p) => p.id === id)?.nombre ?? "Propiedad";
     if (tipo === "sociedad") return sociedades.data?.find((s) => s.id === id)?.nombre ?? "Sociedad";
     if (tipo === "trabajador") return trabajadores.data?.find((t) => t.id === id)?.nombre ?? "Trabajador";

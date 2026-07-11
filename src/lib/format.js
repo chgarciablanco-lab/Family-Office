@@ -6,6 +6,7 @@ export const colorClasses = {
   pink: { bg: "bg-pink-100", fg: "text-pink-600" },
   emerald: { bg: "bg-emerald-100", fg: "text-emerald-600" },
   amber: { bg: "bg-amber-100", fg: "text-amber-500" },
+  slate: { bg: "bg-slate-200", fg: "text-slate-700" },
 };
 
 export function estadoPillClasses(estado) {

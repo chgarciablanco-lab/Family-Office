@@ -9,6 +9,7 @@ export const MODULOS = [
   { key: "arriendos", label: "Arriendos" },
   { key: "inversiones", label: "Inversiones" },
   { key: "otros_gastos", label: "Otros gastos" },
+  { key: "items_etiqueta", label: "Etiquetas personalizadas" },
   { key: "documentos", label: "Documentos" },
   { key: "calendario_tareas", label: "Calendario y tareas" },
   { key: "notas", label: "Notas" },

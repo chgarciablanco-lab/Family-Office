@@ -23,7 +23,7 @@ export async function fetchConsolidadoPagos(anio, mes) {
   const filas = [];
 
   const { data: sociedadesData } = await supabase.from("sociedades").select("id, nombre");
-  const nombreSociedad = (id) => sociedadesData?.find((s) => s.id === id)?.nombre ?? "Gestión personal";
+  const nombreSociedad = (id) => sociedadesData?.find((s) => s.id === id)?.nombre ?? "Gestión familiar";
 
   const { data: servicios } = await supabase
     .from("servicios")

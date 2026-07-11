@@ -29,6 +29,8 @@ import DocumentosBuscarScreen from "./DocumentosBuscarScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
+import EtiquetasConfigScreen from "./EtiquetasConfigScreen";
+import EtiquetaGastosScreen from "./EtiquetaGastosScreen";
 import { fetchPendientes } from "../lib/pendientes";
 
 const NAV_STORAGE_KEY = "familyOfficeNavState";
@@ -66,6 +68,8 @@ function MainAppInner({ session }) {
   const [autoBackTo, setAutoBackTo] = useState(initialNav.autoBackTo || "autos");
   const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(initialNav.selectedTramiteAuto || null);
   const [documentosCtx, setDocumentosCtx] = useState(initialNav.documentosCtx || null);
+  const [selectedEtiqueta, setSelectedEtiqueta] = useState(initialNav.selectedEtiqueta || null);
+  const [etiquetaBackTo, setEtiquetaBackTo] = useState(initialNav.etiquetaBackTo || "persona");
   const [selectedNota, setSelectedNota] = useState(initialNav.selectedNota || null);
   const [herramientasTab, setHerramientasTab] = useState(initialNav.herramientasTab || "tareas");
   const [notifCount, setNotifCount] = useState(0);
@@ -125,13 +129,13 @@ function MainAppInner({ session }) {
       JSON.stringify({
         screen, selectedSociedad, sociedadBackTo, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
         selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, autoBackTo, selectedTramiteAuto,
-        documentosCtx, selectedNota, herramientasTab,
+        documentosCtx, selectedNota, herramientasTab, selectedEtiqueta, etiquetaBackTo,
       })
     );
   }, [
     screen, selectedSociedad, sociedadBackTo, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
     selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, autoBackTo, selectedTramiteAuto,
-    documentosCtx, selectedNota, herramientasTab,
+    documentosCtx, selectedNota, herramientasTab, selectedEtiqueta, etiquetaBackTo,
   ]);
 
   const handleSelectSociedad = (backTo) => (s) => {
@@ -184,6 +188,12 @@ function MainAppInner({ session }) {
     setScreen("documentos");
   };
 
+  const handleSelectEtiqueta = (backTo) => (etiqueta) => {
+    setSelectedEtiqueta(etiqueta);
+    setEtiquetaBackTo(backTo);
+    setScreen("etiqueta-gastos");
+  };
+
   if (cargandoPermisos) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -231,13 +241,29 @@ function MainAppInner({ session }) {
         />
       )}
       {screen === "persona" && (
-        <PersonaScreen onNavigate={setScreen} onOpenDocumentos={handleOpenDocumentos("persona", "persona")} />
+        <PersonaScreen
+          onNavigate={setScreen}
+          onOpenDocumentos={handleOpenDocumentos("persona", "persona")}
+          onSelectEtiqueta={handleSelectEtiqueta("persona")}
+        />
       )}
       {screen === "gastos-personales" && (
         <PersonaScreen
           onNavigate={setScreen}
           onOpenDocumentos={handleOpenDocumentos("persona", "gastos-personales")}
+          onSelectEtiqueta={handleSelectEtiqueta("gastos-personales")}
           ownerUserId={session.user.id}
+        />
+      )}
+      {screen === "etiquetas-config" && (
+        <EtiquetasConfigScreen backTo="persona" onNavigate={setScreen} />
+      )}
+      {screen === "etiqueta-gastos" && selectedEtiqueta && (
+        <EtiquetaGastosScreen
+          etiqueta={selectedEtiqueta}
+          ownerUserId={etiquetaBackTo === "gastos-personales" ? session.user.id : null}
+          backTo={etiquetaBackTo}
+          onNavigate={setScreen}
         />
       )}
       {screen === "perfil" && <PerfilScreen session={session} onNavigate={setScreen} />}
@@ -272,7 +298,7 @@ function MainAppInner({ session }) {
       {screen === "propiedades" && (
         <PropiedadesScreen
           sociedadId={null}
-          entidadNombre="Gestión personal"
+          entidadNombre="Gestión familiar"
           backTo="persona"
           onNavigate={setScreen}
           onSelect={handleSelectPropiedad("propiedades")}
@@ -354,7 +380,7 @@ function MainAppInner({ session }) {
       {screen === "impuestos-persona" && (
         <ImpuestosScreen
           sociedadId={null}
-          entidadNombre="Gestión personal"
+          entidadNombre="Gestión familiar"
           backTo="persona"
           onNavigate={setScreen}
         />
@@ -380,7 +406,7 @@ function MainAppInner({ session }) {
       {screen === "arriendos-persona" && (
         <ArriendosScreen
           sociedadId={null}
-          entidadNombre="Gestión personal"
+          entidadNombre="Gestión familiar"
           backTo="persona"
           onNavigate={setScreen}
           onSelect={handleSelectArriendo("arriendos-persona")}
@@ -426,7 +452,7 @@ function MainAppInner({ session }) {
       {screen === "trabajadores-persona" && (
         <TrabajadoresScreen
           sociedadId={null}
-          entidadNombre="Gestión personal"
+          entidadNombre="Gestión familiar"
           entidadColor="violet"
           backTo="persona"
           onNavigate={setScreen}
@@ -455,7 +481,7 @@ function MainAppInner({ session }) {
       {screen === "inversiones" && (
         <InversionesScreen
           sociedadId={null}
-          entidadNombre="Gestión personal"
+          entidadNombre="Gestión familiar"
           backTo="persona"
           onNavigate={setScreen}
         />
@@ -472,7 +498,7 @@ function MainAppInner({ session }) {
       {screen === "otros-gastos-persona" && (
         <OtrosGastosScreen
           sociedadId={null}
-          entidadNombre="Gestión personal"
+          entidadNombre="Gestión familiar"
           entidadColor="amber"
           backTo="persona"
           onNavigate={setScreen}

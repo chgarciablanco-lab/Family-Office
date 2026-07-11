@@ -26,7 +26,7 @@ const menuItems = [
   },
   {
     key: "persona",
-    title: "Gestión personal",
+    title: "Gestión familiar",
     subtitle: "Propiedades, autos, trabajadores\ne inversiones personales",
     icon: User,
     bg: "bg-violet-100",

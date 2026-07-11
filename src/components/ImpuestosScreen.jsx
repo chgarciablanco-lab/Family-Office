@@ -18,7 +18,7 @@ function generarImpuestosAnio(sociedadId, ownerUserId, anio) {
   });
 }
 
-export default function ImpuestosScreen({ sociedadId = null, ownerUserId = null, entidadNombre = "Gestión personal", backTo, onNavigate }) {
+export default function ImpuestosScreen({ sociedadId = null, ownerUserId = null, entidadNombre = "Gestión familiar", backTo, onNavigate }) {
   const { puedeEditar } = usePermisos();
   const editable = Boolean(ownerUserId) || puedeEditar("impuestos");
   const [registros, setRegistros] = useState([]);

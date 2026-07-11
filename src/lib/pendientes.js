@@ -103,7 +103,7 @@ export async function fetchPendientes() {
   (impuestos || []).forEach((i) => {
     agregar(i.estado, {
       tabla: "impuestos", id: i.id, medidor: null,
-      grupo: i.sociedades?.nombre ?? "Gestión personal", tipo: "F29 · IVA", sub: formatMes(i.periodo),
+      grupo: i.sociedades?.nombre ?? "Gestión familiar", tipo: "F29 · IVA", sub: formatMes(i.periodo),
       estado: i.estado, monto: i.total_iva ?? null, ...ICONOS_EXTRA["F29 · IVA"],
     });
   });

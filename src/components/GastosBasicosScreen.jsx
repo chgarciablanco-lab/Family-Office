@@ -11,6 +11,19 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
   const [loading, setLoading] = useState(true);
   const [expandido, setExpandido] = useState(false);
   const [arriendo, setArriendo] = useState(undefined);
+  const [visibilidad, setVisibilidad] = useState({});
+
+  useEffect(() => {
+    supabase
+      .from("servicios_config")
+      .select("*")
+      .then(({ data, error }) => {
+        if (error) return;
+        const mapa = {};
+        (data || []).forEach((s) => { mapa[s.tipo_servicio] = s.visible; });
+        setVisibilidad(mapa);
+      });
+  }, []);
 
   const fetchServicios = async () => {
     setLoading(true);
@@ -43,9 +56,10 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
 
   // luz, agua, gas, internet y gastos comunes los paga el arrendatario en propiedades arrendadas;
   // seguros y contribuciones siguen siendo obligación del propietario
-  const tiposVisibles = arriendo
+  const tiposVisibles = (arriendo
     ? tiposServicio.filter((t) => t.tipo === "Seguros" || t.tipo === "Contribuciones")
-    : tiposServicio;
+    : tiposServicio
+  ).filter((t) => visibilidad[t.tipo] !== false);
 
   const mesActual = new Date().toISOString().slice(0, 7);
   const esPendiente = (estado) => estado === "Pendiente" || estado === "Por vencer" || estado === "Vencido";

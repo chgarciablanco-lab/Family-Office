@@ -6,10 +6,12 @@ import BottomNav from "./BottomNav";
 import { colorClasses } from "../lib/format";
 import { ICONOS_ETIQUETA } from "../lib/etiquetas";
 import { SECCIONES_FIJAS } from "../lib/seccionesFijas";
+import { tiposServicio } from "../lib/servicioTipos";
 
 export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }) {
   const [etiquetas, setEtiquetas] = useState([]);
   const [visibilidad, setVisibilidad] = useState({});
+  const [visibilidadServicios, setVisibilidadServicios] = useState({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -33,15 +35,30 @@ export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }
     setVisibilidad(mapa);
   };
 
+  const fetchVisibilidadServicios = async () => {
+    const { data, error } = await supabase.from("servicios_config").select("*");
+    if (error) return;
+    const mapa = {};
+    (data || []).forEach((s) => { mapa[s.tipo_servicio] = s.visible; });
+    setVisibilidadServicios(mapa);
+  };
+
   useEffect(() => {
     fetchEtiquetas();
     fetchVisibilidad();
+    fetchVisibilidadServicios();
   }, []);
 
   const toggleSeccionFija = async (modulo) => {
     const actual = visibilidad[modulo] !== false;
     setVisibilidad((prev) => ({ ...prev, [modulo]: !actual }));
     await supabase.from("secciones_config").update({ visible: !actual }).eq("modulo", modulo);
+  };
+
+  const toggleServicio = async (tipo) => {
+    const actual = visibilidadServicios[tipo] !== false;
+    setVisibilidadServicios((prev) => ({ ...prev, [tipo]: !actual }));
+    await supabase.from("servicios_config").update({ visible: !actual }).eq("tipo_servicio", tipo);
   };
 
   const handleSaved = () => {
@@ -93,6 +110,32 @@ export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }
           })}
         </div>
 
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-2">Gastos básicos de propiedades</p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-100 overflow-hidden">
+          {tiposServicio.map((serv) => {
+            const visible = visibilidadServicios[serv.tipo] !== false;
+            return (
+              <div key={serv.tipo} className="flex items-center gap-3 px-4 py-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${serv.bg}`}>
+                  <serv.icon className={`w-5 h-5 ${serv.fg}`} strokeWidth={1.8} />
+                </div>
+                <p className="flex-1 font-semibold text-slate-800 text-sm">{serv.tipo}</p>
+                <button
+                  type="button"
+                  onClick={() => toggleServicio(serv.tipo)}
+                  aria-label={visible ? `Ocultar ${serv.tipo}` : `Mostrar ${serv.tipo}`}
+                  className={`shrink-0 w-11 h-6 p-0 border-0 appearance-none rounded-full relative transition-colors ${visible ? "bg-emerald-500" : "bg-slate-200"}`}
+                  style={{ WebkitAppearance: "none" }}
+                >
+                  <span
+                    className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${visible ? "translate-x-5" : "translate-x-0"}`}
+                  />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-2">Etiquetas personalizadas</p>
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
@@ -128,7 +171,7 @@ export default function EtiquetasConfigScreen({ backTo = "persona", onNavigate }
           <div>
             <p className="font-bold text-slate-900 text-sm">Se aplica para todos</p>
             <p className="text-sm text-slate-500 mt-0.5">
-              Ocultar una sección predeterminada o crear una etiqueta nueva se refleja tanto en Gestión familiar como en Mis gastos personales de cada usuario. Ocultar no borra la información existente.
+              Ocultar una sección, un gasto básico o crear una etiqueta nueva se refleja tanto en Gestión familiar como en Mis gastos personales de cada usuario (incluyendo dentro de Propiedades → Gastos básicos). Ocultar no borra la información existente.
             </p>
           </div>
         </div>

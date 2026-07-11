@@ -151,7 +151,7 @@ export default function AutosScreen({ ownerUserId = null, backTo = "persona", on
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={ownerUserId ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {showForm && (
         <AutoForm

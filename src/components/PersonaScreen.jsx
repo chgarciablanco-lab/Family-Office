@@ -53,7 +53,7 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos, ownerUserI
   return (
     <>
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <button onClick={() => onNavigate("home")} aria-label="Volver">
+        <button onClick={() => onNavigate(esPersonal ? "espacio-personal" : "home")} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">{esPersonal ? "Mis gastos personales" : "Gestión personal"}</h1>
@@ -109,7 +109,7 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos, ownerUserI
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="home" onNavigate={onNavigate} />
+      <BottomNav variant={esPersonal ? "personal" : "home"} onNavigate={onNavigate} />
     </>
   );
 }

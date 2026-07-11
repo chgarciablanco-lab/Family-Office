@@ -74,7 +74,7 @@ export default function AutoDetailScreen({ auto, backTo, onNavigate, onSelectTra
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={auto.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {showForm && (
         <AutoForm auto={auto} onClose={() => setShowForm(false)} onSaved={handleSaved} />

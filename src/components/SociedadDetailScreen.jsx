@@ -112,7 +112,7 @@ export default function SociedadDetailScreen({ sociedad, backTo = "sociedades-li
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={sociedad.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {showForm && (
         <SociedadForm sociedad={sociedad} onClose={() => setShowForm(false)} onSaved={handleSaved} />

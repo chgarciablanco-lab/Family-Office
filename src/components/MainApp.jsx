@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Screen from "./Screen";
+import EspacioScreen from "./EspacioScreen";
+import EspacioPersonalScreen from "./EspacioPersonalScreen";
 import HomeScreen from "./HomeScreen";
 import PersonaScreen from "./PersonaScreen";
 import PerfilScreen from "./PerfilScreen";
@@ -50,7 +52,7 @@ export default function MainApp({ session }) {
 function MainAppInner({ session }) {
   const { loading: cargandoPermisos } = usePermisos();
   const initialNav = loadNavState();
-  const [screen, setScreen] = useState(initialNav.screen || "home");
+  const [screen, setScreen] = useState(initialNav.screen || "espacio");
   const [selectedSociedad, setSelectedSociedad] = useState(initialNav.selectedSociedad || null);
   const [sociedadBackTo, setSociedadBackTo] = useState(initialNav.sociedadBackTo || "sociedades-list");
   const [selectedPropiedad, setSelectedPropiedad] = useState(initialNav.selectedPropiedad || null);
@@ -192,6 +194,8 @@ function MainAppInner({ session }) {
 
   return (
     <Screen onNavigate={setScreen} notifCount={notifCount} ocultarCampana={screen === "notificaciones"} onSwipeBack={handleSwipeBack}>
+      {screen === "espacio" && <EspacioScreen onNavigate={setScreen} />}
+      {screen === "espacio-personal" && <EspacioPersonalScreen onNavigate={setScreen} />}
       {screen === "home" && <HomeScreen session={session} onNavigate={setScreen} />}
       {screen === "notificaciones" && (
         <NotificacionesScreen backTo="home" onNavigate={setScreen} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, Briefcase } from "lucide-react";
+import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -39,22 +39,6 @@ const menuItems = [
     icon: LayoutGrid,
     bg: "bg-emerald-100",
     fg: "text-emerald-600",
-  },
-  {
-    key: "sociedades-personales",
-    title: "Mis sociedades",
-    subtitle: "Tus propias sociedades,\nprivadas y separadas del family office",
-    icon: Briefcase,
-    bg: "bg-slate-200",
-    fg: "text-slate-700",
-  },
-  {
-    key: "gastos-personales",
-    title: "Mis gastos personales",
-    subtitle: "Tus propiedades, autos y gastos,\nprivados y separados del family office",
-    icon: User,
-    bg: "bg-slate-200",
-    fg: "text-slate-700",
   },
   {
     key: "documentos-buscar",
@@ -119,14 +103,19 @@ export default function HomeScreen({ session, onNavigate }) {
 
   return (
     <>
-      <div className="px-5 pt-2 pb-2 flex items-center gap-3">
-        <img src="/logo.png" alt="García Blanco Family Office" className="w-16 h-16 object-contain shrink-0" />
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 leading-tight">
-            García Blanco <span className="whitespace-nowrap">Family Office</span>
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">{fechaCap}</p>
+      <div className="px-5 pt-2 pb-2 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <img src="/logo.png" alt="García Blanco Family Office" className="w-16 h-16 object-contain shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-slate-900 leading-tight">
+              García Blanco <span className="whitespace-nowrap">Family Office</span>
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">{fechaCap}</p>
+          </div>
         </div>
+        <button onClick={() => onNavigate("espacio")} aria-label="Cambiar de espacio" className="shrink-0 p-1.5">
+          <ArrowLeftRight className="w-5 h-5 text-slate-400" strokeWidth={1.8} />
+        </button>
       </div>
 
       <div className="px-5 pt-4 pb-3">

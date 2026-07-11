@@ -258,7 +258,7 @@ export default function ServicioHistorialScreen({ propiedad, sociedadId, tipoSer
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={propiedad.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {showForm && (
         <Form

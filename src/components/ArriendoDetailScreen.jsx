@@ -135,7 +135,7 @@ export default function ArriendoDetailScreen({ arriendo, backTo, onNavigate }) {
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={arriendo.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {editing && (
         <PagoArriendoForm

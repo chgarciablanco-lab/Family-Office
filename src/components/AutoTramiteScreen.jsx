@@ -113,7 +113,7 @@ export default function AutoTramiteScreen({ auto, tipo, backTo, onNavigate }) {
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={auto.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {editing && (
         <AutoPagoForm

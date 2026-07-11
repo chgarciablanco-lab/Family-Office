@@ -185,7 +185,7 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={propiedad.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
     </>
   );
 }

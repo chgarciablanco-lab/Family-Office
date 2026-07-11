@@ -146,7 +146,7 @@ export default function InversionesScreen({ sociedadId = null, ownerUserId = nul
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={ownerUserId ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {showForm && (
         <InversionForm

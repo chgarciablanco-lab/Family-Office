@@ -175,7 +175,7 @@ export default function ImpuestosScreen({ sociedadId = null, ownerUserId = null,
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={ownerUserId ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {showForm && (
         <ImpuestoForm

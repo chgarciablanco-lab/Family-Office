@@ -118,7 +118,7 @@ export default function PatenteSociedadScreen({ sociedad, backTo, onNavigate }) 
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={sociedad.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {editing && (
         <PatenteSociedadPagoForm

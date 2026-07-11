@@ -1,10 +1,11 @@
 import React from "react";
 import { Home as HomeIcon, Calendar, User } from "lucide-react";
 
-export default function BottomNav({ onNavigate }) {
+export default function BottomNav({ variant, onNavigate }) {
+  const homeTarget = variant === "personal" ? "espacio-personal" : variant === "espacio" ? "espacio" : "home";
   return (
     <div className="sticky bottom-0 bg-white border-t border-slate-100 px-6 py-2.5 flex items-center justify-around">
-      <button onClick={() => onNavigate("home")} className="flex flex-col items-center gap-0.5 text-blue-600">
+      <button onClick={() => onNavigate(homeTarget)} className="flex flex-col items-center gap-0.5 text-blue-600">
         <HomeIcon className="w-6 h-6" strokeWidth={2} />
         <span className="text-[11px] font-medium">Inicio</span>
       </button>

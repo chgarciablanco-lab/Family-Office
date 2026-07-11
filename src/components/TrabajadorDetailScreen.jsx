@@ -136,7 +136,7 @@ export default function TrabajadorDetailScreen({ trabajador, backTo, onNavigate,
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={trabajador.owner_user_id ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {editing && (
         <PagoTrabajadorForm

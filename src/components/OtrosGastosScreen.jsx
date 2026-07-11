@@ -168,7 +168,7 @@ export default function OtrosGastosScreen({ sociedadId, ownerUserId = null, enti
       </div>
 
       <div className="flex-1" />
-      <BottomNav variant="detail" onNavigate={onNavigate} />
+      <BottomNav variant={ownerUserId ? "personal" : "detail"} onNavigate={onNavigate} />
 
       {showForm && (
         <OtrosGastoForm

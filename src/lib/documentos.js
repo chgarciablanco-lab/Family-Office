@@ -79,11 +79,27 @@ export async function fetchDocumentos(entidadTipo, entidadId, carpetaId) {
     .select("*")
     .eq("entidad_tipo", entidadTipo)
     .eq("entidad_id", entidadId)
-    .order("created_at", { ascending: false });
+    .order("orden", { ascending: true })
+    .order("created_at", { ascending: true });
   q = carpetaId ? q.eq("carpeta_id", carpetaId) : q.is("carpeta_id", null);
   const { data, error } = await q;
   if (error) return [];
   return data || [];
+}
+
+// Cantidad de documentos por carpeta (solo directos, no cuenta los de subcarpetas), para
+// mostrar en la etiqueta de cada carpeta.
+export async function fetchConteoDocumentosPorCarpeta(entidadTipo, entidadId) {
+  const { data, error } = await supabase
+    .from("documentos")
+    .select("carpeta_id")
+    .eq("entidad_tipo", entidadTipo)
+    .eq("entidad_id", entidadId)
+    .not("carpeta_id", "is", null);
+  if (error || !data) return {};
+  const conteo = {};
+  data.forEach((d) => { conteo[d.carpeta_id] = (conteo[d.carpeta_id] || 0) + 1; });
+  return conteo;
 }
 
 export async function subirDocumento(entidadTipo, entidadId, carpetaId, file) {
@@ -96,6 +112,11 @@ export async function subirDocumento(entidadTipo, entidadId, carpetaId, file) {
   });
   if (uploadError) return { error: uploadError };
 
+  let q = supabase.from("documentos").select("orden").eq("entidad_tipo", entidadTipo).eq("entidad_id", entidadId);
+  q = carpetaId ? q.eq("carpeta_id", carpetaId) : q.is("carpeta_id", null);
+  const { data: existentes } = await q.order("orden", { ascending: false }).limit(1);
+  const siguienteOrden = (existentes?.[0]?.orden || 0) + 1;
+
   const { error } = await supabase.from("documentos").insert({
     entidad_tipo: entidadTipo,
     entidad_id: entidadId,
@@ -104,8 +125,21 @@ export async function subirDocumento(entidadTipo, entidadId, carpetaId, file) {
     storage_path: path,
     content_type: file.type || null,
     tamano_bytes: file.size,
+    orden: siguienteOrden,
   });
   return { error };
+}
+
+export async function moverOrdenDocumento(docs, docId, direccion) {
+  const idx = docs.findIndex((d) => d.id === docId);
+  const otroIdx = direccion === "up" ? idx - 1 : idx + 1;
+  if (idx === -1 || otroIdx < 0 || otroIdx >= docs.length) return;
+  const a = docs[idx];
+  const b = docs[otroIdx];
+  await Promise.all([
+    supabase.from("documentos").update({ orden: b.orden }).eq("id", a.id),
+    supabase.from("documentos").update({ orden: a.orden }).eq("id", b.id),
+  ]);
 }
 
 export async function obtenerUrlPreview(storagePath) {

@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Trash2, X, FolderPlus, Upload, Pencil, Check, Folder, ChevronRight, Move } from "lucide-react";
+import {
+  ArrowLeft, Trash2, X, FolderPlus, Upload, Pencil, Check, Folder, ChevronRight, Move, ChevronUp, ChevronDown,
+} from "lucide-react";
 import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
 import NuevaCarpetaForm from "./NuevaCarpetaForm";
@@ -9,10 +11,11 @@ import { formatFechaCorta } from "../lib/format";
 import {
   fetchCarpetas, fetchDocumentos, subirDocumento, eliminarDocumento, formatTamano,
   renombrarCarpeta, eliminarCarpeta, fetchDescendientesCarpeta, moverCarpeta, moverDocumento,
+  fetchConteoDocumentosPorCarpeta, moverOrdenDocumento,
 } from "../lib/documentos";
 import { usePermisos } from "../context/PermisosContext";
 
-function CarpetaRow({ carpeta, editable, onOpen, onCambiada, onMover }) {
+function CarpetaRow({ carpeta, cantidad, editable, onOpen, onCambiada, onMover }) {
   const [renombrando, setRenombrando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState(carpeta.nombre);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -71,7 +74,10 @@ function CarpetaRow({ carpeta, editable, onOpen, onCambiada, onMover }) {
           <div className="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
             <Folder className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
           </div>
-          <p className="flex-1 min-w-0 text-sm font-bold text-slate-900 truncate">{carpeta.nombre}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-slate-900 truncate">{carpeta.nombre}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">{cantidad} documento{cantidad === 1 ? "" : "s"}</p>
+          </div>
           <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
         </button>
         {editable && (
@@ -112,6 +118,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
 
   const [path, setPath] = useState([]); // [{ id, nombre }]
   const [carpetas, setCarpetas] = useState([]);
+  const [conteoCarpetas, setConteoCarpetas] = useState({});
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subiendo, setSubiendo] = useState(false);
@@ -125,12 +132,14 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
 
   const cargar = async () => {
     setLoading(true);
-    const [cs, docs] = await Promise.all([
+    const [cs, docs, conteo] = await Promise.all([
       fetchCarpetas(entidadTipo, entidadId, carpetaActual?.id),
       fetchDocumentos(entidadTipo, entidadId, carpetaActual?.id),
+      fetchConteoDocumentosPorCarpeta(entidadTipo, entidadId),
     ]);
     setCarpetas(cs);
     setDocumentos(docs);
+    setConteoCarpetas(conteo);
     setLoading(false);
   };
 
@@ -174,6 +183,11 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
     if (moviendo.tipo === "carpeta") await moverCarpeta(moviendo.item.id, destinoId);
     else await moverDocumento(moviendo.item.id, destinoId);
     setMoviendo(null);
+    cargar();
+  };
+
+  const handleReordenar = async (docId, direccion) => {
+    await moverOrdenDocumento(documentos, docId, direccion);
     cargar();
   };
 
@@ -230,6 +244,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
           <CarpetaRow
             key={c.id}
             carpeta={c}
+            cantidad={conteoCarpetas[c.id] || 0}
             editable={editable}
             onOpen={() => setPath((p) => [...p, { id: c.id, nombre: c.nombre }])}
             onCambiada={cargar}
@@ -240,10 +255,30 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
         {!loading && documentos.length > 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5">
             <div className="flex flex-col gap-2">
-              {documentos.map((doc) => {
+              {documentos.map((doc, idx) => {
                 const Icon = iconoDoc(doc.content_type);
                 return (
                   <div key={doc.id} className="flex items-center gap-2.5 bg-slate-50 rounded-xl px-2.5 py-2">
+                    {editable && (
+                      <div className="flex flex-col shrink-0">
+                        <button
+                          onClick={() => handleReordenar(doc.id, "up")}
+                          disabled={idx === 0}
+                          aria-label="Subir"
+                          className="disabled:opacity-20"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5 text-slate-400" strokeWidth={2} />
+                        </button>
+                        <button
+                          onClick={() => handleReordenar(doc.id, "down")}
+                          disabled={idx === documentos.length - 1}
+                          aria-label="Bajar"
+                          className="disabled:opacity-20"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-400" strokeWidth={2} />
+                        </button>
+                      </div>
+                    )}
                     <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center shrink-0">
                       <Icon className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
                     </div>

@@ -207,7 +207,7 @@ export async function fetchTodosLosDocumentos() {
   ]);
 
   const nombreDe = (tipo, id) => {
-    if (tipo === "persona") return "Gestión personal";
+    if (tipo === "persona") return id === PERSONA_DOC_ID ? "Gestión personal" : "Mis gastos personales";
     if (tipo === "propiedad") return propiedades.data?.find((p) => p.id === id)?.nombre ?? "Propiedad";
     if (tipo === "sociedad") return sociedades.data?.find((s) => s.id === id)?.nombre ?? "Sociedad";
     if (tipo === "trabajador") return trabajadores.data?.find((t) => t.id === id)?.nombre ?? "Trabajador";

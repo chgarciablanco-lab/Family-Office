@@ -15,7 +15,7 @@ function emptyForm(trabajador) {
   };
 }
 
-export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSaved }) {
+export default function TrabajadorForm({ trabajador, sociedadId, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(trabajador));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +38,7 @@ export default function TrabajadorForm({ trabajador, sociedadId, onClose, onSave
 
     const query = isEditing
       ? supabase.from("trabajadores").update(payload).eq("id", trabajador.id)
-      : supabase.from("trabajadores").insert(payload);
+      : supabase.from("trabajadores").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
     setSaving(false);

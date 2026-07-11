@@ -45,9 +45,10 @@ const secciones = [
   },
 ];
 
-export default function PersonaScreen({ onNavigate, onOpenDocumentos }) {
+export default function PersonaScreen({ onNavigate, onOpenDocumentos, ownerUserId = null }) {
   const { puedeVer } = usePermisos();
-  const seccionesVisibles = secciones.filter((sec) => puedeVer(sec.modulo));
+  const esPersonal = Boolean(ownerUserId);
+  const seccionesVisibles = esPersonal ? secciones : secciones.filter((sec) => puedeVer(sec.modulo));
 
   return (
     <>
@@ -55,7 +56,7 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos }) {
         <button onClick={() => onNavigate("home")} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">Gestión personal</h1>
+        <h1 className="text-xl font-bold text-slate-900">{esPersonal ? "Mis gastos personales" : "Gestión personal"}</h1>
         <button aria-label="Más opciones">
           <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
         </button>
@@ -65,7 +66,7 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos }) {
         {seccionesVisibles.map((sec) => (
           <button
             key={sec.key}
-            onClick={() => sec.disponible && onNavigate(sec.key)}
+            onClick={() => sec.disponible && onNavigate(esPersonal ? `${sec.key}-mio` : sec.key)}
             disabled={!sec.disponible}
             className={`w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-4 flex items-center gap-4 text-left transition-transform ${
               sec.disponible ? "active:scale-[0.98]" : "opacity-60"
@@ -84,7 +85,7 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos }) {
         ))}
 
         <button
-          onClick={() => onOpenDocumentos({ id: PERSONA_DOC_ID, nombre: "Gestión personal" })}
+          onClick={() => onOpenDocumentos({ id: esPersonal ? ownerUserId : PERSONA_DOC_ID, nombre: esPersonal ? "Mis gastos personales" : "Gestión personal" })}
           className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
         >
           <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
@@ -97,9 +98,11 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos }) {
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3 mb-2">
           <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
-            <p className="font-bold text-slate-900 text-sm">Gestión personal</p>
+            <p className="font-bold text-slate-900 text-sm">{esPersonal ? "Tu información privada" : "Gestión personal"}</p>
             <p className="text-sm text-slate-500 mt-0.5">
-              Propiedades, autos e inversiones son distintos de los de tus sociedades.
+              {esPersonal
+                ? "Solo tú puedes ver esta sección, ni siquiera los administradores del family office."
+                : "Propiedades, autos e inversiones son distintos de los de tus sociedades."}
             </p>
           </div>
         </div>

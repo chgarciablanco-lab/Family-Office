@@ -17,7 +17,7 @@ function emptyForm(auto) {
   };
 }
 
-export default function AutoForm({ auto, onClose, onSaved }) {
+export default function AutoForm({ auto, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(auto));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +37,7 @@ export default function AutoForm({ auto, onClose, onSaved }) {
 
     const query = isEditing
       ? supabase.from("autos").update(payload).eq("id", auto.id)
-      : supabase.from("autos").insert(payload);
+      : supabase.from("autos").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
     setSaving(false);

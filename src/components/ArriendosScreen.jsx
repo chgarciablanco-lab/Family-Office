@@ -64,9 +64,9 @@ function ArriendoRow({ item, onSelect, onEdit, editable }) {
   );
 }
 
-export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tus arriendos", backTo, onNavigate, onSelect }) {
+export default function ArriendosScreen({ sociedadId = null, ownerUserId = null, entidadNombre = "tus arriendos", backTo, onNavigate, onSelect }) {
   const { puedeEditar } = usePermisos();
-  const editable = puedeEditar("arriendos");
+  const editable = Boolean(ownerUserId) || puedeEditar("arriendos");
   const [arriendos, setArriendos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -76,7 +76,12 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
   const fetchArriendos = async () => {
     setLoading(true);
     let query = supabase.from("arriendos").select("*").order("nombre");
-    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    if (sociedadId) {
+      query = query.eq("sociedad_id", sociedadId);
+    } else {
+      query = query.is("sociedad_id", null);
+      query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    }
     const { data, error } = await query;
     if (!error) setArriendos(data || []);
     setLoading(false);
@@ -84,7 +89,7 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
 
   useEffect(() => {
     fetchArriendos();
-  }, [sociedadId]);
+  }, [sociedadId, ownerUserId]);
 
   const filtrados = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -201,6 +206,7 @@ export default function ArriendosScreen({ sociedadId = null, entidadNombre = "tu
         <ArriendoForm
           arriendo={editing}
           sociedadId={sociedadId}
+          ownerUserId={ownerUserId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

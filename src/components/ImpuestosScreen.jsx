@@ -6,20 +6,21 @@ import BottomNav from "./BottomNav";
 import { formatCLP, formatMes, formatFechaCorta, estadoPillClasses } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
 
-function generarImpuestosAnio(sociedadId, anio) {
+function generarImpuestosAnio(sociedadId, ownerUserId, anio) {
   return Array.from({ length: 12 }, (_, i) => {
     const mes = String(i + 1).padStart(2, "0");
     return {
       sociedad_id: sociedadId,
+      owner_user_id: sociedadId ? null : ownerUserId,
       periodo: `${anio}-${mes}-01`,
       estado: "Pendiente",
     };
   });
 }
 
-export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Gestión personal", backTo, onNavigate }) {
+export default function ImpuestosScreen({ sociedadId = null, ownerUserId = null, entidadNombre = "Gestión personal", backTo, onNavigate }) {
   const { puedeEditar } = usePermisos();
-  const editable = puedeEditar("impuestos");
+  const editable = Boolean(ownerUserId) || puedeEditar("impuestos");
   const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -28,13 +29,18 @@ export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Ge
   const fetchRegistros = async () => {
     setLoading(true);
     let query = supabase.from("impuestos").select("*").order("periodo", { ascending: true });
-    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    if (sociedadId) {
+      query = query.eq("sociedad_id", sociedadId);
+    } else {
+      query = query.is("sociedad_id", null);
+      query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    }
     const { data, error } = await query;
 
     if (!error) {
       if ((data || []).length === 0) {
         const anio = new Date().getFullYear();
-        const filas = generarImpuestosAnio(sociedadId, anio);
+        const filas = generarImpuestosAnio(sociedadId, ownerUserId, anio);
         const { data: creados, error: insertError } = await supabase
           .from("impuestos")
           .insert(filas)
@@ -49,7 +55,7 @@ export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Ge
 
   useEffect(() => {
     fetchRegistros();
-  }, [sociedadId]);
+  }, [sociedadId, ownerUserId]);
 
   const handleSaved = () => {
     setShowForm(false);
@@ -175,6 +181,7 @@ export default function ImpuestosScreen({ sociedadId = null, entidadNombre = "Ge
         <ImpuestoForm
           registro={editing}
           sociedadId={sociedadId}
+          ownerUserId={ownerUserId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

@@ -10,10 +10,10 @@ import { colorClasses } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
 
 export default function PropiedadesScreen({
-  sociedadId = null, entidadNombre = "tus propiedades", backTo = "persona", onNavigate, onSelect,
+  sociedadId = null, ownerUserId = null, entidadNombre = "tus propiedades", backTo = "persona", onNavigate, onSelect,
 }) {
   const { puedeEditar } = usePermisos();
-  const editable = puedeEditar("propiedades");
+  const editable = Boolean(ownerUserId) || puedeEditar("propiedades");
   const [propiedades, setPropiedades] = useState([]);
   const [arrendadas, setArrendadas] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,12 @@ export default function PropiedadesScreen({
   const fetchPropiedades = async () => {
     setLoading(true);
     let query = supabase.from("propiedades").select("*").order("nombre");
-    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    if (sociedadId) {
+      query = query.eq("sociedad_id", sociedadId);
+    } else {
+      query = query.is("sociedad_id", null);
+      query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    }
     const { data, error } = await query;
     if (!error) setPropiedades(data || []);
 
@@ -33,7 +38,14 @@ export default function PropiedadesScreen({
       .select("propiedad_id")
       .eq("relacion", "propia")
       .not("propiedad_id", "is", null);
-    arriendosQuery = sociedadId ? arriendosQuery.eq("sociedad_id", sociedadId) : arriendosQuery.is("sociedad_id", null);
+    if (sociedadId) {
+      arriendosQuery = arriendosQuery.eq("sociedad_id", sociedadId);
+    } else {
+      arriendosQuery = arriendosQuery.is("sociedad_id", null);
+      arriendosQuery = ownerUserId
+        ? arriendosQuery.eq("owner_user_id", ownerUserId)
+        : arriendosQuery.is("owner_user_id", null);
+    }
     const { data: arriendosData } = await arriendosQuery;
     setArrendadas(new Set((arriendosData || []).map((a) => a.propiedad_id)));
 
@@ -42,7 +54,7 @@ export default function PropiedadesScreen({
 
   useEffect(() => {
     fetchPropiedades();
-  }, [sociedadId]);
+  }, [sociedadId, ownerUserId]);
 
   const filtradas = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -167,6 +179,7 @@ export default function PropiedadesScreen({
         <PropiedadForm
           propiedad={editing}
           sociedadId={sociedadId}
+          ownerUserId={ownerUserId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

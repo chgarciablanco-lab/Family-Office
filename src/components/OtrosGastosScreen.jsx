@@ -50,9 +50,9 @@ function GastoRow({ g, onEdit, editable }) {
   );
 }
 
-export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, onNavigate }) {
+export default function OtrosGastosScreen({ sociedadId, ownerUserId = null, entidadNombre, backTo, onNavigate }) {
   const { puedeEditar } = usePermisos();
-  const editable = puedeEditar("otros_gastos");
+  const editable = Boolean(ownerUserId) || puedeEditar("otros_gastos");
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -63,7 +63,12 @@ export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, o
   const fetchGastos = async () => {
     setLoading(true);
     let query = supabase.from("otros_gastos").select("*").order("fecha", { ascending: false });
-    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    if (sociedadId) {
+      query = query.eq("sociedad_id", sociedadId);
+    } else {
+      query = query.is("sociedad_id", null);
+      query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    }
     const { data, error } = await query;
     if (!error) setGastos(data || []);
     setLoading(false);
@@ -71,7 +76,7 @@ export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, o
 
   useEffect(() => {
     fetchGastos();
-  }, [sociedadId]);
+  }, [sociedadId, ownerUserId]);
 
   const filtrados = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -169,6 +174,7 @@ export default function OtrosGastosScreen({ sociedadId, entidadNombre, backTo, o
         <OtrosGastoForm
           gasto={editing}
           sociedadId={sociedadId}
+          ownerUserId={ownerUserId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

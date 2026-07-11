@@ -36,9 +36,9 @@ function InversionRow({ inv, onEdit, editable }) {
   );
 }
 
-export default function InversionesScreen({ sociedadId = null, entidadNombre = "tus inversiones", backTo, onNavigate }) {
+export default function InversionesScreen({ sociedadId = null, ownerUserId = null, entidadNombre = "tus inversiones", backTo, onNavigate }) {
   const { puedeEditar } = usePermisos();
-  const editable = puedeEditar("inversiones");
+  const editable = Boolean(ownerUserId) || puedeEditar("inversiones");
   const [inversiones, setInversiones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -48,7 +48,12 @@ export default function InversionesScreen({ sociedadId = null, entidadNombre = "
   const fetchInversiones = async () => {
     setLoading(true);
     let query = supabase.from("inversiones").select("*").order("fecha", { ascending: false });
-    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    if (sociedadId) {
+      query = query.eq("sociedad_id", sociedadId);
+    } else {
+      query = query.is("sociedad_id", null);
+      query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    }
     const { data, error } = await query;
     if (!error) setInversiones(data || []);
     setLoading(false);
@@ -56,7 +61,7 @@ export default function InversionesScreen({ sociedadId = null, entidadNombre = "
 
   useEffect(() => {
     fetchInversiones();
-  }, [sociedadId]);
+  }, [sociedadId, ownerUserId]);
 
   const filtradas = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -147,6 +152,7 @@ export default function InversionesScreen({ sociedadId = null, entidadNombre = "
         <InversionForm
           inversion={editing}
           sociedadId={sociedadId}
+          ownerUserId={ownerUserId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

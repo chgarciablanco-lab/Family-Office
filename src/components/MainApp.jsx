@@ -61,6 +61,7 @@ function MainAppInner({ session }) {
   const [selectedArriendo, setSelectedArriendo] = useState(initialNav.selectedArriendo || null);
   const [arriendoBackTo, setArriendoBackTo] = useState(initialNav.arriendoBackTo || "arriendos-persona");
   const [selectedAuto, setSelectedAuto] = useState(initialNav.selectedAuto || null);
+  const [autoBackTo, setAutoBackTo] = useState(initialNav.autoBackTo || "autos");
   const [selectedTramiteAuto, setSelectedTramiteAuto] = useState(initialNav.selectedTramiteAuto || null);
   const [documentosCtx, setDocumentosCtx] = useState(initialNav.documentosCtx || null);
   const [selectedNota, setSelectedNota] = useState(initialNav.selectedNota || null);
@@ -121,13 +122,13 @@ function MainAppInner({ session }) {
       NAV_STORAGE_KEY,
       JSON.stringify({
         screen, selectedSociedad, sociedadBackTo, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
-        selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
+        selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, autoBackTo, selectedTramiteAuto,
         documentosCtx, selectedNota, herramientasTab,
       })
     );
   }, [
     screen, selectedSociedad, sociedadBackTo, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
-    selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
+    selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, autoBackTo, selectedTramiteAuto,
     documentosCtx, selectedNota, herramientasTab,
   ]);
 
@@ -160,8 +161,9 @@ function MainAppInner({ session }) {
     setScreen("arriendo-detail");
   };
 
-  const handleSelectAuto = (a) => {
+  const handleSelectAuto = (backTo) => (a) => {
     setSelectedAuto(a);
+    setAutoBackTo(backTo);
     setScreen("auto-detail");
   };
 
@@ -227,15 +229,30 @@ function MainAppInner({ session }) {
       {screen === "persona" && (
         <PersonaScreen onNavigate={setScreen} onOpenDocumentos={handleOpenDocumentos("persona", "persona")} />
       )}
+      {screen === "gastos-personales" && (
+        <PersonaScreen
+          onNavigate={setScreen}
+          onOpenDocumentos={handleOpenDocumentos("persona", "gastos-personales")}
+          ownerUserId={session.user.id}
+        />
+      )}
       {screen === "perfil" && <PerfilScreen session={session} onNavigate={setScreen} />}
-      {screen === "autos" && <AutosScreen onNavigate={setScreen} onSelect={handleSelectAuto} />}
+      {screen === "autos" && <AutosScreen onNavigate={setScreen} onSelect={handleSelectAuto("autos")} />}
+      {screen === "autos-mio" && (
+        <AutosScreen
+          ownerUserId={session.user.id}
+          backTo="gastos-personales"
+          onNavigate={setScreen}
+          onSelect={handleSelectAuto("autos-mio")}
+        />
+      )}
       {screen === "auto-detail" && selectedAuto && (
         <AutoDetailScreen
           auto={selectedAuto}
-          backTo="autos"
+          backTo={autoBackTo}
           onNavigate={setScreen}
           onSelectTramite={handleSelectTramiteAuto}
-          onUpdated={() => setScreen("autos")}
+          onUpdated={() => setScreen(autoBackTo)}
           onOpenDocumentos={handleOpenDocumentos("auto", "auto-detail")}
         />
       )}
@@ -255,6 +272,16 @@ function MainAppInner({ session }) {
           backTo="persona"
           onNavigate={setScreen}
           onSelect={handleSelectPropiedad("propiedades")}
+        />
+      )}
+      {screen === "propiedades-mio" && (
+        <PropiedadesScreen
+          sociedadId={null}
+          ownerUserId={session.user.id}
+          entidadNombre="tus gastos personales"
+          backTo="gastos-personales"
+          onNavigate={setScreen}
+          onSelect={handleSelectPropiedad("propiedades-mio")}
         />
       )}
 
@@ -328,6 +355,15 @@ function MainAppInner({ session }) {
           onNavigate={setScreen}
         />
       )}
+      {screen === "impuestos-persona-mio" && (
+        <ImpuestosScreen
+          sociedadId={null}
+          ownerUserId={session.user.id}
+          entidadNombre="tus gastos personales"
+          backTo="gastos-personales"
+          onNavigate={setScreen}
+        />
+      )}
       {screen === "arriendos-sociedad" && selectedSociedad && (
         <ArriendosScreen
           sociedadId={selectedSociedad.id}
@@ -344,6 +380,16 @@ function MainAppInner({ session }) {
           backTo="persona"
           onNavigate={setScreen}
           onSelect={handleSelectArriendo("arriendos-persona")}
+        />
+      )}
+      {screen === "arriendos-persona-mio" && (
+        <ArriendosScreen
+          sociedadId={null}
+          ownerUserId={session.user.id}
+          entidadNombre="tus gastos personales"
+          backTo="gastos-personales"
+          onNavigate={setScreen}
+          onSelect={handleSelectArriendo("arriendos-persona-mio")}
         />
       )}
       {screen === "arriendo-detail" && selectedArriendo && (
@@ -383,6 +429,17 @@ function MainAppInner({ session }) {
           onSelect={handleSelectTrabajador("trabajadores-persona")}
         />
       )}
+      {screen === "trabajadores-persona-mio" && (
+        <TrabajadoresScreen
+          sociedadId={null}
+          ownerUserId={session.user.id}
+          entidadNombre="tus gastos personales"
+          entidadColor="violet"
+          backTo="gastos-personales"
+          onNavigate={setScreen}
+          onSelect={handleSelectTrabajador("trabajadores-persona-mio")}
+        />
+      )}
       {screen === "trabajador-detail" && selectedTrabajador && (
         <TrabajadorDetailScreen
           trabajador={selectedTrabajador}
@@ -399,12 +456,31 @@ function MainAppInner({ session }) {
           onNavigate={setScreen}
         />
       )}
+      {screen === "inversiones-mio" && (
+        <InversionesScreen
+          sociedadId={null}
+          ownerUserId={session.user.id}
+          entidadNombre="tus gastos personales"
+          backTo="gastos-personales"
+          onNavigate={setScreen}
+        />
+      )}
       {screen === "otros-gastos-persona" && (
         <OtrosGastosScreen
           sociedadId={null}
           entidadNombre="Gestión personal"
           entidadColor="amber"
           backTo="persona"
+          onNavigate={setScreen}
+        />
+      )}
+      {screen === "otros-gastos-persona-mio" && (
+        <OtrosGastosScreen
+          sociedadId={null}
+          ownerUserId={session.user.id}
+          entidadNombre="tus gastos personales"
+          entidadColor="amber"
+          backTo="gastos-personales"
           onNavigate={setScreen}
         />
       )}

@@ -58,10 +58,10 @@ function TrabajadorRow({ t, color, onSelect, onEdit, editable }) {
 }
 
 export default function TrabajadoresScreen({
-  sociedadId, entidadNombre, entidadColor = "violet", backTo, onNavigate, onSelect,
+  sociedadId, ownerUserId = null, entidadNombre, entidadColor = "violet", backTo, onNavigate, onSelect,
 }) {
   const { puedeEditar } = usePermisos();
-  const editable = puedeEditar("trabajadores");
+  const editable = Boolean(ownerUserId) || puedeEditar("trabajadores");
   const [trabajadores, setTrabajadores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -71,7 +71,12 @@ export default function TrabajadoresScreen({
   const fetchTrabajadores = async () => {
     setLoading(true);
     let query = supabase.from("trabajadores").select("*").order("nombre");
-    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    if (sociedadId) {
+      query = query.eq("sociedad_id", sociedadId);
+    } else {
+      query = query.is("sociedad_id", null);
+      query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    }
     const { data, error } = await query;
     if (!error) setTrabajadores(data || []);
     setLoading(false);
@@ -79,7 +84,7 @@ export default function TrabajadoresScreen({
 
   useEffect(() => {
     fetchTrabajadores();
-  }, [sociedadId]);
+  }, [sociedadId, ownerUserId]);
 
   const filtrados = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -172,6 +177,7 @@ export default function TrabajadoresScreen({
         <TrabajadorForm
           trabajador={editing}
           sociedadId={sociedadId}
+          ownerUserId={ownerUserId}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={handleSaved}
         />

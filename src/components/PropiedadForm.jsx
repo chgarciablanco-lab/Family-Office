@@ -18,7 +18,7 @@ function emptyForm(propiedad) {
   };
 }
 
-export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved }) {
+export default function PropiedadForm({ propiedad, sociedadId, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(propiedad));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +39,7 @@ export default function PropiedadForm({ propiedad, sociedadId, onClose, onSaved 
 
     const query = isEditing
       ? supabase.from("propiedades").update(payload).eq("id", propiedad.id)
-      : supabase.from("propiedades").insert(payload);
+      : supabase.from("propiedades").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
     setSaving(false);

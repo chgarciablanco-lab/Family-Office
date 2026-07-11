@@ -16,7 +16,7 @@ function emptyForm(gasto) {
   };
 }
 
-export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) {
+export default function OtrosGastoForm({ gasto, sociedadId, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(gasto));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +37,7 @@ export default function OtrosGastoForm({ gasto, sociedadId, onClose, onSaved }) 
 
     const query = isEditing
       ? supabase.from("otros_gastos").update(payload).eq("id", gasto.id)
-      : supabase.from("otros_gastos").insert(payload);
+      : supabase.from("otros_gastos").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
     setSaving(false);

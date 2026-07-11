@@ -17,7 +17,7 @@ function emptyForm(registro) {
   };
 }
 
-export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved }) {
+export default function ImpuestoForm({ registro, sociedadId, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(registro));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +41,7 @@ export default function ImpuestoForm({ registro, sociedadId, onClose, onSaved })
 
     const query = isEditing
       ? supabase.from("impuestos").update(payload).eq("id", registro.id)
-      : supabase.from("impuestos").insert(payload);
+      : supabase.from("impuestos").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
     setSaving(false);

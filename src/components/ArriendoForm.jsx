@@ -25,7 +25,7 @@ function emptyForm(arriendo) {
   };
 }
 
-export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved }) {
+export default function ArriendoForm({ arriendo, sociedadId, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(arriendo));
   const [propiedades, setPropiedades] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -36,9 +36,14 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
   useEffect(() => {
     if (form.relacion !== "propia") return;
     let query = supabase.from("propiedades").select("id, nombre, direccion").order("nombre");
-    query = sociedadId ? query.eq("sociedad_id", sociedadId) : query.is("sociedad_id", null);
+    if (sociedadId) {
+      query = query.eq("sociedad_id", sociedadId);
+    } else {
+      query = query.is("sociedad_id", null);
+      query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    }
     query.then(({ data }) => setPropiedades(data || []));
-  }, [form.relacion, sociedadId]);
+  }, [form.relacion, sociedadId, ownerUserId]);
 
   const seleccionarPropiedad = (propiedadId) => {
     const p = propiedades.find((x) => x.id === propiedadId);
@@ -72,7 +77,7 @@ export default function ArriendoForm({ arriendo, sociedadId, onClose, onSaved })
 
     const query = isEditing
       ? supabase.from("arriendos").update(payload).eq("id", arriendo.id)
-      : supabase.from("arriendos").insert(payload);
+      : supabase.from("arriendos").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
     setSaving(false);

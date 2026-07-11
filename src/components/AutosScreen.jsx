@@ -40,9 +40,9 @@ function AutoRow({ auto, onSelect, onEdit, editable }) {
   );
 }
 
-export default function AutosScreen({ onNavigate, onSelect }) {
+export default function AutosScreen({ ownerUserId = null, backTo = "persona", onNavigate, onSelect }) {
   const { puedeEditar } = usePermisos();
-  const editable = puedeEditar("autos");
+  const editable = Boolean(ownerUserId) || puedeEditar("autos");
   const [autos, setAutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -51,14 +51,16 @@ export default function AutosScreen({ onNavigate, onSelect }) {
 
   const fetchAutos = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("autos").select("*").order("patente");
+    let query = supabase.from("autos").select("*").order("patente");
+    query = ownerUserId ? query.eq("owner_user_id", ownerUserId) : query.is("owner_user_id", null);
+    const { data, error } = await query;
     if (!error) setAutos(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchAutos();
-  }, []);
+  }, [ownerUserId]);
 
   const autosFiltrados = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -80,7 +82,7 @@ export default function AutosScreen({ onNavigate, onSelect }) {
   return (
     <>
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <button onClick={() => onNavigate("persona")} aria-label="Volver">
+        <button onClick={() => onNavigate(backTo)} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Autos</h1>
@@ -154,6 +156,7 @@ export default function AutosScreen({ onNavigate, onSelect }) {
       {showForm && (
         <AutoForm
           auto={editingAuto}
+          ownerUserId={ownerUserId}
           onClose={() => { setShowForm(false); setEditingAuto(null); }}
           onSaved={handleSaved}
         />

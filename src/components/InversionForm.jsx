@@ -19,7 +19,7 @@ function emptyForm(inversion) {
   };
 }
 
-export default function InversionForm({ inversion, sociedadId, onClose, onSaved }) {
+export default function InversionForm({ inversion, sociedadId, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(inversion));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +42,7 @@ export default function InversionForm({ inversion, sociedadId, onClose, onSaved 
 
     const query = isEditing
       ? supabase.from("inversiones").update(payload).eq("id", inversion.id)
-      : supabase.from("inversiones").insert(payload);
+      : supabase.from("inversiones").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
 

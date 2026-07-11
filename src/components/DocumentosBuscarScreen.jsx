@@ -88,7 +88,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
     if (!q) return [];
     return documentos.filter((d) =>
       d.nombre.toLowerCase().includes(q) ||
-      d.categoria.toLowerCase().includes(q) ||
+      (d.carpetaNombre && d.carpetaNombre.toLowerCase().includes(q)) ||
       d.entidadNombre.toLowerCase().includes(q)
     );
   }, [documentos, busqueda]);
@@ -160,7 +160,9 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900 truncate">{doc.nombre}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">{doc.categoria} · {doc.entidadNombre}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">
+                      {doc.carpetaNombre ? `${doc.carpetaNombre} · ` : ""}{doc.entidadNombre}
+                    </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
                       {formatTamano(doc.tamano_bytes)} · {formatFechaCorta(doc.created_at.slice(0, 10))}
                     </p>

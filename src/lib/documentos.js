@@ -2,32 +2,69 @@ import { supabase } from "./supabaseClient";
 
 const BUCKET = "documentos";
 
-export const CATEGORIAS_DOCUMENTOS = {
-  propiedad: ["Escritura", "Dominio vigente", "Hipoteca", "Contrato de arriendo", "Comprobantes"],
-  sociedad: ["Escritura de constitución", "Estatutos", "Modificaciones", "Contratos", "Comprobantes"],
-  trabajador: ["Contrato", "Liquidaciones"],
-  auto: ["Padrón", "Seguro", "Revisión técnica", "Permiso de circulación"],
-  persona: ["Cédula de identidad", "Comprobantes"],
-};
-
 // Id fijo para la "carpeta" de Documentos de Gestión personal, que no tiene una fila propia en ninguna tabla.
 export const PERSONA_DOC_ID = "00000000-0000-0000-0000-000000000001";
 
-export async function fetchDocumentos(entidadTipo, entidadId) {
-  const { data, error } = await supabase
+export async function fetchCarpetas(entidadTipo, entidadId, carpetaPadreId) {
+  let q = supabase
+    .from("carpetas")
+    .select("*")
+    .eq("entidad_tipo", entidadTipo)
+    .eq("entidad_id", entidadId)
+    .order("nombre");
+  q = carpetaPadreId ? q.eq("carpeta_padre_id", carpetaPadreId) : q.is("carpeta_padre_id", null);
+  const { data, error } = await q;
+  if (error) return [];
+  return data || [];
+}
+
+export async function crearCarpeta(entidadTipo, entidadId, nombre, carpetaPadreId) {
+  const { data: userData } = await supabase.auth.getUser();
+  const { error } = await supabase.from("carpetas").insert({
+    entidad_tipo: entidadTipo,
+    entidad_id: entidadId,
+    nombre: nombre.trim(),
+    carpeta_padre_id: carpetaPadreId || null,
+    created_by: userData?.user?.id || null,
+  });
+  return { error };
+}
+
+export async function renombrarCarpeta(carpetaId, nuevoNombre) {
+  const { error } = await supabase.from("carpetas").update({ nombre: nuevoNombre.trim() }).eq("id", carpetaId);
+  return { error };
+}
+
+export async function eliminarCarpeta(carpetaId) {
+  // Solo se pueden borrar carpetas vacías (sin subcarpetas ni documentos), para no perder
+  // contenido por accidente sin avisar.
+  const [{ count: subcarpetas }, { count: docs }] = await Promise.all([
+    supabase.from("carpetas").select("id", { count: "exact", head: true }).eq("carpeta_padre_id", carpetaId),
+    supabase.from("documentos").select("id", { count: "exact", head: true }).eq("carpeta_id", carpetaId),
+  ]);
+  if ((subcarpetas || 0) > 0 || (docs || 0) > 0) {
+    return { error: { message: "La carpeta no está vacía. Elimina su contenido primero." } };
+  }
+  const { error } = await supabase.from("carpetas").delete().eq("id", carpetaId);
+  return { error };
+}
+
+export async function fetchDocumentos(entidadTipo, entidadId, carpetaId) {
+  let q = supabase
     .from("documentos")
     .select("*")
     .eq("entidad_tipo", entidadTipo)
     .eq("entidad_id", entidadId)
     .order("created_at", { ascending: false });
+  q = carpetaId ? q.eq("carpeta_id", carpetaId) : q.is("carpeta_id", null);
+  const { data, error } = await q;
   if (error) return [];
   return data || [];
 }
 
-export async function subirDocumento(entidadTipo, entidadId, categoria, file) {
+export async function subirDocumento(entidadTipo, entidadId, carpetaId, file) {
   const nombreSeguro = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const categoriaSegura = categoria.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `${entidadTipo}/${entidadId}/${categoriaSegura}/${Date.now()}-${nombreSeguro}`;
+  const path = `${entidadTipo}/${entidadId}/${carpetaId || "raiz"}/${Date.now()}-${nombreSeguro}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
     contentType: file.type || "application/octet-stream",
@@ -37,7 +74,7 @@ export async function subirDocumento(entidadTipo, entidadId, categoria, file) {
   const { error } = await supabase.from("documentos").insert({
     entidad_tipo: entidadTipo,
     entidad_id: entidadId,
-    categoria,
+    carpeta_id: carpetaId || null,
     nombre: file.name,
     storage_path: path,
     content_type: file.type || null,
@@ -79,20 +116,10 @@ export async function eliminarDocumento(doc) {
   return error;
 }
 
-export async function renombrarCategoria(entidadTipo, entidadId, categoriaVieja, categoriaNueva) {
-  const { error } = await supabase
-    .from("documentos")
-    .update({ categoria: categoriaNueva })
-    .eq("entidad_tipo", entidadTipo)
-    .eq("entidad_id", entidadId)
-    .eq("categoria", categoriaVieja);
-  return error;
-}
-
 export async function fetchTodosLosDocumentos() {
   const { data, error } = await supabase
     .from("documentos")
-    .select("*")
+    .select("*, carpetas:carpeta_id(nombre)")
     .order("created_at", { ascending: false });
   if (error || !data) return [];
 
@@ -128,7 +155,11 @@ export async function fetchTodosLosDocumentos() {
     return tipo;
   };
 
-  return data.map((d) => ({ ...d, entidadNombre: nombreDe(d.entidad_tipo, d.entidad_id) }));
+  return data.map((d) => ({
+    ...d,
+    entidadNombre: nombreDe(d.entidad_tipo, d.entidad_id),
+    carpetaNombre: d.carpetas?.nombre ?? null,
+  }));
 }
 
 export function formatTamano(bytes) {

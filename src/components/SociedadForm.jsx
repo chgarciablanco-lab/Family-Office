@@ -19,7 +19,7 @@ function emptyForm(sociedad) {
   };
 }
 
-export default function SociedadForm({ sociedad, onClose, onSaved }) {
+export default function SociedadForm({ sociedad, ownerUserId = null, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm(sociedad));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +39,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
 
     const query = isEditing
       ? supabase.from("sociedades").update(payload).eq("id", sociedad.id)
-      : supabase.from("sociedades").insert(payload);
+      : supabase.from("sociedades").insert({ ...payload, owner_user_id: ownerUserId });
 
     const { error } = await query;
     setSaving(false);
@@ -67,7 +67,7 @@ export default function SociedadForm({ sociedad, onClose, onSaved }) {
       <div className="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-900">
-            {isEditing ? "Editar sociedad" : "Nueva sociedad"}
+            {isEditing ? "Editar sociedad" : ownerUserId ? "Nueva sociedad personal" : "Nueva sociedad"}
           </h2>
           <button onClick={onClose} aria-label="Cerrar">
             <X className="w-5 h-5 text-slate-500" />

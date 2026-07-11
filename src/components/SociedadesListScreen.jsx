@@ -6,9 +6,10 @@ import BottomNav from "./BottomNav";
 import { colorClasses, estadoSociedadPillClasses } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
 
-export default function SociedadesListScreen({ onNavigate, onSelect }) {
+export default function SociedadesListScreen({ onNavigate, onSelect, ownerUserId = null }) {
   const { puedeEditar } = usePermisos();
-  const puedeAgregar = puedeEditar("sociedades");
+  const esPersonal = Boolean(ownerUserId);
+  const puedeAgregar = esPersonal || puedeEditar("sociedades");
   const [sociedades, setSociedades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -16,14 +17,17 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
 
   const fetchSociedades = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("sociedades").select("*").order("nombre");
+    let q = supabase.from("sociedades").select("*").order("nombre");
+    q = esPersonal ? q.eq("owner_user_id", ownerUserId) : q.is("owner_user_id", null);
+    const { data, error } = await q;
     if (!error) setSociedades(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchSociedades();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownerUserId]);
 
   const filtradas = sociedades.filter((s) => {
     const q = search.trim().toLowerCase();
@@ -42,7 +46,7 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
         <button onClick={() => onNavigate("home")} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">Sociedades</h1>
+        <h1 className="text-xl font-bold text-slate-900">{esPersonal ? "Mis sociedades" : "Sociedades"}</h1>
         {puedeAgregar ? (
           <button onClick={() => setShowForm(true)} aria-label="Agregar sociedad">
             <Plus className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
@@ -75,7 +79,7 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 flex flex-col items-center text-center gap-3">
             <Building2 className="w-8 h-8 text-slate-300" strokeWidth={1.6} />
             <div>
-              <p className="text-sm font-semibold text-slate-700">Aún no tienes sociedades</p>
+              <p className="text-sm font-semibold text-slate-700">{esPersonal ? "Aún no tienes sociedades personales" : "Aún no tienes sociedades"}</p>
               <p className="text-sm text-slate-500 mt-0.5">
                 {puedeAgregar ? "Toca el botón + arriba para agregar la primera." : "Aún no hay sociedades registradas."}
               </p>
@@ -124,8 +128,12 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
         <div className="bg-white rounded-2xl border border-slate-100 px-4 py-4 flex items-start gap-3 mb-2">
           <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" strokeWidth={1.8} />
           <div>
-            <p className="font-bold text-slate-900 text-sm">Gestiona tus sociedades</p>
-            <p className="text-sm text-slate-500 mt-0.5">Agrega, edita y administra la información de tus sociedades.</p>
+            <p className="font-bold text-slate-900 text-sm">{esPersonal ? "Tu información privada" : "Gestiona tus sociedades"}</p>
+            <p className="text-sm text-slate-500 mt-0.5">
+              {esPersonal
+                ? "Solo tú puedes ver esta sección, ni siquiera los administradores del family office."
+                : "Agrega, edita y administra la información de tus sociedades."}
+            </p>
           </div>
         </div>
       </div>
@@ -133,7 +141,7 @@ export default function SociedadesListScreen({ onNavigate, onSelect }) {
       <div className="flex-1" />
       <BottomNav variant="home" onNavigate={onNavigate} />
 
-      {showForm && <SociedadForm onClose={() => setShowForm(false)} onSaved={handleAdded} />}
+      {showForm && <SociedadForm ownerUserId={ownerUserId} onClose={() => setShowForm(false)} onSaved={handleAdded} />}
     </>
   );
 }

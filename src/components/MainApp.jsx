@@ -52,6 +52,7 @@ function MainAppInner({ session }) {
   const initialNav = loadNavState();
   const [screen, setScreen] = useState(initialNav.screen || "home");
   const [selectedSociedad, setSelectedSociedad] = useState(initialNav.selectedSociedad || null);
+  const [sociedadBackTo, setSociedadBackTo] = useState(initialNav.sociedadBackTo || "sociedades-list");
   const [selectedPropiedad, setSelectedPropiedad] = useState(initialNav.selectedPropiedad || null);
   const [propiedadBackTo, setPropiedadBackTo] = useState(initialNav.propiedadBackTo || "propiedades");
   const [selectedTipoServicio, setSelectedTipoServicio] = useState(initialNav.selectedTipoServicio || null);
@@ -119,19 +120,20 @@ function MainAppInner({ session }) {
     sessionStorage.setItem(
       NAV_STORAGE_KEY,
       JSON.stringify({
-        screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
+        screen, selectedSociedad, sociedadBackTo, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
         selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
         documentosCtx, selectedNota, herramientasTab,
       })
     );
   }, [
-    screen, selectedSociedad, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
+    screen, selectedSociedad, sociedadBackTo, selectedPropiedad, propiedadBackTo, selectedTipoServicio,
     selectedTrabajador, trabajadorBackTo, selectedArriendo, arriendoBackTo, selectedAuto, selectedTramiteAuto,
     documentosCtx, selectedNota, herramientasTab,
   ]);
 
-  const handleSelectSociedad = (s) => {
+  const handleSelectSociedad = (backTo) => (s) => {
     setSelectedSociedad(s);
+    setSociedadBackTo(backTo);
     setScreen("sociedad-detail");
   };
 
@@ -257,13 +259,21 @@ function MainAppInner({ session }) {
       )}
 
       {screen === "sociedades-list" && (
-        <SociedadesListScreen onNavigate={setScreen} onSelect={handleSelectSociedad} />
+        <SociedadesListScreen onNavigate={setScreen} onSelect={handleSelectSociedad("sociedades-list")} />
+      )}
+      {screen === "sociedades-personales" && (
+        <SociedadesListScreen
+          onNavigate={setScreen}
+          onSelect={handleSelectSociedad("sociedades-personales")}
+          ownerUserId={session.user.id}
+        />
       )}
       {screen === "sociedad-detail" && selectedSociedad && (
         <SociedadDetailScreen
           sociedad={selectedSociedad}
+          backTo={sociedadBackTo}
           onNavigate={setScreen}
-          onUpdated={() => setScreen("sociedades-list")}
+          onUpdated={() => setScreen(sociedadBackTo)}
           onOpenDocumentos={handleOpenDocumentos("sociedad", "sociedad-detail")}
         />
       )}

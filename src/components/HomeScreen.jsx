@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch } from "lucide-react";
+import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, Briefcase } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -39,6 +39,14 @@ const menuItems = [
     icon: LayoutGrid,
     bg: "bg-emerald-100",
     fg: "text-emerald-600",
+  },
+  {
+    key: "sociedades-personales",
+    title: "Mi información personal",
+    subtitle: "Tus propias sociedades y gastos,\nprivados y separados del family office",
+    icon: Briefcase,
+    bg: "bg-slate-200",
+    fg: "text-slate-700",
   },
   {
     key: "documentos-buscar",

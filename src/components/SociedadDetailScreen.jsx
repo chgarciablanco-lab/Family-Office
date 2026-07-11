@@ -18,7 +18,7 @@ const secciones = [
   { key: "documentos-sociedad", title: "Documentos", modulo: "documentos", subtitle: "Escrituras, estatutos, contratos\ny comprobantes.", icon: Folder, bg: "bg-slate-100", fg: "text-slate-500" },
 ];
 
-export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated, onOpenDocumentos }) {
+export default function SociedadDetailScreen({ sociedad, backTo = "sociedades-list", onNavigate, onUpdated, onOpenDocumentos }) {
   const { puedeVer, puedeEditar } = usePermisos();
   const [showForm, setShowForm] = useState(false);
   const c = colorClasses[sociedad.color_tag] || colorClasses.violet;
@@ -34,7 +34,7 @@ export default function SociedadDetailScreen({ sociedad, onNavigate, onUpdated, 
   return (
     <>
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <button onClick={() => onNavigate("sociedades-list")} aria-label="Volver">
+        <button onClick={() => onNavigate(backTo)} aria-label="Volver">
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">{sociedad.nombre}</h1>

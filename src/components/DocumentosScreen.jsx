@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft, Trash2, X, FolderPlus, Upload, Pencil, Check, Folder, ChevronRight, Move, ChevronUp, ChevronDown,
+  ArrowLeft, Trash2, X, FolderPlus, Upload, Pencil, Check, Folder, ChevronRight, Move, GripVertical,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 import ConfirmDialog from "./ConfirmDialog";
@@ -8,14 +8,15 @@ import NuevaCarpetaForm from "./NuevaCarpetaForm";
 import SeleccionarCarpetaModal from "./SeleccionarCarpetaModal";
 import DocumentoPreviewModal, { iconoDoc } from "./DocumentoPreviewModal";
 import { formatFechaCorta } from "../lib/format";
+import { useArrastreOrden } from "../lib/useArrastreOrden";
 import {
   fetchCarpetas, fetchDocumentos, subirDocumento, eliminarDocumento, formatTamano,
   renombrarCarpeta, eliminarCarpeta, fetchDescendientesCarpeta, moverCarpeta, moverDocumento,
-  fetchConteoDocumentosPorCarpeta, moverOrdenDocumento,
+  fetchConteoDocumentosPorCarpeta, guardarOrdenCarpetas, guardarOrdenDocumentos,
 } from "../lib/documentos";
 import { usePermisos } from "../context/PermisosContext";
 
-function CarpetaRow({ carpeta, cantidad, editable, onOpen, onCambiada, onMover }) {
+function CarpetaRow({ carpeta, cantidad, editable, arrastrando, dragProps, onOpen, onCambiada, onMover }) {
   const [renombrando, setRenombrando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState(carpeta.nombre);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -68,9 +69,22 @@ function CarpetaRow({ carpeta, cantidad, editable, onOpen, onCambiada, onMover }
   }
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5">
-      <div className="flex items-center gap-2">
-        <button onClick={onOpen} className="flex-1 min-w-0 flex items-center gap-3.5 text-left active:scale-[0.98] transition-transform">
+    <div
+      className={`w-full bg-white rounded-2xl border shadow-sm px-4 py-3.5 ${
+        arrastrando ? "border-violet-300 shadow-md relative z-10" : "border-slate-100"
+      }`}
+    >
+      <div className="flex items-center gap-1.5">
+        {editable && (
+          <button
+            {...dragProps}
+            aria-label={`Reordenar ${carpeta.nombre}`}
+            className="shrink-0 p-1 touch-none cursor-grab active:cursor-grabbing"
+          >
+            <GripVertical className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
+          </button>
+        )}
+        <button onClick={onOpen} className="flex-1 min-w-0 flex items-center gap-3 text-left active:scale-[0.98] transition-transform">
           <div className="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
             <Folder className="w-5 h-5 text-violet-600" strokeWidth={1.8} />
           </div>
@@ -117,9 +131,9 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
   const inputRef = useRef(null);
 
   const [path, setPath] = useState([]); // [{ id, nombre }]
-  const [carpetas, setCarpetas] = useState([]);
+  const [carpetasFuente, setCarpetasFuente] = useState([]);
   const [conteoCarpetas, setConteoCarpetas] = useState({});
-  const [documentos, setDocumentos] = useState([]);
+  const [documentosFuente, setDocumentosFuente] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subiendo, setSubiendo] = useState(false);
   const [subiendoProgreso, setSubiendoProgreso] = useState(null);
@@ -130,6 +144,9 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
 
   const carpetaActual = path[path.length - 1] || null;
 
+  const arrastreCarpetas = useArrastreOrden(carpetasFuente, 88);
+  const arrastreDocs = useArrastreOrden(documentosFuente, 52);
+
   const cargar = async () => {
     setLoading(true);
     const [cs, docs, conteo] = await Promise.all([
@@ -137,8 +154,8 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
       fetchDocumentos(entidadTipo, entidadId, carpetaActual?.id),
       fetchConteoDocumentosPorCarpeta(entidadTipo, entidadId),
     ]);
-    setCarpetas(cs);
-    setDocumentos(docs);
+    setCarpetasFuente(cs);
+    setDocumentosFuente(docs);
     setConteoCarpetas(conteo);
     setLoading(false);
   };
@@ -186,8 +203,17 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
     cargar();
   };
 
-  const handleReordenar = async (docId, direccion) => {
-    await moverOrdenDocumento(documentos, docId, direccion);
+  const handleSoltarCarpeta = async () => {
+    const idsEnOrden = arrastreCarpetas.soltar();
+    if (!idsEnOrden) return;
+    await guardarOrdenCarpetas(idsEnOrden);
+    cargar();
+  };
+
+  const handleSoltarDoc = async () => {
+    const idsEnOrden = arrastreDocs.soltar();
+    if (!idsEnOrden) return;
+    await guardarOrdenDocumentos(idsEnOrden);
     cargar();
   };
 
@@ -240,44 +266,51 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
 
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
-        {!loading && carpetas.map((c) => (
+        {!loading && arrastreCarpetas.items.map((c, idx) => (
           <CarpetaRow
             key={c.id}
             carpeta={c}
             cantidad={conteoCarpetas[c.id] || 0}
             editable={editable}
+            arrastrando={arrastreCarpetas.arrastrandoId === c.id}
+            dragProps={{
+              onPointerDown: arrastreCarpetas.iniciar(c.id, idx),
+              onPointerMove: arrastreCarpetas.mover,
+              onPointerUp: handleSoltarCarpeta,
+              onPointerCancel: handleSoltarCarpeta,
+              style: { touchAction: "none" },
+            }}
             onOpen={() => setPath((p) => [...p, { id: c.id, nombre: c.nombre }])}
             onCambiada={cargar}
             onMover={handleAbrirMoverCarpeta}
           />
         ))}
 
-        {!loading && documentos.length > 0 && (
+        {!loading && arrastreDocs.items.length > 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5">
             <div className="flex flex-col gap-2">
-              {documentos.map((doc, idx) => {
+              {arrastreDocs.items.map((doc, idx) => {
                 const Icon = iconoDoc(doc.content_type);
+                const arrastrando = arrastreDocs.arrastrandoId === doc.id;
                 return (
-                  <div key={doc.id} className="flex items-center gap-2.5 bg-slate-50 rounded-xl px-2.5 py-2">
+                  <div
+                    key={doc.id}
+                    className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 ${
+                      arrastrando ? "bg-violet-50 shadow-sm relative z-10" : "bg-slate-50"
+                    }`}
+                  >
                     {editable && (
-                      <div className="flex flex-col shrink-0">
-                        <button
-                          onClick={() => handleReordenar(doc.id, "up")}
-                          disabled={idx === 0}
-                          aria-label="Subir"
-                          className="disabled:opacity-20"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5 text-slate-400" strokeWidth={2} />
-                        </button>
-                        <button
-                          onClick={() => handleReordenar(doc.id, "down")}
-                          disabled={idx === documentos.length - 1}
-                          aria-label="Bajar"
-                          className="disabled:opacity-20"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5 text-slate-400" strokeWidth={2} />
-                        </button>
-                      </div>
+                      <button
+                        onPointerDown={arrastreDocs.iniciar(doc.id, idx)}
+                        onPointerMove={arrastreDocs.mover}
+                        onPointerUp={handleSoltarDoc}
+                        onPointerCancel={handleSoltarDoc}
+                        style={{ touchAction: "none" }}
+                        aria-label="Reordenar documento"
+                        className="shrink-0 p-1 touch-none cursor-grab active:cursor-grabbing"
+                      >
+                        <GripVertical className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
+                      </button>
                     )}
                     <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center shrink-0">
                       <Icon className="w-4 h-4 text-slate-500" strokeWidth={1.8} />
@@ -305,7 +338,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
           </div>
         )}
 
-        {!loading && carpetas.length === 0 && documentos.length === 0 && (
+        {!loading && arrastreCarpetas.items.length === 0 && arrastreDocs.items.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 px-4 py-8 text-center">
             <p className="text-sm text-slate-500">Esta carpeta está vacía.</p>
           </div>

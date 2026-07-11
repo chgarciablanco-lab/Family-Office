@@ -11,7 +11,8 @@ export async function fetchCarpetas(entidadTipo, entidadId, carpetaPadreId) {
     .select("*")
     .eq("entidad_tipo", entidadTipo)
     .eq("entidad_id", entidadId)
-    .order("nombre");
+    .order("orden", { ascending: true })
+    .order("nombre", { ascending: true });
   q = carpetaPadreId ? q.eq("carpeta_padre_id", carpetaPadreId) : q.is("carpeta_padre_id", null);
   const { data, error } = await q;
   if (error) return [];
@@ -20,14 +21,29 @@ export async function fetchCarpetas(entidadTipo, entidadId, carpetaPadreId) {
 
 export async function crearCarpeta(entidadTipo, entidadId, nombre, carpetaPadreId) {
   const { data: userData } = await supabase.auth.getUser();
+
+  let q = supabase.from("carpetas").select("orden").eq("entidad_tipo", entidadTipo).eq("entidad_id", entidadId);
+  q = carpetaPadreId ? q.eq("carpeta_padre_id", carpetaPadreId) : q.is("carpeta_padre_id", null);
+  const { data: existentes } = await q.order("orden", { ascending: false }).limit(1);
+  const siguienteOrden = (existentes?.[0]?.orden || 0) + 1;
+
   const { error } = await supabase.from("carpetas").insert({
     entidad_tipo: entidadTipo,
     entidad_id: entidadId,
     nombre: nombre.trim(),
     carpeta_padre_id: carpetaPadreId || null,
     created_by: userData?.user?.id || null,
+    orden: siguienteOrden,
   });
   return { error };
+}
+
+export async function guardarOrdenCarpetas(idsEnOrden) {
+  await Promise.all(idsEnOrden.map((id, i) => supabase.from("carpetas").update({ orden: i + 1 }).eq("id", id)));
+}
+
+export async function guardarOrdenDocumentos(idsEnOrden) {
+  await Promise.all(idsEnOrden.map((id, i) => supabase.from("documentos").update({ orden: i + 1 }).eq("id", id)));
 }
 
 export async function renombrarCarpeta(carpetaId, nuevoNombre) {
@@ -128,18 +144,6 @@ export async function subirDocumento(entidadTipo, entidadId, carpetaId, file) {
     orden: siguienteOrden,
   });
   return { error };
-}
-
-export async function moverOrdenDocumento(docs, docId, direccion) {
-  const idx = docs.findIndex((d) => d.id === docId);
-  const otroIdx = direccion === "up" ? idx - 1 : idx + 1;
-  if (idx === -1 || otroIdx < 0 || otroIdx >= docs.length) return;
-  const a = docs[idx];
-  const b = docs[otroIdx];
-  await Promise.all([
-    supabase.from("documentos").update({ orden: b.orden }).eq("id", a.id),
-    supabase.from("documentos").update({ orden: a.orden }).eq("id", b.id),
-  ]);
 }
 
 export async function obtenerUrlPreview(storagePath) {

@@ -5,8 +5,8 @@ const EDGE_ZONE_PX = 30;
 const SWIPE_THRESHOLD_PX = 70;
 const MAX_VERTICAL_DRIFT_PX = 40;
 
-// Deslizar el dedo desde cerca del borde inferior hacia arriba recarga la app, como un
-// "refresh" manual.
+// Deslizar el dedo desde cerca del borde superior hacia abajo recarga la app, como el
+// clásico "pull to refresh".
 const REFRESH_ZONE_PX = 60;
 const REFRESH_THRESHOLD_PX = 100;
 const MAX_HORIZONTAL_DRIFT_PX = 50;
@@ -18,8 +18,7 @@ export default function Screen({ children, onNavigate, notifCount = 0, ocultarCa
   const handleTouchStart = (e) => {
     const t = e.touches[0];
     touchRef.current = t.clientX <= EDGE_ZONE_PX ? { startX: t.clientX, startY: t.clientY } : null;
-    const distanciaAlFondo = window.innerHeight - t.clientY;
-    refreshTouchRef.current = distanciaAlFondo <= REFRESH_ZONE_PX ? { startX: t.clientX, startY: t.clientY } : null;
+    refreshTouchRef.current = t.clientY <= REFRESH_ZONE_PX ? { startX: t.clientX, startY: t.clientY } : null;
   };
 
   const handleTouchMove = (e) => {
@@ -28,7 +27,7 @@ export default function Screen({ children, onNavigate, notifCount = 0, ocultarCa
     if (refreshTouchRef.current) {
       const dx = t.clientX - refreshTouchRef.current.startX;
       const dy = t.clientY - refreshTouchRef.current.startY;
-      if (-dy > REFRESH_THRESHOLD_PX && Math.abs(dx) < MAX_HORIZONTAL_DRIFT_PX) {
+      if (dy > REFRESH_THRESHOLD_PX && Math.abs(dx) < MAX_HORIZONTAL_DRIFT_PX) {
         refreshTouchRef.current = null;
         touchRef.current = null;
         window.location.reload();

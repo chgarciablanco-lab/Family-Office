@@ -31,6 +31,8 @@ import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
 import EtiquetasConfigScreen from "./EtiquetasConfigScreen";
 import EtiquetaGastosScreen from "./EtiquetaGastosScreen";
+import SociedadSeccionesConfigScreen from "./SociedadSeccionesConfigScreen";
+import PropiedadServiciosConfigScreen from "./PropiedadServiciosConfigScreen";
 import { fetchPendientes } from "../lib/pendientes";
 
 const NAV_STORAGE_KEY = "familyOfficeNavState";
@@ -334,6 +336,9 @@ function MainAppInner({ session }) {
           onOpenDocumentos={handleOpenDocumentos("sociedad", "sociedad-detail")}
         />
       )}
+      {screen === "sociedad-config" && selectedSociedad && (
+        <SociedadSeccionesConfigScreen sociedad={selectedSociedad} backTo="sociedad-detail" onNavigate={setScreen} />
+      )}
 
       {screen === "propiedades-sociedad" && selectedSociedad && (
         <PropiedadesScreen
@@ -352,6 +357,9 @@ function MainAppInner({ session }) {
           onSelectTipo={handleSelectTipo}
           onOpenDocumentos={handleOpenDocumentos("propiedad", "gastos-basicos")}
         />
+      )}
+      {screen === "propiedad-config" && selectedPropiedad && (
+        <PropiedadServiciosConfigScreen propiedad={selectedPropiedad} backTo="gastos-basicos" onNavigate={setScreen} />
       )}
       {screen === "servicio-historial" && selectedPropiedad && selectedTipoServicio && (
         <ServicioHistorialScreen

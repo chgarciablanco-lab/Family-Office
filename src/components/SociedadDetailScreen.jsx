@@ -1,30 +1,49 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, MoreHorizontal, Building2, Calendar, Users, FileText,
+  ArrowLeft, MoreHorizontal, Settings, Building2, Calendar, Users, FileText,
   Home as HomeIcon, Key, ClipboardList, ChevronRight, Info, Award, Folder,
 } from "lucide-react";
 import SociedadForm from "./SociedadForm";
 import BottomNav from "./BottomNav";
+import { supabase } from "../lib/supabaseClient";
 import { colorClasses, estadoSociedadPillClasses, formatFechaCorta } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
 
 const secciones = [
-  { key: "propiedades-sociedad", title: "Propiedades", modulo: "propiedades", subtitle: "Administra las propiedades y sus\ngastos básicos.", icon: HomeIcon, bg: "bg-blue-100", fg: "text-blue-600" },
-  { key: "arriendos-sociedad", title: "Arriendos", modulo: "arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: Key, bg: "bg-orange-100", fg: "text-orange-500" },
-  { key: "trabajadores-sociedad", title: "Trabajadores", modulo: "trabajadores", subtitle: "Gestiona la información y contratos\nde los trabajadores.", icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600" },
-  { key: "impuestos-sociedad", title: "Impuestos", modulo: "impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
-  { key: "patente-sociedad", title: "Patente", modulo: "sociedades", subtitle: "Patente municipal, 2 pagos\nal año.", icon: Award, bg: "bg-teal-100", fg: "text-teal-600" },
-  { key: "otros-gastos-sociedad", title: "Otros gastos", modulo: "otros_gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
-  { key: "documentos-sociedad", title: "Documentos", modulo: "documentos", subtitle: "Escrituras, estatutos, contratos\ny comprobantes.", icon: Folder, bg: "bg-slate-100", fg: "text-slate-500" },
+  { key: "propiedades-sociedad", title: "Propiedades", modulo: "propiedades", configKey: "propiedades", subtitle: "Administra las propiedades y sus\ngastos básicos.", icon: HomeIcon, bg: "bg-blue-100", fg: "text-blue-600" },
+  { key: "arriendos-sociedad", title: "Arriendos", modulo: "arriendos", configKey: "arriendos", subtitle: "Administra contratos de arriendo\ny pagos asociadas.", icon: Key, bg: "bg-orange-100", fg: "text-orange-500" },
+  { key: "trabajadores-sociedad", title: "Trabajadores", modulo: "trabajadores", configKey: "trabajadores", subtitle: "Gestiona la información y contratos\nde los trabajadores.", icon: Users, bg: "bg-emerald-100", fg: "text-emerald-600" },
+  { key: "impuestos-sociedad", title: "Impuestos", modulo: "impuestos", configKey: "impuestos", subtitle: "Revisa y gestiona impuestos y\ndeclaraciones.", icon: FileText, bg: "bg-violet-100", fg: "text-violet-600" },
+  { key: "patente-sociedad", title: "Patente", modulo: "sociedades", configKey: "patente", subtitle: "Patente municipal, 2 pagos\nal año.", icon: Award, bg: "bg-teal-100", fg: "text-teal-600" },
+  { key: "otros-gastos-sociedad", title: "Otros gastos", modulo: "otros_gastos", configKey: "otros_gastos", subtitle: "Registra y controla los gastos\ndiarios de la sociedad.", icon: ClipboardList, bg: "bg-amber-100", fg: "text-amber-500" },
+  { key: "documentos-sociedad", title: "Documentos", modulo: "documentos", configKey: null, subtitle: "Escrituras, estatutos, contratos\ny comprobantes.", icon: Folder, bg: "bg-slate-100", fg: "text-slate-500" },
 ];
 
 export default function SociedadDetailScreen({ sociedad, backTo = "sociedades-list", onNavigate, onUpdated, onOpenDocumentos }) {
-  const { puedeVer, puedeEditar } = usePermisos();
+  const { puedeVer, puedeEditar, esAdmin } = usePermisos();
   const [showForm, setShowForm] = useState(false);
+  const [visibilidadEfectiva, setVisibilidadEfectiva] = useState({});
   const c = colorClasses[sociedad.color_tag] || colorClasses.violet;
   const p = estadoSociedadPillClasses(sociedad.estado);
-  const seccionesVisibles = secciones.filter((sec) => puedeVer(sec.modulo));
+  const seccionesVisibles = secciones
+    .filter((sec) => puedeVer(sec.modulo))
+    .filter((sec) => !sec.configKey || visibilidadEfectiva[sec.configKey] !== false);
   const puedeEditarSociedad = puedeEditar("sociedades");
+  const puedeConfigurar = sociedad.owner_user_id ? true : esAdmin;
+
+  useEffect(() => {
+    const cargarVisibilidad = async () => {
+      const [{ data: g }, { data: pr }] = await Promise.all([
+        supabase.from("secciones_config").select("*"),
+        supabase.from("secciones_config_sociedad").select("*").eq("sociedad_id", sociedad.id),
+      ]);
+      const mapa = {};
+      (g || []).forEach((s) => { mapa[s.modulo] = s.visible; });
+      (pr || []).forEach((s) => { mapa[s.modulo] = s.visible; });
+      setVisibilidadEfectiva(mapa);
+    };
+    cargarVisibilidad();
+  }, [sociedad.id]);
 
   const handleSaved = () => {
     setShowForm(false);
@@ -38,13 +57,20 @@ export default function SociedadDetailScreen({ sociedad, backTo = "sociedades-li
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">{sociedad.nombre}</h1>
-        {puedeEditarSociedad ? (
-          <button onClick={() => setShowForm(true)} aria-label="Editar sociedad">
-            <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
-          </button>
-        ) : (
-          <div className="w-6" />
-        )}
+        <div className="flex items-center gap-3">
+          {puedeConfigurar && (
+            <button onClick={() => onNavigate("sociedad-config")} aria-label="Configurar secciones">
+              <Settings className="w-6 h-6 text-blue-600" strokeWidth={2} />
+            </button>
+          )}
+          {puedeEditarSociedad ? (
+            <button onClick={() => setShowForm(true)} aria-label="Editar sociedad">
+              <MoreHorizontal className="w-6 h-6 text-blue-600" strokeWidth={2.2} />
+            </button>
+          ) : (
+            !puedeConfigurar && <div className="w-6" />
+          )}
+        </div>
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">

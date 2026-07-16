@@ -1,29 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight, ChevronDown, Home as HomeIcon, Folder } from "lucide-react";
+import { ArrowLeft, Settings, ChevronRight, ChevronDown, Home as HomeIcon, Folder } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import { tiposServicio } from "../lib/servicioTipos";
 import { formatCLP, formatFechaCorta, estadoPillClasses } from "../lib/format";
 import { esMultiMedidor, medidoresDe, valorTotal, vencimientoProximo, estadoResumen } from "../lib/medidores";
+import { usePermisos } from "../context/PermisosContext";
 
 export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onSelectTipo, onOpenDocumentos }) {
+  const { esAdmin } = usePermisos();
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandido, setExpandido] = useState(false);
   const [arriendo, setArriendo] = useState(undefined);
   const [visibilidad, setVisibilidad] = useState({});
+  const puedeConfigurar = propiedad.owner_user_id ? true : esAdmin;
 
   useEffect(() => {
-    supabase
-      .from("servicios_config")
-      .select("*")
-      .then(({ data, error }) => {
-        if (error) return;
-        const mapa = {};
-        (data || []).forEach((s) => { mapa[s.tipo_servicio] = s.visible; });
-        setVisibilidad(mapa);
-      });
-  }, []);
+    const cargarVisibilidad = async () => {
+      const [{ data: g }, { data: pr }] = await Promise.all([
+        supabase.from("servicios_config").select("*"),
+        supabase.from("servicios_config_propiedad").select("*").eq("propiedad_id", propiedad.id),
+      ]);
+      const mapa = {};
+      (g || []).forEach((s) => { mapa[s.tipo_servicio] = s.visible; });
+      (pr || []).forEach((s) => { mapa[s.tipo_servicio] = s.visible; });
+      setVisibilidad(mapa);
+    };
+    cargarVisibilidad();
+  }, [propiedad.id]);
 
   const fetchServicios = async () => {
     setLoading(true);
@@ -85,7 +90,13 @@ export default function GastosBasicosScreen({ propiedad, backTo, onNavigate, onS
           <ArrowLeft className="w-6 h-6 text-blue-600" strokeWidth={2} />
         </button>
         <h1 className="text-xl font-bold text-slate-900">Gastos básicos</h1>
-        <div className="w-6" />
+        {puedeConfigurar ? (
+          <button onClick={() => onNavigate("propiedad-config")} aria-label="Configurar gastos básicos">
+            <Settings className="w-6 h-6 text-blue-600" strokeWidth={2} />
+          </button>
+        ) : (
+          <div className="w-6" />
+        )}
       </div>
 
       <div className="px-5 flex flex-col gap-3 pb-4">

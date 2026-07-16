@@ -131,6 +131,77 @@ function ZoomableImage({ src, alt }) {
   );
 }
 
+function PdfPaginas({ url }) {
+  const containerRef = useRef(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelado = false;
+    setCargando(true);
+    setError(false);
+    if (containerRef.current) containerRef.current.innerHTML = "";
+
+    (async () => {
+      try {
+        const [{ getDocument, GlobalWorkerOptions }, workerUrl] = await Promise.all([
+          import("pdfjs-dist/build/pdf.mjs"),
+          import("pdfjs-dist/build/pdf.worker.min.mjs?url").then((m) => m.default),
+        ]);
+        GlobalWorkerOptions.workerSrc = workerUrl;
+
+        const pdf = await getDocument(url).promise;
+        if (cancelado) return;
+
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        for (let i = 1; i <= pdf.numPages; i++) {
+          if (cancelado) return;
+          const page = await pdf.getPage(i);
+          const viewportBase = page.getViewport({ scale: 1 });
+          const anchoDisponible = containerRef.current?.clientWidth || 360;
+          const viewport = page.getViewport({ scale: (anchoDisponible / viewportBase.width) * dpr });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.width = "100%";
+          canvas.style.height = "auto";
+          canvas.style.display = "block";
+          canvas.style.marginBottom = "12px";
+          canvas.style.borderRadius = "8px";
+          canvas.style.boxShadow = "0 1px 3px rgba(0,0,0,0.15)";
+
+          const ctx = canvas.getContext("2d");
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          if (cancelado) return;
+          containerRef.current?.appendChild(canvas);
+        }
+      } catch {
+        if (!cancelado) setError(true);
+      } finally {
+        if (!cancelado) setCargando(false);
+      }
+    })();
+
+    return () => { cancelado = true; };
+  }, [url]);
+
+  if (error) {
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="text-violet-600 font-semibold text-sm py-10">
+        No se pudo previsualizar. Abrir documento →
+      </a>
+    );
+  }
+
+  return (
+    <div className="w-full h-full overflow-auto px-3 py-3">
+      {cargando && <p className="text-sm text-slate-400 text-center py-10">Cargando páginas...</p>}
+      <div ref={containerRef} />
+    </div>
+  );
+}
+
 export default function DocumentoPreviewModal({ doc, onClose }) {
   const [url, setUrl] = useState(null);
   const [descargando, setDescargando] = useState(false);
@@ -211,9 +282,7 @@ export default function DocumentoPreviewModal({ doc, onClose }) {
         >
           {!url && <p className="text-sm text-slate-400 py-10">Cargando...</p>}
           {url && esImagen && <ZoomableImage src={url} alt={doc.nombre} />}
-          {url && esPdf && (
-            <iframe src={url} title={doc.nombre} className="w-full h-[70vh] border-0" />
-          )}
+          {url && esPdf && <PdfPaginas url={url} />}
           {url && !esImagen && !esPdf && (
             <button
               onClick={handleDescargar}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight } from "lucide-react";
+import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight, ScanLine } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -49,6 +49,14 @@ const menuItems = [
     fg: "text-teal-600",
   },
   {
+    key: "planilla",
+    title: "Cargar planilla",
+    subtitle: "Foto de tu planilla de pagos\ny se registra en cada propiedad",
+    icon: ScanLine,
+    bg: "bg-rose-100",
+    fg: "text-rose-600",
+  },
+  {
     key: "usuarios",
     title: "Usuarios",
     subtitle: "Crea usuarios y decide qué\npuede ver y editar cada uno",
@@ -60,7 +68,7 @@ const menuItems = [
 ];
 
 export default function HomeScreen({ session, onNavigate }) {
-  const { esAdmin, puedeVer, perfil } = usePermisos();
+  const { esAdmin, puedeVer, puedeEditar, perfil } = usePermisos();
   const primerNombre = (perfil?.nombre || "").trim().split(" ")[0];
   const saludo = saludoSegunHora(new Date().getHours());
 
@@ -72,6 +80,7 @@ export default function HomeScreen({ session, onNavigate }) {
       return puedeVer("calendario_tareas") || puedeVer("notas") || puedeVer("informes");
     }
     if (item.key === "documentos-buscar") return puedeVer("documentos");
+    if (item.key === "planilla") return puedeEditar("propiedades");
     return true;
   });
 

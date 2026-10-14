@@ -11,14 +11,14 @@ const REFRESH_ZONE_PX = 60;
 const REFRESH_THRESHOLD_PX = 100;
 const MAX_HORIZONTAL_DRIFT_PX = 50;
 
-export default function Screen({ children, onNavigate, notifCount = 0, ocultarCampana = false, onSwipeBack }) {
+export default function Screen({ children, onNavigate, notifCount = 0, ocultarCampana = false, onSwipeBack, bloquearRecarga = false }) {
   const touchRef = useRef(null);
   const refreshTouchRef = useRef(null);
 
   const handleTouchStart = (e) => {
     const t = e.touches[0];
     touchRef.current = t.clientX <= EDGE_ZONE_PX ? { startX: t.clientX, startY: t.clientY } : null;
-    refreshTouchRef.current = t.clientY <= REFRESH_ZONE_PX ? { startX: t.clientX, startY: t.clientY } : null;
+    refreshTouchRef.current = !bloquearRecarga && t.clientY <= REFRESH_ZONE_PX ? { startX: t.clientX, startY: t.clientY } : null;
   };
 
   const handleTouchMove = (e) => {

@@ -109,15 +109,28 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
 
   const paso = path[path.length - 1];
   const loading = datos === null;
-  const conteo = datos?.conteo || {};
+  const filtrando = filtro !== "todos";
   const c = (tipo, id) => conteo[`${tipo}:${id}`];
   const tieneAlgo = (tipo, id) => (c(tipo, id)?.docs || 0) + (c(tipo, id)?.carpetas || 0) > 0;
-  const visible = (tipo, id) => mostrarVacios || tieneAlgo(tipo, id);
+  const visible = (tipo, id) => (mostrarVacios && !filtrando) || tieneAlgo(tipo, id);
 
   const docsFiltradosPorTipo = useMemo(() => {
     const docs = datos?.documentos || [];
     return filtro === "todos" ? docs : docs.filter((d) => categoriaDoc(d.content_type) === filtro);
   }, [datos, filtro]);
+
+  // Con un filtro activo, los conteos (y qué carpetas se ven) salen solo de los archivos de ese
+  // tipo; las carpetas vacías no cuentan como "contenido" en ese caso.
+  const conteo = useMemo(() => {
+    if (!filtrando) return datos?.conteo || {};
+    const out = {};
+    docsFiltradosPorTipo.forEach((d) => {
+      const k = `${d.entidad_tipo}:${d.entidad_id}`;
+      out[k] = out[k] || { docs: 0, carpetas: 0 };
+      out[k].docs += 1;
+    });
+    return out;
+  }, [datos, filtrando, docsFiltradosPorTipo]);
 
   const resultados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -171,7 +184,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
     const props = propiedades.filter((p) => visible("propiedad", p.id));
     const trabs = trabajadores.filter((t) => visible("trabajador", t.id));
     const auts = (autos || []).filter((a) => visible("auto", a.id));
-    const mostrarGenerales = mostrarVacios || tieneAlgo(docsGenerales.tipo, docsGenerales.id);
+    const mostrarGenerales = (mostrarVacios && !filtrando) || tieneAlgo(docsGenerales.tipo, docsGenerales.id);
     const nada = !mostrarGenerales && props.length === 0 && trabs.length === 0 && auts.length === 0;
 
     return (
@@ -246,7 +259,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
     (c("sociedad", s.id)?.docs || 0) +
     totalGrupo((datos?.propiedades || []).filter((p) => p.sociedad_id === s.id), "propiedad") +
     totalGrupo((datos?.trabajadores || []).filter((t) => t.sociedad_id === s.id), "trabajador");
-  const sociedadesVisibles = (datos?.sociedades || []).filter((s) => mostrarVacios || totalSociedad(s) > 0);
+  const sociedadesVisibles = (datos?.sociedades || []).filter((s) => (mostrarVacios && !filtrando) || totalSociedad(s) > 0);
 
   return (
     <>
@@ -311,8 +324,15 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
 
         {!loading && !buscando && !paso && (
           <>
-            <SeccionTitulo>Carpetas</SeccionTitulo>
-            {(mostrarVacios || totalGestion > 0 || tieneAlgo("persona", PERSONA_DOC_ID)) && (
+            <SeccionTitulo>
+              {filtrando
+                ? `Carpetas · ${docsFiltradosPorTipo.length} ${FILTROS.find((f) => f.key === filtro).label.toLowerCase()}`
+                : "Carpetas"}
+            </SeccionTitulo>
+            {filtrando && docsFiltradosPorTipo.length === 0 && (
+              <Vacio>No hay archivos de este tipo.</Vacio>
+            )}
+            {((mostrarVacios && !filtrando) || totalGestion > 0 || tieneAlgo("persona", PERSONA_DOC_ID)) && (
               <FolderRow
                 icono={User}
                 titulo="Gestión familiar"
@@ -362,7 +382,7 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
             trabajadores: datos.trabajadores.filter((t) => t.sociedad_id === paso.sociedadId),
           })}
 
-        {!loading && !buscando && (
+        {!loading && !buscando && !filtrando && (
           <button
             onClick={() => setMostrarVacios((v) => !v)}
             className="self-center text-xs font-semibold text-violet-600 py-2"

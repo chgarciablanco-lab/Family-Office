@@ -225,6 +225,82 @@ export async function fetchTodosLosDocumentos() {
   }));
 }
 
+// Todo lo necesario para el explorador central de Documentos en una sola carga: documentos,
+// carpetas y las entidades a las que pueden pertenecer. RLS ya filtra lo que cada usuario ve.
+export async function fetchArbolDocumentos() {
+  const [docs, carpetas, sociedades, propiedades, trabajadores, autos] = await Promise.all([
+    supabase.from("documentos").select("*").order("created_at", { ascending: false }),
+    supabase.from("carpetas").select("id, nombre, carpeta_padre_id, entidad_tipo, entidad_id"),
+    supabase.from("sociedades").select("id, nombre").order("nombre"),
+    supabase.from("propiedades").select("id, nombre, comuna, sociedad_id").order("nombre"),
+    supabase.from("trabajadores").select("id, nombre, cargo, sociedad_id").order("nombre"),
+    supabase.from("autos").select("id, marca, modelo, patente").order("marca"),
+  ]);
+
+  const listaCarpetas = carpetas.data || [];
+  const carpetaPorId = new Map(listaCarpetas.map((c) => [c.id, c]));
+
+  // Ruta completa de una carpeta (de la raíz hacia adentro), cortando si hubiera un ciclo.
+  const rutaCarpeta = (carpetaId) => {
+    const ruta = [];
+    const vistos = new Set();
+    let actual = carpetaPorId.get(carpetaId);
+    while (actual && !vistos.has(actual.id)) {
+      vistos.add(actual.id);
+      ruta.unshift({ id: actual.id, nombre: actual.nombre });
+      actual = actual.carpeta_padre_id ? carpetaPorId.get(actual.carpeta_padre_id) : null;
+    }
+    return ruta;
+  };
+
+  const props = propiedades.data || [];
+  const socs = sociedades.data || [];
+  const trabs = trabajadores.data || [];
+  const auts = autos.data || [];
+
+  const nombreEntidad = (tipo, id) => {
+    if (tipo === "persona") return id === PERSONA_DOC_ID ? "Gestión familiar" : "Mis documentos personales";
+    if (tipo === "propiedad") return props.find((p) => p.id === id)?.nombre ?? "Propiedad";
+    if (tipo === "sociedad") return socs.find((s) => s.id === id)?.nombre ?? "Sociedad";
+    if (tipo === "trabajador") return trabs.find((t) => t.id === id)?.nombre ?? "Trabajador";
+    if (tipo === "auto") {
+      const a = auts.find((x) => x.id === id);
+      return a ? `${a.marca} ${a.modelo}` : "Auto";
+    }
+    return tipo;
+  };
+
+  const documentos = (docs.data || []).map((d) => ({
+    ...d,
+    entidadNombre: nombreEntidad(d.entidad_tipo, d.entidad_id),
+    rutaCarpeta: d.carpeta_id ? rutaCarpeta(d.carpeta_id) : [],
+  }));
+
+  // Conteos por entidad ("tipo:id"): documentos totales (incluye subcarpetas) y carpetas.
+  const conteo = {};
+  const clave = (tipo, id) => `${tipo}:${id}`;
+  documentos.forEach((d) => {
+    const k = clave(d.entidad_tipo, d.entidad_id);
+    conteo[k] = conteo[k] || { docs: 0, carpetas: 0 };
+    conteo[k].docs += 1;
+  });
+  listaCarpetas.forEach((c) => {
+    const k = clave(c.entidad_tipo, c.entidad_id);
+    conteo[k] = conteo[k] || { docs: 0, carpetas: 0 };
+    conteo[k].carpetas += 1;
+  });
+
+  return { documentos, conteo, sociedades: socs, propiedades: props, trabajadores: trabs, autos: auts };
+}
+
+// Agrupa el content_type en las categorías del filtro del explorador.
+export function categoriaDoc(contentType) {
+  const t = (contentType || "").toLowerCase();
+  if (t === "application/pdf") return "pdf";
+  if (t.startsWith("image/")) return "imagen";
+  return "otro";
+}
+
 export function formatTamano(bytes) {
   if (!bytes) return "-";
   if (bytes < 1024) return `${bytes} B`;

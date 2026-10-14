@@ -43,7 +43,7 @@ const menuItems = [
   {
     key: "documentos-buscar",
     title: "Documentos",
-    subtitle: "Busca cualquier archivo\nguardado en la app",
+    subtitle: "Todas tus carpetas y archivos\nen un solo lugar",
     icon: FolderSearch,
     bg: "bg-teal-100",
     fg: "text-teal-600",

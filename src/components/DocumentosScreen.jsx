@@ -125,12 +125,12 @@ function CarpetaRow({ carpeta, cantidad, editable, arrastrando, dragProps, onOpe
   );
 }
 
-export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre, backTo, onNavigate }) {
+export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre, backTo, onNavigate, initialPath }) {
   const { puedeEditar } = usePermisos();
   const editable = puedeEditar("documentos");
   const inputRef = useRef(null);
 
-  const [path, setPath] = useState([]); // [{ id, nombre }]
+  const [path, setPath] = useState(initialPath || []); // [{ id, nombre }]
   const [carpetasFuente, setCarpetasFuente] = useState([]);
   const [conteoCarpetas, setConteoCarpetas] = useState({});
   const [documentosFuente, setDocumentosFuente] = useState([]);

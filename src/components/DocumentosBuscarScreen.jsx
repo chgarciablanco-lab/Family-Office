@@ -311,17 +311,6 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
 
         {!loading && !buscando && !paso && (
           <>
-            {recientes.length > 0 && (
-              <>
-                <SeccionTitulo>
-                  <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.2} /> Recientes</span>
-                </SeccionTitulo>
-                {recientes.map((doc) => (
-                  <DocRow key={doc.id} doc={doc} onPreview={setPreview} onIrACarpeta={irACarpetaDe} />
-                ))}
-              </>
-            )}
-
             <SeccionTitulo>Carpetas</SeccionTitulo>
             {(mostrarVacios || totalGestion > 0 || tieneAlgo("persona", PERSONA_DOC_ID)) && (
               <FolderRow
@@ -344,6 +333,17 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
                 onClick={() => setPath([{ tipo: "sociedad", sociedadId: s.id, entidadNombre: s.nombre }])}
               />
             ))}
+
+            {recientes.length > 0 && (
+              <>
+                <SeccionTitulo>
+                  <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.2} /> Recientes</span>
+                </SeccionTitulo>
+                {recientes.map((doc) => (
+                  <DocRow key={doc.id} doc={doc} onPreview={setPreview} onIrACarpeta={irACarpetaDe} />
+                ))}
+              </>
+            )}
           </>
         )}
 

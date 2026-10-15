@@ -53,7 +53,9 @@ Reglas:
 - Fechas al margen "15/07/26" → "2026-07-15". Una llave con una fecha aplica a todas las filas que abarca.
 - Números de cliente: transcríbelos exactamente como están impresos.
 - Marca dudoso=true cuando dudes de cualquier dígito; no inventes datos: usa null si no se puede leer.
-- Usa las pistas de números de cliente conocidos para verificar tu lectura de los números impresos, pero los montos siempre vienen solo de la foto.`;
+- Usa las pistas de números de cliente conocidos para verificar tu lectura de los números impresos, pero los montos siempre vienen solo de la foto.
+
+Responde SIEMPRE llamando a la herramienta registrar_planilla con el resultado, sin texto adicional.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -101,10 +103,12 @@ Deno.serve(async (req) => {
     },
     body: JSON.stringify({
       model: MODELO,
-      max_tokens: 8000,
+      max_tokens: 16000,
       system: INSTRUCCIONES,
       tools: [HERRAMIENTA],
-      tool_choice: { type: "tool", name: HERRAMIENTA.name },
+      // Este modelo no admite forzar la herramienta (tool_choice "tool"/"any"): se deja en
+      // "auto" y las instrucciones piden usarla; si responde en texto, se lee el JSON.
+      tool_choice: { type: "auto" },
       messages: [
         {
           role: "user",
@@ -139,7 +143,22 @@ Deno.serve(async (req) => {
   }
 
   const json = await respuesta.json();
-  const uso = json.content?.find((c: { type: string }) => c.type === "tool_use");
-  if (!uso?.input) return responder(502, { error: "ia", mensaje: "La lectura no devolvió datos." });
-  return responder(200, uso.input);
+  const bloques: Array<{ type: string; input?: unknown; text?: string }> = json.content ?? [];
+  const uso = bloques.find((c) => c.type === "tool_use");
+  if (uso?.input) return responder(200, uso.input);
+
+  // Respaldo: si contestó en texto, buscar el objeto JSON con las filas.
+  const texto = bloques.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n");
+  const inicio = texto.indexOf("{");
+  const fin = texto.lastIndexOf("}");
+  if (inicio !== -1 && fin > inicio) {
+    try {
+      const datos = JSON.parse(texto.slice(inicio, fin + 1));
+      if (Array.isArray(datos?.filas)) return responder(200, datos);
+    } catch {
+      /* sigue abajo */
+    }
+  }
+  console.error("Respuesta sin datos", json.stop_reason, texto.slice(0, 300));
+  return responder(502, { error: "ia", mensaje: "La lectura no devolvió datos." });
 });

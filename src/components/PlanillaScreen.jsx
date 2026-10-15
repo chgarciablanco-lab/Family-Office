@@ -583,7 +583,7 @@ export default function PlanillaScreen({ backTo, onNavigate, inicial, onVolverIn
                 onClick={() => onNavigate(backTo)}
                 className="w-full bg-violet-600 text-white rounded-2xl px-4 py-3.5 font-semibold"
               >
-                Volver al inicio
+                Listo
               </button>
             </>
           );

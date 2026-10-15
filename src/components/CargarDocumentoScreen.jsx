@@ -297,7 +297,7 @@ export default function CargarDocumentoScreen({ backTo, onNavigate }) {
               Cargar otro documento
             </button>
             <button onClick={() => onNavigate(backTo)} className="w-full border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700">
-              Volver al inicio
+              Listo
             </button>
           </>
         )}

@@ -238,7 +238,7 @@ function MainAppInner({ session }) {
       {screen === "nota-detail" && selectedNota && (
         <NotaDetailScreen nota={selectedNota} backTo="herramientas" onNavigate={setScreen} />
       )}
-      {screen === "cargar-documento" && <CargarDocumentoScreen backTo="home" onNavigate={setScreen} />}
+      {screen === "cargar-documento" && <CargarDocumentoScreen backTo="documentos-buscar" onNavigate={setScreen} />}
       {screen === "documentos-buscar" && (
         <DocumentosBuscarScreen backTo="home" onNavigate={setScreen} />
       )}

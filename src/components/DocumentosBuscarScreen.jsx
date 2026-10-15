@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, Search, ChevronRight, Building2, User, Home as HomeIcon, Users, Car, Folder, FolderOpen, Clock, X,
+  ArrowLeft, ScanLine, Search, ChevronRight, Building2, User, Home as HomeIcon, Users, Car, Folder, FolderOpen, Clock, X,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 import DocumentosScreen from "./DocumentosScreen";
 import DocumentoPreviewModal, { iconoDoc } from "./DocumentoPreviewModal";
 import { fetchArbolDocumentos, formatTamano, categoriaDoc, PERSONA_DOC_ID } from "../lib/documentos";
 import { formatFechaCorta } from "../lib/format";
+import { usePermisos } from "../context/PermisosContext";
 
 const FILTROS = [
   { key: "todos", label: "Todos" },
@@ -93,6 +94,8 @@ function Vacio({ children }) {
 }
 
 export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
+  const { puedeEditar } = usePermisos();
+  const puedeCargar = puedeEditar("documentos") || puedeEditar("propiedades") || puedeEditar("trabajadores");
   const [datos, setDatos] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("todos");
@@ -274,6 +277,20 @@ export default function DocumentosBuscarScreen({ backTo, onNavigate }) {
       <div className="px-5 flex flex-col gap-3 pb-4">
         {path.length === 0 && (
           <>
+            {puedeCargar && (
+              <button
+                onClick={() => onNavigate("cargar-documento")}
+                className="w-full bg-violet-600 text-white rounded-2xl px-4 py-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                  <ScanLine className="w-5 h-5" strokeWidth={2} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold">Cargar documento</p>
+                  <p className="text-[11px] text-violet-100">Planillas, liquidaciones o cualquier archivo: la app sabe dónde va</p>
+                </div>
+              </button>
+            )}
             <div className="bg-white border border-slate-100 shadow-sm rounded-xl px-3 py-2.5 flex items-center gap-2">
               <Search className="w-4 h-4 text-slate-400" strokeWidth={2} />
               <input

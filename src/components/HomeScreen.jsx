@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight, ScanLine } from "lucide-react";
+import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -49,14 +49,6 @@ const menuItems = [
     fg: "text-teal-600",
   },
   {
-    key: "cargar-documento",
-    title: "Cargar documento",
-    subtitle: "Planillas, liquidaciones o cualquier\narchivo: la app sabe dónde va",
-    icon: ScanLine,
-    bg: "bg-rose-100",
-    fg: "text-rose-600",
-  },
-  {
     key: "usuarios",
     title: "Usuarios",
     subtitle: "Crea usuarios y decide qué\npuede ver y editar cada uno",
@@ -68,7 +60,7 @@ const menuItems = [
 ];
 
 export default function HomeScreen({ session, onNavigate }) {
-  const { esAdmin, puedeVer, puedeEditar, perfil } = usePermisos();
+  const { esAdmin, puedeVer, perfil } = usePermisos();
   const primerNombre = (perfil?.nombre || "").trim().split(" ")[0];
   const saludo = saludoSegunHora(new Date().getHours());
 
@@ -80,9 +72,6 @@ export default function HomeScreen({ session, onNavigate }) {
       return puedeVer("calendario_tareas") || puedeVer("notas") || puedeVer("informes");
     }
     if (item.key === "documentos-buscar") return puedeVer("documentos");
-    if (item.key === "cargar-documento") {
-      return puedeEditar("propiedades") || puedeEditar("trabajadores") || puedeEditar("documentos");
-    }
     return true;
   });
 

@@ -197,7 +197,7 @@ export async function descargarConsolidadoExcel(anio, mes) {
   const [{ default: ExcelJS }, filas] = await Promise.all([import("exceljs"), fetchConsolidadoPagos(anio, mes)]);
 
   const libro = new ExcelJS.Workbook();
-  libro.creator = "García Blanco Family Office";
+  libro.creator = "García Blanco Gestión";
   libro.created = new Date();
 
   const hoja = libro.addWorksheet("Pagos", {
@@ -210,7 +210,7 @@ export async function descargarConsolidadoExcel(anio, mes) {
   const alcance = anio && mes ? `${MESES[mes - 1].charAt(0).toUpperCase()}${MESES[mes - 1].slice(1)} ${anio}` : "Historial completo";
 
   hoja.mergeCells(1, 1, 1, COLUMNAS.length);
-  hoja.getCell(1, 1).value = "García Blanco Family Office — Consolidado de Pagos";
+  hoja.getCell(1, 1).value = "García Blanco Gestión — Consolidado de Pagos";
   hoja.getCell(1, 1).font = { bold: true, size: 14, color: { argb: AZUL_OSCURO } };
 
   hoja.mergeCells(2, 1, 2, COLUMNAS.length);

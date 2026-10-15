@@ -131,7 +131,7 @@ export default function SociedadesListScreen({ onNavigate, onSelect, ownerUserId
             <p className="font-bold text-slate-900 text-sm">{esPersonal ? "Tu información privada" : "Gestiona tus sociedades"}</p>
             <p className="text-sm text-slate-500 mt-0.5">
               {esPersonal
-                ? "Solo tú puedes ver esta sección, ni siquiera los administradores del family office."
+                ? "Solo tú puedes ver esta sección, ni siquiera los administradores de GB Gestión."
                 : "Agrega, edita y administra la información de tus sociedades."}
             </p>
           </div>

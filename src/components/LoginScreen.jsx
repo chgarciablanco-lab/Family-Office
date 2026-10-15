@@ -44,10 +44,10 @@ export default function LoginScreen() {
     <div className="min-h-screen bg-slate-50 flex justify-center items-center px-6 py-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center text-center mb-8">
-          <img src="/logo.png" alt="García Blanco Family Office" className="w-36 h-36 object-contain mb-4" />
+          <img src="/logo.png" alt="García Blanco Gestión" className="w-36 h-36 object-contain mb-4" />
           <h1 className="font-serif text-3xl tracking-wide text-navy-900">GARCÍA BLANCO</h1>
           <p className="font-serif tracking-[0.3em] text-gold-600 text-sm mt-2">
-            FAMILY OFFICE
+            GESTIÓN
           </p>
           <div className="w-10 h-px bg-gold-500 my-4" />
           <p className="font-serif text-navy-900 text-base">Gestión patrimonial privada</p>

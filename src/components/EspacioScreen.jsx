@@ -10,10 +10,10 @@ export default function EspacioScreen({ onNavigate }) {
   return (
     <>
       <div className="px-5 pt-2 pb-2 flex items-center gap-3">
-        <img src="/logo.png" alt="García Blanco Family Office" className="w-16 h-16 object-contain shrink-0" />
+        <img src="/logo.png" alt="García Blanco Gestión" className="w-16 h-16 object-contain shrink-0" />
         <div>
           <h1 className="text-xl font-bold text-slate-900 leading-tight">
-            García Blanco <span className="whitespace-nowrap">Family Office</span>
+            García Blanco <span className="whitespace-nowrap">Gestión</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             {primerNombre ? `Hola, ${primerNombre}` : "Bienvenido"}
@@ -35,7 +35,7 @@ export default function EspacioScreen({ onNavigate }) {
             <Building2 className="w-7 h-7 text-blue-600" strokeWidth={1.8} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-900 text-base leading-tight">Family Office</p>
+            <p className="font-bold text-slate-900 text-base leading-tight">GB Gestión</p>
             <p className="text-sm text-slate-500 leading-snug mt-0.5">
               Sociedades, gestión y documentos compartidos de la familia.
             </p>
@@ -53,7 +53,7 @@ export default function EspacioScreen({ onNavigate }) {
           <div className="flex-1 min-w-0">
             <p className="font-bold text-slate-900 text-base leading-tight">Mi info personal</p>
             <p className="text-sm text-slate-500 leading-snug mt-0.5">
-              Tus propias sociedades y gastos, privados y separados del family office.
+              Tus propias sociedades y gastos, privados y separados de GB Gestión.
             </p>
           </div>
           <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />

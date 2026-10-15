@@ -114,7 +114,7 @@ export default function PersonaScreen({ onNavigate, onOpenDocumentos, onSelectEt
             <p className="font-bold text-slate-900 text-sm">{esPersonal ? "Tu información privada" : "Gestión familiar"}</p>
             <p className="text-sm text-slate-500 mt-0.5">
               {esPersonal
-                ? "Solo tú puedes ver esta sección, ni siquiera los administradores del family office."
+                ? "Solo tú puedes ver esta sección, ni siquiera los administradores de GB Gestión."
                 : "Propiedades, autos e inversiones son distintos de los de tus sociedades."}
             </p>
           </div>

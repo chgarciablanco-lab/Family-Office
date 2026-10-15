@@ -3,10 +3,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "García Blanco Family Office", body: event.data ? event.data.text() : "" };
+    data = { title: "García Blanco Gestión", body: event.data ? event.data.text() : "" };
   }
 
-  const title = data.title || "García Blanco Family Office";
+  const title = data.title || "García Blanco Gestión";
   const options = {
     body: data.body || "",
     icon: "/icon-192.png",

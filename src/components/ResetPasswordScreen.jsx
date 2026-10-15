@@ -47,7 +47,7 @@ export default function ResetPasswordScreen({ onDone }) {
           </div>
           <h1 className="font-serif text-3xl tracking-wide text-navy-900">GARCÍA BLANCO</h1>
           <p className="font-serif tracking-[0.3em] text-gold-600 text-sm mt-2">
-            FAMILY OFFICE
+            GESTIÓN
           </p>
           <div className="w-10 h-px bg-gold-500 my-4" />
           <p className="font-serif text-navy-900 text-base">Crea tu nueva contraseña</p>

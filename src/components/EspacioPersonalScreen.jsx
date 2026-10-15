@@ -24,7 +24,7 @@ export default function EspacioPersonalScreen({ onNavigate }) {
           <div className="flex-1 min-w-0">
             <p className="font-bold text-slate-900 text-base leading-tight">Mis sociedades</p>
             <p className="text-sm text-slate-500 leading-snug mt-0.5">
-              Tus propias sociedades, privadas y separadas del family office.
+              Tus propias sociedades, privadas y separadas de GB Gestión.
             </p>
           </div>
           <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
@@ -40,7 +40,7 @@ export default function EspacioPersonalScreen({ onNavigate }) {
           <div className="flex-1 min-w-0">
             <p className="font-bold text-slate-900 text-base leading-tight">Mis gastos personales</p>
             <p className="text-sm text-slate-500 leading-snug mt-0.5">
-              Tus propiedades, autos y gastos, privados y separados del family office.
+              Tus propiedades, autos y gastos, privados y separados de GB Gestión.
             </p>
           </div>
           <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
@@ -51,7 +51,7 @@ export default function EspacioPersonalScreen({ onNavigate }) {
           <div>
             <p className="font-bold text-slate-900 text-sm">Tu información privada</p>
             <p className="text-sm text-slate-500 mt-0.5">
-              Solo tú puedes ver esta información, ni siquiera los administradores del family office.
+              Solo tú puedes ver esta información, ni siquiera los administradores de GB Gestión.
             </p>
           </div>
         </div>

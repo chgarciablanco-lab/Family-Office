@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft, Camera, Images, FileUp, Loader2, PenLine, FolderInput, CheckCircle2, ImageIcon, X, Sparkles,
+  ArrowLeft, Camera, Images, FileUp, Loader2, PenLine, FolderInput, CheckCircle2, ImageIcon, X, Sparkles, HardDrive,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PlanillaScreen from "./PlanillaScreen";
 import LiquidacionesScreen from "./LiquidacionesScreen";
 import { usePermisos } from "../context/PermisosContext";
+import { estadoDrive, elegirArchivoDeDrive } from "../lib/googleDrive";
 import DestinoDocumento from "./DestinoDocumento";
 import { prepararArchivo, liberarArchivo, fetchCatalogo } from "../lib/planilla";
 import { MAX_PAGINAS_DOCUMENTO, fetchDestinos, leerDocumentoConIA, guardarEnDocumentos } from "../lib/cargaDocumento";
@@ -107,6 +108,7 @@ function OtroDocumento({ archivo, original, lectura, destinos, onVolver, onListo
 
 export default function CargarDocumentoScreen({ backTo, onNavigate }) {
   const { puedeEditar } = usePermisos();
+  const [driveConectado, setDriveConectado] = useState(false);
   const puedePlanilla = puedeEditar("propiedades");
   const inputCamaraRef = useRef(null);
   const inputGaleriaRef = useRef(null);
@@ -125,6 +127,7 @@ export default function CargarDocumentoScreen({ backTo, onNavigate }) {
   useEffect(() => {
     fetchCatalogo().then(setCatalogo);
     fetchDestinos().then(setDestinos);
+    estadoDrive().then((e) => setDriveConectado(!!e?.conectado));
   }, []);
 
   const listo = !!catalogo && !!destinos;
@@ -137,9 +140,23 @@ export default function CargarDocumentoScreen({ backTo, onNavigate }) {
     setPaso("inicio");
   };
 
-  const handleArchivo = async (e) => {
+  const handleArchivo = (e) => {
     const file = e.target.files?.[0];
     e.target.value = "";
+    procesarArchivo(file);
+  };
+
+  const desdeDrive = async () => {
+    setAviso("");
+    try {
+      const file = await elegirArchivoDeDrive();
+      if (file) procesarArchivo(file);
+    } catch (err) {
+      setAviso(err.message || "No se pudo abrir Google Drive.");
+    }
+  };
+
+  const procesarArchivo = async (file) => {
     if (!file || !listo) return;
     setAviso("");
     setPaso("leyendo");
@@ -229,6 +246,16 @@ export default function CargarDocumentoScreen({ backTo, onNavigate }) {
                 <span className="text-sm font-semibold text-slate-700">PDF / archivo</span>
               </button>
             </div>
+            {driveConectado && (
+              <button
+                onClick={desdeDrive}
+                disabled={!listo}
+                className="w-full bg-white border border-slate-200 rounded-2xl px-3 py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <HardDrive className="w-4 h-4 text-emerald-600" strokeWidth={1.8} />
+                <span className="text-sm font-semibold text-slate-700">Desde Google Drive</span>
+              </button>
+            )}
             {puedePlanilla && (
               <button
                 onClick={() => setPaso("planilla")}

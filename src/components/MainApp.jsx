@@ -57,7 +57,9 @@ export default function MainApp({ session }) {
 function MainAppInner({ session }) {
   const { loading: cargandoPermisos } = usePermisos();
   const initialNav = loadNavState();
-  const [screen, setScreen] = useState(initialNav.screen || "espacio");
+  // Al volver de autorizar Google Drive (?drive=...), abrir el Perfil para mostrar el resultado.
+  const vieneDeDrive = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("drive");
+  const [screen, setScreen] = useState(vieneDeDrive ? "perfil" : initialNav.screen || "espacio");
   const [selectedSociedad, setSelectedSociedad] = useState(initialNav.selectedSociedad || null);
   const [sociedadBackTo, setSociedadBackTo] = useState(initialNav.sociedadBackTo || "sociedades-list");
   const [selectedPropiedad, setSelectedPropiedad] = useState(initialNav.selectedPropiedad || null);

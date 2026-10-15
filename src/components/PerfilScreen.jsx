@@ -3,6 +3,7 @@ import { ArrowLeft, User, LogOut, Pencil, X, Bell, Lock } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import BottomNav from "./BottomNav";
 import ConfigurarPinForm from "./ConfigurarPinForm";
+import GoogleDriveCard from "./GoogleDriveCard";
 import { usePermisos } from "../context/PermisosContext";
 import { actualizarMiNombre } from "../lib/usuarios";
 import { Field, inputClass } from "./TramiteSection";
@@ -207,6 +208,8 @@ export default function PerfilScreen({ session, onNavigate }) {
             )}
           </div>
         </div>
+
+        {esAdmin && <GoogleDriveCard />}
 
         <button
           onClick={() => supabase.auth.signOut()}

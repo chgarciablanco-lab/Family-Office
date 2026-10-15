@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight, ScanLine } from "lucide-react";
+import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight, ScanLine, FileText } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -57,6 +57,14 @@ const menuItems = [
     fg: "text-rose-600",
   },
   {
+    key: "liquidaciones",
+    title: "Cargar liquidaciones",
+    subtitle: "PDF o foto de las liquidaciones\ny se registra en cada trabajador",
+    icon: FileText,
+    bg: "bg-sky-100",
+    fg: "text-sky-600",
+  },
+  {
     key: "usuarios",
     title: "Usuarios",
     subtitle: "Crea usuarios y decide qué\npuede ver y editar cada uno",
@@ -81,6 +89,7 @@ export default function HomeScreen({ session, onNavigate }) {
     }
     if (item.key === "documentos-buscar") return puedeVer("documentos");
     if (item.key === "planilla") return puedeEditar("propiedades");
+    if (item.key === "liquidaciones") return puedeEditar("trabajadores");
     return true;
   });
 

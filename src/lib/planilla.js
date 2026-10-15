@@ -199,14 +199,14 @@ export async function prepararImagen(file, maxLado = MAX_LADO) {
 }
 
 // Convierte cada página de un PDF (hasta MAX_PAGINAS_PDF) en una imagen para leerla y mostrarla.
-async function prepararPdf(file) {
+async function prepararPdf(file, maxPaginas = MAX_PAGINAS_PDF) {
   const [{ getDocument, GlobalWorkerOptions }, workerUrl] = await Promise.all([
     import("pdfjs-dist/legacy/build/pdf.mjs"),
     import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url").then((m) => m.default),
   ]);
   GlobalWorkerOptions.workerSrc = workerUrl;
   const pdf = await getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-  const total = Math.min(pdf.numPages, MAX_PAGINAS_PDF);
+  const total = Math.min(pdf.numPages, maxPaginas);
   const paginas = [];
   for (let i = 1; i <= total; i++) {
     const page = await pdf.getPage(i);
@@ -228,9 +228,9 @@ const esPdf = (file) => file.type === "application/pdf" || /\.pdf$/i.test(file.n
 
 // Foto de la cámara, imagen de la galería o documento (imagen o PDF) → páginas listas para
 // leer y mostrar, más el archivo que se guardará como respaldo en Documentos.
-export async function prepararArchivo(file) {
+export async function prepararArchivo(file, { maxPaginas } = {}) {
   if (esPdf(file)) {
-    const { paginas, paginasOmitidas } = await prepararPdf(file);
+    const { paginas, paginasOmitidas } = await prepararPdf(file, maxPaginas);
     if (paginas.length === 0) throw new Error("PDF sin páginas");
     return { paginas, paginasOmitidas, respaldo: file, esPdf: true };
   }

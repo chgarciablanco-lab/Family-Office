@@ -27,6 +27,7 @@ import NotaDetailScreen from "./NotaDetailScreen";
 import HerramientasScreen from "./HerramientasScreen";
 import DocumentosBuscarScreen from "./DocumentosBuscarScreen";
 import PlanillaScreen from "./PlanillaScreen";
+import LiquidacionesScreen from "./LiquidacionesScreen";
 import { PermisosProvider, usePermisos } from "../context/PermisosContext";
 import GastosBasicosScreen from "./GastosBasicosScreen";
 import ServicioHistorialScreen from "./ServicioHistorialScreen";
@@ -211,8 +212,8 @@ function MainAppInner({ session }) {
       notifCount={notifCount}
       ocultarCampana={screen === "notificaciones"}
       // En la carga de planilla un gesto accidental haría perder lo ya revisado.
-      onSwipeBack={screen === "planilla" ? undefined : handleSwipeBack}
-      bloquearRecarga={screen === "planilla"}
+      onSwipeBack={screen === "planilla" || screen === "liquidaciones" ? undefined : handleSwipeBack}
+      bloquearRecarga={screen === "planilla" || screen === "liquidaciones"}
     >
       {screen === "espacio" && <EspacioScreen onNavigate={setScreen} />}
       {screen === "espacio-personal" && <EspacioPersonalScreen onNavigate={setScreen} />}
@@ -239,6 +240,7 @@ function MainAppInner({ session }) {
         <NotaDetailScreen nota={selectedNota} backTo="herramientas" onNavigate={setScreen} />
       )}
       {screen === "planilla" && <PlanillaScreen backTo="home" onNavigate={setScreen} />}
+      {screen === "liquidaciones" && <LiquidacionesScreen backTo="home" onNavigate={setScreen} />}
       {screen === "documentos-buscar" && (
         <DocumentosBuscarScreen backTo="home" onNavigate={setScreen} />
       )}

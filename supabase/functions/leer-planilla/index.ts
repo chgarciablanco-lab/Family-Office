@@ -59,11 +59,18 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return responder(405, { error: "metodo" });
 
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) {
+  // Toma solo la key (sk-ant-...) aunque el secreto se haya pegado con texto extra alrededor.
+  const apiKey = (Deno.env.get("ANTHROPIC_API_KEY") ?? "").match(/sk-ant-[A-Za-z0-9_-]+/)?.[0];
+  if (!Deno.env.get("ANTHROPIC_API_KEY")) {
     return responder(503, {
       error: "sin_key",
       mensaje: "La lectura automática aún no está activada (falta la API key de Anthropic).",
+    });
+  }
+  if (!apiKey) {
+    return responder(503, {
+      error: "key_invalida",
+      mensaje: "La API key guardada no tiene el formato correcto (debe empezar con sk-ant-).",
     });
   }
 
@@ -83,7 +90,9 @@ Deno.serve(async (req) => {
     return responder(413, { error: "imagen_grande", mensaje: "El archivo es demasiado grande." });
   }
 
-  const respuesta = await fetch("https://api.anthropic.com/v1/messages", {
+  let respuesta: Response;
+  try {
+    respuesta = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "x-api-key": apiKey,
@@ -112,7 +121,12 @@ Deno.serve(async (req) => {
         },
       ],
     }),
-  });
+    });
+  } catch (e) {
+    // Nunca registrar el mensaje original: podría incluir los encabezados con la key.
+    console.error("Fallo al llamar a Anthropic:", e instanceof Error ? e.name : "error");
+    return responder(502, { error: "ia", mensaje: "No se pudo conectar con el servicio de lectura." });
+  }
 
   if (!respuesta.ok) {
     const detalle = await respuesta.text();

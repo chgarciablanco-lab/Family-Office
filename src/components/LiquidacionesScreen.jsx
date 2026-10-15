@@ -128,14 +128,16 @@ function TarjetaLiquidacion({ fila, mes, trabajadores, onChange, onEliminar }) {
   );
 }
 
-export default function LiquidacionesScreen({ backTo, onNavigate }) {
+// `inicial` (opcional): { archivo, lectura } cuando se abre desde "Cargar documento" con el
+// archivo ya leído; `onVolverInicio` vuelve a esa pantalla.
+export default function LiquidacionesScreen({ backTo, onNavigate, inicial, onVolverInicio }) {
   const { puedeEditar } = usePermisos();
   const editable = puedeEditar("trabajadores");
   const inputCamaraRef = useRef(null);
   const inputGaleriaRef = useRef(null);
   const inputDocumentoRef = useRef(null);
 
-  const [paso, setPaso] = useState("inicio"); // inicio | leyendo | revision | confirmar | guardando | listo
+  const [paso, setPaso] = useState(inicial ? "leyendo" : "inicio"); // inicio | leyendo | revision | confirmar | guardando | listo
   const [trabajadores, setTrabajadores] = useState(null);
   const [mes, setMes] = useState(mesAnterior());
   const [archivo, setArchivo] = useState(null);
@@ -171,8 +173,10 @@ export default function LiquidacionesScreen({ backTo, onNavigate }) {
       return;
     }
     setArchivo(preparado);
+    aplicarLectura(preparado, await leerLiquidacionesConIA(preparado.paginas));
+  };
 
-    const r = await leerLiquidacionesConIA(preparado.paginas);
+  const aplicarLectura = (preparado, r) => {
     if (r?.error) {
       setPaso("inicio");
       setAviso({ tipo: "error", texto: r.mensaje || "No se pudo leer el documento. Intenta de nuevo." });
@@ -201,6 +205,15 @@ export default function LiquidacionesScreen({ backTo, onNavigate }) {
     setPaso("revision");
   };
 
+  const inicialAplicado = useRef(false);
+  useEffect(() => {
+    if (!inicial || !trabajadores || inicialAplicado.current) return;
+    inicialAplicado.current = true;
+    setArchivo(inicial.archivo);
+    aplicarLectura(inicial.archivo, inicial.lectura);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inicial, trabajadores]);
+
   const listas = filasListas(filas);
   const total = listas.reduce((s, f) => s + Number(f.liquido), 0);
   const sinDestino = filas.filter((f) => !filasListas([f]).length);
@@ -219,7 +232,7 @@ export default function LiquidacionesScreen({ backTo, onNavigate }) {
 
   const irAtras = () => {
     if (paso === "confirmar") setPaso("revision");
-    else if (paso === "revision") setPaso("inicio");
+    else if (paso === "revision") (onVolverInicio ? onVolverInicio() : setPaso("inicio"));
     else onNavigate(backTo);
   };
 

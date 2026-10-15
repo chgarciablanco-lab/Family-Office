@@ -168,14 +168,16 @@ function FilaPlanilla({ fila, propiedades, abierta, onToggle, onChange, onElimin
   );
 }
 
-export default function PlanillaScreen({ backTo, onNavigate }) {
+// `inicial` (opcional): { archivo, lectura } o { manual: true } cuando la pantalla se abre desde
+// "Cargar documento" con el archivo ya leído; `onVolverInicio` vuelve a esa pantalla.
+export default function PlanillaScreen({ backTo, onNavigate, inicial, onVolverInicio }) {
   const { puedeEditar } = usePermisos();
   const editable = puedeEditar("propiedades");
   const inputCamaraRef = useRef(null);
   const inputGaleriaRef = useRef(null);
   const inputDocumentoRef = useRef(null);
 
-  const [paso, setPaso] = useState("inicio"); // inicio | leyendo | revision | confirmar | guardando | listo
+  const [paso, setPaso] = useState(inicial ? "leyendo" : "inicio"); // inicio | leyendo | revision | confirmar | guardando | listo
   const [catalogo, setCatalogo] = useState(null);
   const [mes, setMes] = useState(mesActual());
   const [foto, setFoto] = useState(null); // { paginas: [{ blob, base64, previewUrl }], paginasOmitidas, respaldo, esPdf }
@@ -237,8 +239,10 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
       return;
     }
     setFoto(preparada);
+    aplicarLectura(preparada, await leerPlanillaConIA(preparada.paginas, catalogo));
+  };
 
-    const r = await leerPlanillaConIA(preparada.paginas, catalogo);
+  const aplicarLectura = (preparada, r) => {
     if (r?.error) {
       const texto =
         r.error === "sin_key"
@@ -263,6 +267,20 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
     });
     setPaso("revision");
   };
+
+  // Abierta desde "Cargar documento": aplicar la lectura apenas esté el catálogo.
+  const inicialAplicado = useRef(false);
+  useEffect(() => {
+    if (!inicial || !catalogo || inicialAplicado.current) return;
+    inicialAplicado.current = true;
+    if (inicial.manual) {
+      empezarManual();
+      return;
+    }
+    setFoto(inicial.archivo);
+    aplicarLectura(inicial.archivo, inicial.lectura);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inicial, catalogo]);
 
   // Agrupa por sección manteniendo el orden de la planilla.
   const secciones = useMemo(() => {
@@ -310,7 +328,7 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
 
   const irAtras = () => {
     if (paso === "confirmar") setPaso("revision");
-    else if (paso === "revision") setPaso("inicio");
+    else if (paso === "revision") (onVolverInicio ? onVolverInicio() : setPaso("inicio"));
     else onNavigate(backTo);
   };
 

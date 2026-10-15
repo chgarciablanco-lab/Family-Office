@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight, ScanLine, FileText } from "lucide-react";
+import { Building2, User, ChevronRight, LayoutGrid, ShieldCheck, FolderSearch, ArrowLeftRight, ScanLine } from "lucide-react";
 import BottomNav from "./BottomNav";
 import PendienteRow from "./PendienteRow";
 import { fetchPendientes } from "../lib/pendientes";
@@ -49,20 +49,12 @@ const menuItems = [
     fg: "text-teal-600",
   },
   {
-    key: "planilla",
-    title: "Cargar planilla",
-    subtitle: "Foto de tu planilla de pagos\ny se registra en cada propiedad",
+    key: "cargar-documento",
+    title: "Cargar documento",
+    subtitle: "Planillas, liquidaciones o cualquier\narchivo: la app sabe dónde va",
     icon: ScanLine,
     bg: "bg-rose-100",
     fg: "text-rose-600",
-  },
-  {
-    key: "liquidaciones",
-    title: "Cargar liquidaciones",
-    subtitle: "PDF o foto de las liquidaciones\ny se registra en cada trabajador",
-    icon: FileText,
-    bg: "bg-sky-100",
-    fg: "text-sky-600",
   },
   {
     key: "usuarios",
@@ -88,8 +80,9 @@ export default function HomeScreen({ session, onNavigate }) {
       return puedeVer("calendario_tareas") || puedeVer("notas") || puedeVer("informes");
     }
     if (item.key === "documentos-buscar") return puedeVer("documentos");
-    if (item.key === "planilla") return puedeEditar("propiedades");
-    if (item.key === "liquidaciones") return puedeEditar("trabajadores");
+    if (item.key === "cargar-documento") {
+      return puedeEditar("propiedades") || puedeEditar("trabajadores") || puedeEditar("documentos");
+    }
     return true;
   });
 

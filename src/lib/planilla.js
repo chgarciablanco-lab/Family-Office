@@ -2,7 +2,6 @@ import { supabase } from "./supabaseClient";
 import { abrirPdf } from "./pdfjs";
 import { medidoresDe, estadoResumen } from "./medidores";
 import { tiposServicio } from "./servicioTipos";
-import { crearCarpeta, fetchCarpetas, subirDocumento, PERSONA_DOC_ID } from "./documentos";
 
 export const TIPOS = tiposServicio.map((t) => t.tipo);
 export const CARPETA_PLANILLAS = "Planillas de pago";
@@ -396,20 +395,4 @@ async function traspasarGrupo(propiedadId, tipo, filasGrupo, periodo, propiedade
     : supabase.from("servicios").insert(campos);
   const { error: errorGuardar } = await op;
   if (errorGuardar) throw errorGuardar;
-}
-
-// Guarda la foto o el PDF de la planilla en Documentos → Gestión familiar → "Planillas de pago".
-export async function guardarFotoPlanilla(archivo, periodo) {
-  let carpetas = await fetchCarpetas("persona", PERSONA_DOC_ID, null);
-  let carpeta = carpetas.find((c) => c.nombre === CARPETA_PLANILLAS);
-  if (!carpeta) {
-    await crearCarpeta("persona", PERSONA_DOC_ID, CARPETA_PLANILLAS, null);
-    carpetas = await fetchCarpetas("persona", PERSONA_DOC_ID, null);
-    carpeta = carpetas.find((c) => c.nombre === CARPETA_PLANILLAS);
-  }
-  const mes = new Date(`${periodo}T00:00:00`).toLocaleDateString("es-CL", { month: "long", year: "numeric" });
-  const file = archivo.esPdf
-    ? new File([archivo.respaldo], `Planilla ${mes}.pdf`, { type: "application/pdf" })
-    : new File([archivo.respaldo], `Planilla ${mes}.jpg`, { type: "image/jpeg" });
-  return subirDocumento("persona", PERSONA_DOC_ID, carpeta?.id || null, file);
 }

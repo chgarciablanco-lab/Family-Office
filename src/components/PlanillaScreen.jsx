@@ -6,9 +6,12 @@ import {
 import BottomNav from "./BottomNav";
 import { formatCLP, formatFechaCorta } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
+import DestinoDocumento, { claveDestino } from "./DestinoDocumento";
+import { fetchDestinos, guardarEnDocumentos } from "../lib/cargaDocumento";
+import { PERSONA_DOC_ID } from "../lib/documentos";
 import {
   TIPOS, fetchCatalogo, plantillaManual, asignarFilas, prepararArchivo, liberarArchivo, leerPlanillaConIA, traspasarPlanilla,
-  filasParaTraspasar, guardarFotoPlanilla, nuevoIdFila, tipoDesdeConcepto,
+  filasParaTraspasar, nuevoIdFila, tipoDesdeConcepto, CARPETA_PLANILLAS,
 } from "../lib/planilla";
 
 const inputCls =
@@ -187,9 +190,16 @@ export default function PlanillaScreen({ backTo, onNavigate, inicial, onVolverIn
   const [aviso, setAviso] = useState(null); // { tipo: "info" | "error", texto }
   const [soloAlertas, setSoloAlertas] = useState(false);
   const [resultado, setResultado] = useState(null);
+  // Guardar el documento en la app (opcional): dónde, en qué carpeta y con qué nombre.
+  const [destinos, setDestinos] = useState(null);
+  const [guardarDoc, setGuardarDoc] = useState(true);
+  const [destinoDoc, setDestinoDoc] = useState(`persona:${PERSONA_DOC_ID}`);
+  const [carpetaDoc, setCarpetaDoc] = useState(CARPETA_PLANILLAS);
+  const [nombreDoc, setNombreDoc] = useState("");
 
   useEffect(() => {
     fetchCatalogo().then(setCatalogo);
+    fetchDestinos().then(setDestinos);
   }, []);
 
   useEffect(() => () => liberarArchivo(foto), [foto]);
@@ -318,11 +328,17 @@ export default function PlanillaScreen({ backTo, onNavigate, inicial, onVolverIn
     setPaso("guardando");
     const res = await traspasarPlanilla(filas, periodo, propiedades);
     let fotoGuardada = false;
-    if (foto?.respaldo && res.some((r) => r.ok)) {
-      const { error } = await guardarFotoPlanilla(foto, periodo);
+    const destino = destinos?.find((d) => claveDestino(d) === destinoDoc);
+    if (guardarDoc && foto?.respaldo && destino && res.some((r) => r.ok)) {
+      const { error } = await guardarEnDocumentos({
+        archivoOriginal: foto.respaldo,
+        destino,
+        carpetaNombre: carpetaDoc,
+        nombre: nombreDoc || `Planilla ${mesTexto}`,
+      });
       fotoGuardada = !error;
     }
-    setResultado({ res, fotoGuardada });
+    setResultado({ res, fotoGuardada, destino, carpeta: carpetaDoc.trim() });
     setPaso("listo");
   };
 
@@ -537,9 +553,23 @@ export default function PlanillaScreen({ backTo, onNavigate, inicial, onVolverIn
             ))}
 
             {foto && (
-              <p className="text-xs text-slate-400">
-                {foto.esPdf ? "El PDF" : "La foto"} se guardará en Documentos → Gestión familiar → Planillas de pago.
-              </p>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex flex-col gap-3">
+                <label className="flex items-center gap-2.5 text-sm font-semibold text-slate-800">
+                  <input type="checkbox" className="w-4 h-4 accent-violet-600" checked={guardarDoc} onChange={(e) => setGuardarDoc(e.target.checked)} />
+                  Guardar {foto.esPdf ? "el PDF" : "la foto"} en Documentos
+                </label>
+                {guardarDoc && destinos && (
+                  <DestinoDocumento
+                    destinos={destinos}
+                    destinoClave={destinoDoc}
+                    onDestino={setDestinoDoc}
+                    carpeta={carpetaDoc}
+                    onCarpeta={setCarpetaDoc}
+                    nombre={nombreDoc || `Planilla ${mesTexto}`}
+                    onNombre={setNombreDoc}
+                  />
+                )}
+              </div>
             )}
           </>
         )}
@@ -564,7 +594,7 @@ export default function PlanillaScreen({ backTo, onNavigate, inicial, onVolverIn
                 <p className="text-sm text-slate-500">
                   Ya aparecen en Gastos básicos de cada propiedad.
                   {resultado.fotoGuardada
-                    ? foto?.esPdf ? " El PDF quedó guardado en Documentos." : " La foto quedó guardada en Documentos."
+                    ? ` ${foto?.esPdf ? "El PDF quedó guardado" : "La foto quedó guardada"} en Documentos → ${resultado.destino?.nombre}${resultado.carpeta ? ` → ${resultado.carpeta}` : ""}.`
                     : ""}
                 </p>
               </div>

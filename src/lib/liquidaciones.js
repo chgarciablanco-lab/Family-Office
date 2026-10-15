@@ -97,13 +97,18 @@ export async function leerLiquidacionesConIA(paginas) {
 // Respaldo: el PDF (o foto) de cada trabajador en sus Documentos → "Liquidaciones".
 // ---------------------------------------------------------------------------
 
-async function carpetaLiquidaciones(trabajadorId) {
+// Carpeta (en la raíz de Documentos del trabajador) con ese nombre; se crea si no existe.
+// Sin nombre, el documento queda en la raíz.
+async function carpetaDeTrabajador(trabajadorId, nombre) {
+  const buscado = (nombre || "").trim();
+  if (!buscado) return null;
+  const igual = (c) => c.nombre.toLowerCase() === buscado.toLowerCase();
   let carpetas = await fetchCarpetas("trabajador", trabajadorId, null);
-  let carpeta = carpetas.find((c) => c.nombre === CARPETA_LIQUIDACIONES);
+  let carpeta = carpetas.find(igual);
   if (!carpeta) {
-    await crearCarpeta("trabajador", trabajadorId, CARPETA_LIQUIDACIONES, null);
+    await crearCarpeta("trabajador", trabajadorId, buscado, null);
     carpetas = await fetchCarpetas("trabajador", trabajadorId, null);
-    carpeta = carpetas.find((c) => c.nombre === CARPETA_LIQUIDACIONES);
+    carpeta = carpetas.find(igual);
   }
   return carpeta?.id || null;
 }
@@ -138,7 +143,9 @@ export function filasListas(filas) {
   return filas.filter((f) => f.trabajadorId && f.liquido !== null && f.liquido !== "");
 }
 
-export async function traspasarLiquidaciones(filas, periodo, archivo, trabajadores) {
+// opciones: { guardar: si se guarda la liquidación en Documentos del trabajador, carpeta }
+export async function traspasarLiquidaciones(filas, periodo, archivo, trabajadores, opciones = {}) {
+  const { guardar = true, carpeta = CARPETA_LIQUIDACIONES } = opciones;
   const mesTexto = new Date(`${periodo}T00:00:00`).toLocaleDateString("es-CL", { month: "long", year: "numeric" });
   const resultados = [];
 
@@ -169,8 +176,8 @@ export async function traspasarLiquidaciones(filas, periodo, archivo, trabajador
       }
 
       let documento = false;
-      if (archivo?.respaldo) {
-        const carpetaId = await carpetaLiquidaciones(f.trabajadorId);
+      if (guardar && archivo?.respaldo) {
+        const carpetaId = await carpetaDeTrabajador(f.trabajadorId, carpeta);
         const file = await respaldoDeFila(f, archivo, `Liquidación ${mesTexto} - ${t?.nombre?.trim() || f.nombre}`);
         const { error: errorDoc } = await subirDocumento("trabajador", f.trabajadorId, carpetaId, file);
         documento = !errorDoc;

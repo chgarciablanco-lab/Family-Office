@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, Camera, Images, FileUp, Loader2, PenLine, FolderInput, CheckCircle2, ImageIcon, X, Sparkles,
 } from "lucide-react";
@@ -6,12 +6,10 @@ import BottomNav from "./BottomNav";
 import PlanillaScreen from "./PlanillaScreen";
 import LiquidacionesScreen from "./LiquidacionesScreen";
 import { usePermisos } from "../context/PermisosContext";
+import DestinoDocumento from "./DestinoDocumento";
 import { prepararArchivo, liberarArchivo, fetchCatalogo } from "../lib/planilla";
 import { MAX_PAGINAS_DOCUMENTO, fetchDestinos, leerDocumentoConIA, guardarEnDocumentos } from "../lib/cargaDocumento";
 
-const inputCls =
-  "w-full h-9 border border-slate-200 rounded-lg px-2.5 text-sm text-slate-900 bg-white outline-none focus:border-violet-400";
-const labelCls = "text-[11px] font-semibold text-slate-500 mb-0.5 block";
 
 const claveDestino = (d) => (d ? `${d.tipo}:${d.id}` : "");
 
@@ -25,11 +23,6 @@ function OtroDocumento({ archivo, original, lectura, destinos, onVolver, onListo
   const [error, setError] = useState("");
   const [verDoc, setVerDoc] = useState(false);
 
-  const grupos = useMemo(() => {
-    const g = {};
-    destinos.forEach((d) => { (g[d.grupo] = g[d.grupo] || []).push(d); });
-    return Object.entries(g);
-  }, [destinos]);
   const destino = destinos.find((d) => claveDestino(d) === destinoClave);
   const portada = archivo.paginas[0]?.previewUrl;
 
@@ -65,29 +58,18 @@ function OtroDocumento({ archivo, original, lectura, destinos, onVolver, onListo
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex flex-col gap-3">
-        <div>
-          <label className={labelCls}>Guardar en</label>
-          <select className={inputCls} value={destinoClave} onChange={(e) => setDestinoClave(e.target.value)}>
-            {grupos.map(([grupo, ds]) => (
-              <optgroup key={grupo} label={grupo}>
-                {ds.map((d) => (
-                  <option key={claveDestino(d)} value={claveDestino(d)}>{d.nombre}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          {lectura.motivo && destino && claveDestino(destino) === claveDestino(sugerido) && (
-            <p className="text-[11px] text-slate-400 mt-1">Sugerido porque {lectura.motivo.charAt(0).toLowerCase() + lectura.motivo.slice(1)}</p>
-          )}
-        </div>
-        <div>
-          <label className={labelCls}>Carpeta (opcional, se crea si no existe)</label>
-          <input className={inputCls} value={carpeta} onChange={(e) => setCarpeta(e.target.value)} placeholder="Ej. Seguros" />
-        </div>
-        <div>
-          <label className={labelCls}>Nombre del archivo</label>
-          <input className={inputCls} value={nombre} onChange={(e) => setNombre(e.target.value)} />
-        </div>
+        <DestinoDocumento
+          destinos={destinos}
+          destinoClave={destinoClave}
+          onDestino={setDestinoClave}
+          carpeta={carpeta}
+          onCarpeta={setCarpeta}
+          nombre={nombre}
+          onNombre={setNombre}
+        />
+        {lectura.motivo && destino && claveDestino(destino) === claveDestino(sugerido) && (
+          <p className="text-[11px] text-slate-400 -mt-1">Sugerido porque {lectura.motivo.charAt(0).toLowerCase() + lectura.motivo.slice(1)}</p>
+        )}
         {error && <p className="text-xs text-red-500">{error}</p>}
       </div>
 

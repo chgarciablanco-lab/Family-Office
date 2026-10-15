@@ -8,8 +8,9 @@ import { usePermisos } from "../context/PermisosContext";
 import { prepararArchivo, liberarArchivo } from "../lib/planilla";
 import {
   MAX_PAGINAS_LIQUIDACIONES, fetchTrabajadores, filasDesdeLectura, leerLiquidacionesConIA, traspasarLiquidaciones,
-  filasListas, rutValido, rutLimpio,
+  filasListas, rutValido, rutLimpio, CARPETA_LIQUIDACIONES,
 } from "../lib/liquidaciones";
+import DestinoDocumento from "./DestinoDocumento";
 
 const inputCls =
   "w-full h-9 border border-slate-200 rounded-lg px-2.5 text-sm text-slate-900 bg-white outline-none focus:border-violet-400";
@@ -145,6 +146,8 @@ export default function LiquidacionesScreen({ backTo, onNavigate, inicial, onVol
   const [filas, setFilas] = useState([]);
   const [aviso, setAviso] = useState(null);
   const [resultado, setResultado] = useState(null);
+  const [guardarDoc, setGuardarDoc] = useState(true);
+  const [carpetaDoc, setCarpetaDoc] = useState(CARPETA_LIQUIDACIONES);
 
   useEffect(() => {
     fetchTrabajadores().then(setTrabajadores);
@@ -225,7 +228,10 @@ export default function LiquidacionesScreen({ backTo, onNavigate, inicial, onVol
 
   const confirmar = async () => {
     setPaso("guardando");
-    const res = await traspasarLiquidaciones(filas, periodo, archivo, trabajadores);
+    const res = await traspasarLiquidaciones(filas, periodo, archivo, trabajadores, {
+      guardar: guardarDoc,
+      carpeta: carpetaDoc,
+    });
     setResultado(res);
     setPaso("listo");
   };
@@ -376,10 +382,22 @@ export default function LiquidacionesScreen({ backTo, onNavigate, inicial, onVol
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-400">
-              La liquidación de cada uno se guardará en sus Documentos → Liquidaciones. El monto de Previred y el
-              estado del pago no se modifican.
-            </p>
+            {archivo?.respaldo && (
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3.5 flex flex-col gap-3">
+                <label className="flex items-center gap-2.5 text-sm font-semibold text-slate-800">
+                  <input type="checkbox" className="w-4 h-4 accent-violet-600" checked={guardarDoc} onChange={(e) => setGuardarDoc(e.target.checked)} />
+                  Guardar la liquidación de cada uno en sus Documentos
+                </label>
+                {guardarDoc && (
+                  <DestinoDocumento
+                    carpeta={carpetaDoc}
+                    onCarpeta={setCarpetaDoc}
+                    carpetasDe={listas[0] ? { tipo: "trabajador", id: listas[0].trabajadorId } : null}
+                  />
+                )}
+              </div>
+            )}
+            <p className="text-xs text-slate-400">El monto de Previred y el estado del pago no se modifican.</p>
           </>
         )}
 
@@ -401,7 +419,11 @@ export default function LiquidacionesScreen({ backTo, onNavigate, inicial, onVol
                 <p className="text-base font-bold text-slate-900">{ok.length} liquidaciones registradas</p>
                 <p className="text-sm text-slate-500">
                   Ya aparecen en el pago de {mesTexto} de cada trabajador
-                  {sinDoc ? `; ${sinDoc} sin documento guardado` : ", con su liquidación en Documentos"}.
+                  {!guardarDoc || !archivo?.respaldo
+                    ? "."
+                    : sinDoc
+                      ? `; ${sinDoc} sin documento guardado.`
+                      : `, con su liquidación en Documentos${carpetaDoc.trim() ? ` → ${carpetaDoc.trim()}` : ""}.`}
                 </p>
               </div>
               {fallidos.length > 0 && (

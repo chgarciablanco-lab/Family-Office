@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { abrirPdf } from "./pdfjs";
 import { medidoresDe, estadoResumen } from "./medidores";
 import { tiposServicio } from "./servicioTipos";
 import { crearCarpeta, fetchCarpetas, subirDocumento, PERSONA_DOC_ID } from "./documentos";
@@ -200,12 +201,7 @@ export async function prepararImagen(file, maxLado = MAX_LADO) {
 
 // Convierte cada página de un PDF (hasta MAX_PAGINAS_PDF) en una imagen para leerla y mostrarla.
 async function prepararPdf(file, maxPaginas = MAX_PAGINAS_PDF) {
-  const [{ getDocument, GlobalWorkerOptions }, workerUrl] = await Promise.all([
-    import("pdfjs-dist/legacy/build/pdf.mjs"),
-    import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url").then((m) => m.default),
-  ]);
-  GlobalWorkerOptions.workerSrc = workerUrl;
-  const pdf = await getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const pdf = await abrirPdf({ data: new Uint8Array(await file.arrayBuffer()) });
   const total = Math.min(pdf.numPages, maxPaginas);
   const paginas = [];
   for (let i = 1; i <= total; i++) {

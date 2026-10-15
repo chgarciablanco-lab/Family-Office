@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Download, X, FileText, Image as ImageIcon, File as FileIcon, Share2, Check } from "lucide-react";
+import { abrirPdf } from "../lib/pdfjs";
 import { obtenerUrlPreview, obtenerUrlCompartir, descargarDocumento } from "../lib/documentos";
 
 export function iconoDoc(contentType) {
@@ -144,13 +145,7 @@ function PdfPaginas({ url }) {
 
     (async () => {
       try {
-        const [{ getDocument, GlobalWorkerOptions }, workerUrl] = await Promise.all([
-          import("pdfjs-dist/legacy/build/pdf.mjs"),
-          import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url").then((m) => m.default),
-        ]);
-        GlobalWorkerOptions.workerSrc = workerUrl;
-
-        const pdf = await getDocument(url).promise;
+        const pdf = await abrirPdf(url);
         if (cancelado) return;
 
         const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -176,8 +171,9 @@ function PdfPaginas({ url }) {
           if (cancelado) return;
           containerRef.current?.appendChild(canvas);
         }
-      } catch {
-        if (!cancelado) setError(true);
+      } catch (e) {
+        console.error("No se pudo mostrar el PDF:", e);
+        if (!cancelado) setError(e?.message || String(e) || "error");
       } finally {
         if (!cancelado) setCargando(false);
       }
@@ -188,9 +184,12 @@ function PdfPaginas({ url }) {
 
   if (error) {
     return (
-      <a href={url} target="_blank" rel="noreferrer" className="text-violet-600 font-semibold text-sm py-10">
-        No se pudo previsualizar. Abrir documento →
-      </a>
+      <div className="flex flex-col items-center gap-2 py-10 px-4 text-center">
+        <a href={url} target="_blank" rel="noreferrer" className="text-violet-600 font-semibold text-sm">
+          No se pudo previsualizar. Abrir documento →
+        </a>
+        <p className="text-[10px] text-slate-400 break-all">Detalle: {error}</p>
+      </div>
     );
   }
 

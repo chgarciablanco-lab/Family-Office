@@ -145,8 +145,8 @@ function PdfPaginas({ url }) {
     (async () => {
       try {
         const [{ getDocument, GlobalWorkerOptions }, workerUrl] = await Promise.all([
-          import("pdfjs-dist/build/pdf.mjs"),
-          import("pdfjs-dist/build/pdf.worker.min.mjs?url").then((m) => m.default),
+          import("pdfjs-dist/legacy/build/pdf.mjs"),
+          import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url").then((m) => m.default),
         ]);
         GlobalWorkerOptions.workerSrc = workerUrl;
 

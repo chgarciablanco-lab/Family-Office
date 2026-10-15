@@ -161,8 +161,24 @@ export function asignarFilas(filasLeidas, catalogo) {
 // Lectura con IA (edge function leer-planilla).
 // ---------------------------------------------------------------------------
 
+const MAX_LADO = 2000;
+export const MAX_PAGINAS_PDF = 4;
+
+const blobABase64 = (blob) =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(",")[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+
+async function canvasAPagina(canvas) {
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+  return { blob, base64: await blobABase64(blob), previewUrl: URL.createObjectURL(blob) };
+}
+
 // Achica la foto antes de enviarla: más rápida y barata de leer, sin perder legibilidad.
-export async function prepararImagen(file, maxLado = 2000) {
+export async function prepararImagen(file, maxLado = MAX_LADO) {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise((resolve, reject) => {
@@ -176,25 +192,63 @@ export async function prepararImagen(file, maxLado = 2000) {
     canvas.width = Math.round(img.naturalWidth * escala);
     canvas.height = Math.round(img.naturalHeight * escala);
     canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
-    const base64 = await new Promise((resolve) => {
-      const r = new FileReader();
-      r.onload = () => resolve(String(r.result).split(",")[1]);
-      r.readAsDataURL(blob);
-    });
-    return { blob, base64, previewUrl: URL.createObjectURL(blob) };
+    return canvasAPagina(canvas);
   } finally {
     URL.revokeObjectURL(url);
   }
 }
 
-export async function leerPlanillaConIA(base64, catalogo) {
+// Convierte cada página de un PDF (hasta MAX_PAGINAS_PDF) en una imagen para leerla y mostrarla.
+async function prepararPdf(file) {
+  const [{ getDocument, GlobalWorkerOptions }, workerUrl] = await Promise.all([
+    import("pdfjs-dist/legacy/build/pdf.mjs"),
+    import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url").then((m) => m.default),
+  ]);
+  GlobalWorkerOptions.workerSrc = workerUrl;
+  const pdf = await getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const total = Math.min(pdf.numPages, MAX_PAGINAS_PDF);
+  const paginas = [];
+  for (let i = 1; i <= total; i++) {
+    const page = await pdf.getPage(i);
+    const base = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({ scale: MAX_LADO / Math.max(base.width, base.height) });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(viewport.width);
+    canvas.height = Math.round(viewport.height);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    paginas.push(await canvasAPagina(canvas));
+  }
+  return { paginas, paginasOmitidas: pdf.numPages - total };
+}
+
+const esPdf = (file) => file.type === "application/pdf" || /\.pdf$/i.test(file.name || "");
+
+// Foto de la cámara, imagen de la galería o documento (imagen o PDF) → páginas listas para
+// leer y mostrar, más el archivo que se guardará como respaldo en Documentos.
+export async function prepararArchivo(file) {
+  if (esPdf(file)) {
+    const { paginas, paginasOmitidas } = await prepararPdf(file);
+    if (paginas.length === 0) throw new Error("PDF sin páginas");
+    return { paginas, paginasOmitidas, respaldo: file, esPdf: true };
+  }
+  const pagina = await prepararImagen(file);
+  return { paginas: [pagina], paginasOmitidas: 0, respaldo: pagina.blob, esPdf: false };
+}
+
+export function liberarArchivo(archivo) {
+  archivo?.paginas?.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+}
+
+export async function leerPlanillaConIA(paginas, catalogo) {
   const pistas = catalogo.propiedades.map((p) => ({
     propiedad: p.nombre,
     numeros: catalogo.entradas.filter((e) => e.propiedadId === p.id && e.numero).map((e) => `${e.tipo}: ${e.numero}`),
   }));
   const { data, error } = await supabase.functions.invoke("leer-planilla", {
-    body: { imagen: base64, media_type: "image/jpeg", pistas },
+    body: { imagenes: paginas.map((p) => p.base64), media_type: "image/jpeg", pistas },
   });
   if (error) {
     let detalle = null;
@@ -348,8 +402,8 @@ async function traspasarGrupo(propiedadId, tipo, filasGrupo, periodo, propiedade
   if (errorGuardar) throw errorGuardar;
 }
 
-// Guarda la foto de la planilla en Documentos → Gestión familiar → "Planillas de pago".
-export async function guardarFotoPlanilla(blob, periodo) {
+// Guarda la foto o el PDF de la planilla en Documentos → Gestión familiar → "Planillas de pago".
+export async function guardarFotoPlanilla(archivo, periodo) {
   let carpetas = await fetchCarpetas("persona", PERSONA_DOC_ID, null);
   let carpeta = carpetas.find((c) => c.nombre === CARPETA_PLANILLAS);
   if (!carpeta) {
@@ -358,6 +412,8 @@ export async function guardarFotoPlanilla(blob, periodo) {
     carpeta = carpetas.find((c) => c.nombre === CARPETA_PLANILLAS);
   }
   const mes = new Date(`${periodo}T00:00:00`).toLocaleDateString("es-CL", { month: "long", year: "numeric" });
-  const file = new File([blob], `Planilla ${mes}.jpg`, { type: "image/jpeg" });
+  const file = archivo.esPdf
+    ? new File([archivo.respaldo], `Planilla ${mes}.pdf`, { type: "application/pdf" })
+    : new File([archivo.respaldo], `Planilla ${mes}.jpg`, { type: "image/jpeg" });
   return subirDocumento("persona", PERSONA_DOC_ID, carpeta?.id || null, file);
 }

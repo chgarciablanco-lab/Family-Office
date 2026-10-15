@@ -67,14 +67,21 @@ Deno.serve(async (req) => {
     });
   }
 
-  let body: { imagen?: string; media_type?: string; pistas?: unknown };
+  let body: { imagen?: string; imagenes?: string[]; media_type?: string; pistas?: unknown };
   try {
     body = await req.json();
   } catch {
     return responder(400, { error: "cuerpo", mensaje: "Solicitud inválida." });
   }
-  if (!body.imagen) return responder(400, { error: "sin_imagen", mensaje: "No llegó la imagen." });
-  if (body.imagen.length > 9_000_000) return responder(413, { error: "imagen_grande", mensaje: "La imagen es demasiado grande." });
+  // Una foto, o varias páginas (un PDF convertido a imágenes en el teléfono).
+  const imagenes = (Array.isArray(body.imagenes) ? body.imagenes : [body.imagen]).filter(
+    (x): x is string => typeof x === "string" && x.length > 0,
+  );
+  if (imagenes.length === 0) return responder(400, { error: "sin_imagen", mensaje: "No llegó la imagen." });
+  if (imagenes.length > 4) return responder(413, { error: "muchas_paginas", mensaje: "Máximo 4 páginas por planilla." });
+  if (imagenes.reduce((s, x) => s + x.length, 0) > 20_000_000) {
+    return responder(413, { error: "imagen_grande", mensaje: "El archivo es demasiado grande." });
+  }
 
   const respuesta = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -93,10 +100,13 @@ Deno.serve(async (req) => {
         {
           role: "user",
           content: [
-            { type: "image", source: { type: "base64", media_type: body.media_type || "image/jpeg", data: body.imagen } },
+            ...imagenes.map((data) => ({
+              type: "image",
+              source: { type: "base64", media_type: body.media_type || "image/jpeg", data },
+            })),
             {
               type: "text",
-              text: `Transcribe esta planilla. Pistas (propiedades y números de cliente conocidos en la app):\n${JSON.stringify(body.pistas ?? [])}`,
+              text: `Transcribe esta planilla${imagenes.length > 1 ? ` (son ${imagenes.length} páginas, en orden; devuelve las filas de todas)` : ""}. Pistas (propiedades y números de cliente conocidos en la app):\n${JSON.stringify(body.pistas ?? [])}`,
             },
           ],
         },

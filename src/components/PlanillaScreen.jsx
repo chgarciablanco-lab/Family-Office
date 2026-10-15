@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, Camera, PenLine, Loader2, AlertTriangle, Trash2, Plus, Check, ChevronDown, ChevronUp, X, CheckCircle2,
+  ArrowLeft, Camera, Images, FileUp, PenLine, Loader2, AlertTriangle, Trash2, Plus, Check, ChevronDown, ChevronUp, X, CheckCircle2,
   ImageIcon, XCircle,
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 import { formatCLP, formatFechaCorta } from "../lib/format";
 import { usePermisos } from "../context/PermisosContext";
 import {
-  TIPOS, fetchCatalogo, plantillaManual, asignarFilas, prepararImagen, leerPlanillaConIA, traspasarPlanilla,
+  TIPOS, fetchCatalogo, plantillaManual, asignarFilas, prepararArchivo, liberarArchivo, leerPlanillaConIA, traspasarPlanilla,
   filasParaTraspasar, guardarFotoPlanilla, nuevoIdFila, tipoDesdeConcepto,
 } from "../lib/planilla";
 
@@ -171,12 +171,14 @@ function FilaPlanilla({ fila, propiedades, abierta, onToggle, onChange, onElimin
 export default function PlanillaScreen({ backTo, onNavigate }) {
   const { puedeEditar } = usePermisos();
   const editable = puedeEditar("propiedades");
-  const inputFotoRef = useRef(null);
+  const inputCamaraRef = useRef(null);
+  const inputGaleriaRef = useRef(null);
+  const inputDocumentoRef = useRef(null);
 
   const [paso, setPaso] = useState("inicio"); // inicio | leyendo | revision | confirmar | guardando | listo
   const [catalogo, setCatalogo] = useState(null);
   const [mes, setMes] = useState(mesActual());
-  const [foto, setFoto] = useState(null); // { blob, base64, previewUrl }
+  const [foto, setFoto] = useState(null); // { paginas: [{ blob, base64, previewUrl }], paginasOmitidas, respaldo, esPdf }
   const [verFoto, setVerFoto] = useState(false);
   const [filas, setFilas] = useState([]);
   const [abierta, setAbierta] = useState(null);
@@ -188,7 +190,8 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
     fetchCatalogo().then(setCatalogo);
   }, []);
 
-  useEffect(() => () => foto?.previewUrl && URL.revokeObjectURL(foto.previewUrl), [foto]);
+  useEffect(() => () => liberarArchivo(foto), [foto]);
+  const portada = foto?.paginas?.[0]?.previewUrl;
 
   const propiedades = catalogo?.propiedades || [];
   const periodo = `${mes}-01`;
@@ -224,20 +227,23 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
     setPaso("leyendo");
     let preparada;
     try {
-      preparada = await prepararImagen(file);
+      preparada = await prepararArchivo(file);
     } catch {
       setPaso("inicio");
-      setAviso({ tipo: "error", texto: "No se pudo abrir la imagen. Prueba con otra foto." });
+      setAviso({
+        tipo: "error",
+        texto: "No se pudo abrir el archivo. Usa una foto (JPG, PNG) o un PDF; si es una foto del iPhone en formato HEIC, compártela como JPG.",
+      });
       return;
     }
     setFoto(preparada);
 
-    const r = await leerPlanillaConIA(preparada.base64, catalogo);
+    const r = await leerPlanillaConIA(preparada.paginas, catalogo);
     if (r?.error) {
       const texto =
         r.error === "sin_key"
-          ? "La lectura automática aún no está activada. Puedes ingresar los montos a mano mirando la foto."
-          : `${r.mensaje || "No se pudo leer la planilla."} Puedes ingresar los montos a mano mirando la foto.`;
+          ? "La lectura automática aún no está activada. Puedes ingresar los montos a mano mirando el documento."
+          : `${r.mensaje || "No se pudo leer la planilla."} Puedes ingresar los montos a mano mirando el documento.`;
       setFilas(plantillaManual(catalogo));
       setAviso({ tipo: "error", texto });
       setPaso("revision");
@@ -248,9 +254,12 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
     const asignadas = asignarFilas(r.filas || [], catalogo);
     setFilas(asignadas);
     const dudosas = asignadas.filter((f) => f.dudoso || problemasDe(f).length > 0).length;
+    const omitidas = preparada.paginasOmitidas
+      ? ` Solo se leyeron las primeras ${preparada.paginas.length} páginas del PDF.`
+      : "";
     setAviso({
       tipo: "info",
-      texto: `Se leyeron ${asignadas.length} filas.${dudosas ? ` ${dudosas} necesitan revisión (en amarillo).` : " Revisa que todo calce con la foto."}`,
+      texto: `Se leyeron ${asignadas.length} filas.${dudosas ? ` ${dudosas} necesitan revisión (en amarillo).` : " Revisa que todo calce con el documento."}${omitidas}`,
     });
     setPaso("revision");
   };
@@ -291,8 +300,8 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
     setPaso("guardando");
     const res = await traspasarPlanilla(filas, periodo, propiedades);
     let fotoGuardada = false;
-    if (foto?.blob && res.some((r) => r.ok)) {
-      const { error } = await guardarFotoPlanilla(foto.blob, periodo);
+    if (foto?.respaldo && res.some((r) => r.ok)) {
+      const { error } = await guardarFotoPlanilla(foto, periodo);
       fotoGuardada = !error;
     }
     setResultado({ res, fotoGuardada });
@@ -329,20 +338,38 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
         {editable && paso === "inicio" && (
           <>
             <p className="text-sm text-slate-500 -mt-1">
-              Saca una foto de tu planilla de cuentas por pagar. La app lee los montos, tú los revisas y al confirmar
-              se registran en cada propiedad.
+              Sube tu planilla de cuentas por pagar: una foto nueva, una imagen de la galería o un PDF. La app
+              lee los montos, tú los revisas y al confirmar se registran en cada propiedad.
             </p>
             <div>
               <label className={labelCls}>Mes de la planilla</label>
               <input type="month" className={inputCls} value={mes} onChange={(e) => setMes(e.target.value)} />
             </div>
             <button
-              onClick={() => inputFotoRef.current?.click()}
+              onClick={() => inputCamaraRef.current?.click()}
               disabled={!catalogo}
               className="w-full bg-violet-600 text-white rounded-2xl px-4 py-4 flex items-center justify-center gap-2.5 font-semibold disabled:opacity-50"
             >
-              <Camera className="w-5 h-5" strokeWidth={2} /> Sacar o elegir foto
+              <Camera className="w-5 h-5" strokeWidth={2} /> Sacar foto
             </button>
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => inputGaleriaRef.current?.click()}
+                disabled={!catalogo}
+                className="flex-1 bg-white border border-slate-200 rounded-2xl px-3 py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Images className="w-4 h-4 text-violet-600" strokeWidth={1.8} />
+                <span className="text-sm font-semibold text-slate-700">Galería</span>
+              </button>
+              <button
+                onClick={() => inputDocumentoRef.current?.click()}
+                disabled={!catalogo}
+                className="flex-1 bg-white border border-slate-200 rounded-2xl px-3 py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <FileUp className="w-4 h-4 text-violet-600" strokeWidth={1.8} />
+                <span className="text-sm font-semibold text-slate-700">Documento / PDF</span>
+              </button>
+            </div>
             <button
               onClick={() => empezarManual()}
               disabled={!catalogo}
@@ -351,7 +378,9 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
               <PenLine className="w-4 h-4 text-violet-600" strokeWidth={1.8} />
               <span className="text-sm font-semibold text-slate-700">Ingresar a mano (sin foto)</span>
             </button>
-            <input ref={inputFotoRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFoto} />
+            <input ref={inputCamaraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFoto} />
+            <input ref={inputGaleriaRef} type="file" accept="image/*" className="hidden" onChange={handleFoto} />
+            <input ref={inputDocumentoRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={handleFoto} />
             {!catalogo && <p className="text-xs text-slate-400 text-center">Cargando propiedades...</p>}
             {aviso && <p className="text-xs text-red-500">{aviso.texto}</p>}
           </>
@@ -359,7 +388,7 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
 
         {paso === "leyendo" && (
           <div className="flex flex-col items-center gap-4 py-6">
-            {foto && <img src={foto.previewUrl} alt="Planilla" className="w-40 rounded-xl border border-slate-200 shadow-sm" />}
+            {portada && <img src={portada} alt="Planilla" className="w-40 rounded-xl border border-slate-200 shadow-sm" />}
             <Loader2 className="w-7 h-7 text-violet-600 animate-spin" />
             <p className="text-sm text-slate-500 text-center">Leyendo la planilla... puede tardar hasta un minuto.</p>
           </div>
@@ -368,9 +397,9 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
         {paso === "revision" && (
           <>
             <div className="flex items-center gap-3">
-              {foto && (
-                <button onClick={() => setVerFoto(true)} className="shrink-0" aria-label="Ver foto completa">
-                  <img src={foto.previewUrl} alt="Planilla" className="w-14 h-[72px] object-cover rounded-lg border border-slate-200" />
+              {portada && (
+                <button onClick={() => setVerFoto(true)} className="shrink-0" aria-label="Ver documento completo">
+                  <img src={portada} alt="Planilla" className="w-14 h-[72px] object-cover object-top rounded-lg border border-slate-200" />
                 </button>
               )}
               <div className="flex-1 min-w-0">
@@ -380,7 +409,8 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
             </div>
             {foto && (
               <button onClick={() => setVerFoto(true)} className="self-start -mt-1 text-xs font-semibold text-violet-600 flex items-center gap-1">
-                <ImageIcon className="w-3.5 h-3.5" strokeWidth={2} /> Ver foto para comparar
+                <ImageIcon className="w-3.5 h-3.5" strokeWidth={2} />{" "}
+                {foto.esPdf ? `Ver PDF para comparar (${foto.paginas.length} pág.)` : "Ver foto para comparar"}
               </button>
             )}
 
@@ -488,7 +518,11 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
               </div>
             ))}
 
-            {foto && <p className="text-xs text-slate-400">La foto se guardará en Documentos → Gestión familiar → Planillas de pago.</p>}
+            {foto && (
+              <p className="text-xs text-slate-400">
+                {foto.esPdf ? "El PDF" : "La foto"} se guardará en Documentos → Gestión familiar → Planillas de pago.
+              </p>
+            )}
           </>
         )}
 
@@ -511,7 +545,9 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
                 <p className="text-base font-bold text-slate-900">{nOk} pagos registrados</p>
                 <p className="text-sm text-slate-500">
                   Ya aparecen en Gastos básicos de cada propiedad.
-                  {resultado.fotoGuardada ? " La foto quedó guardada en Documentos." : ""}
+                  {resultado.fotoGuardada
+                    ? foto?.esPdf ? " El PDF quedó guardado en Documentos." : " La foto quedó guardada en Documentos."
+                    : ""}
                 </p>
               </div>
               {fallidos.length > 0 && (
@@ -573,8 +609,10 @@ export default function PlanillaScreen({ backTo, onNavigate }) {
               <X className="w-5 h-5 text-white" />
             </button>
           </div>
-          <div className="flex-1 overflow-auto">
-            <img src={foto.previewUrl} alt="Planilla completa" className="w-full" />
+          <div className="flex-1 overflow-auto flex flex-col gap-3 pb-6">
+            {foto.paginas.map((p, i) => (
+              <img key={p.previewUrl} src={p.previewUrl} alt={`Planilla, página ${i + 1}`} className="w-full" />
+            ))}
           </div>
         </div>
       )}

@@ -195,10 +195,14 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
     setMoviendo({ tipo: "documento", item: doc, excluir: null });
   };
 
-  const handleMoverConfirmado = async (destinoId) => {
+  const [errorMover, setErrorMover] = useState("");
+  const handleMoverConfirmado = async (destinoId, lugar) => {
     if (!moviendo) return;
-    if (moviendo.tipo === "carpeta") await moverCarpeta(moviendo.item.id, destinoId);
-    else await moverDocumento(moviendo.item.id, destinoId);
+    const { error } =
+      moviendo.tipo === "carpeta"
+        ? await moverCarpeta(moviendo.item.id, destinoId)
+        : await moverDocumento(moviendo.item.id, destinoId, lugar);
+    setErrorMover(error ? `No se pudo mover: ${error.message}` : "");
     setMoviendo(null);
     cargar();
   };
@@ -264,6 +268,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
           </div>
         )}
 
+        {errorMover && <p className="text-xs text-red-500">{errorMover}</p>}
         {loading && <p className="text-sm text-slate-400 text-center py-8">Cargando...</p>}
 
         {!loading && arrastreCarpetas.items.map((c, idx) => (
@@ -375,6 +380,7 @@ export default function DocumentosScreen({ entidadTipo, entidadId, entidadNombre
           entidadId={entidadId}
           entidadNombre={entidadNombre}
           excluir={moviendo.excluir}
+          permitirOtroLugar={moviendo.tipo === "documento"}
           onSeleccionar={handleMoverConfirmado}
           onClose={() => setMoviendo(null)}
         />

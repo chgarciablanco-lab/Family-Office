@@ -70,8 +70,16 @@ export async function moverCarpeta(carpetaId, nuevaCarpetaPadreId) {
   return { error };
 }
 
-export async function moverDocumento(docId, nuevaCarpetaId) {
-  const { error } = await supabase.from("documentos").update({ carpeta_id: nuevaCarpetaId || null }).eq("id", docId);
+// Mueve un documento a otra carpeta; con `lugar` ({ tipo, id }) también puede cambiarlo de
+// propiedad, sociedad, trabajador, auto o Gestión familiar. El archivo en Storage no se mueve:
+// su ruta es solo un identificador.
+export async function moverDocumento(docId, nuevaCarpetaId, lugar) {
+  const cambios = { carpeta_id: nuevaCarpetaId || null };
+  if (lugar?.tipo && lugar?.id) {
+    cambios.entidad_tipo = lugar.tipo;
+    cambios.entidad_id = lugar.id;
+  }
+  const { error } = await supabase.from("documentos").update(cambios).eq("id", docId);
   return { error };
 }
 
